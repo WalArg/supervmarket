@@ -2,6 +2,7 @@ import React from 'react'
 import { ExternalLink, Flame, CreditCard, MapPinOff } from 'lucide-react'
 import type { Offer } from '../types'
 import { useLocation } from '../location/LocationContext'
+import { useBenefits } from '../benefits/BenefitsContext'
 
 interface OfferCardProps {
   offer: Offer
@@ -100,6 +101,8 @@ const OfferCard: React.FC<OfferCardProps> = ({
   isBestPrice,
 }) => {
   const { cp, delivers } = useLocation()
+  const { hasStoreClub } = useBenefits()
+  const userHasClub = hasStoreClub(offer.supermercado)
   const cobertura = cp ? delivers(offer.supermercado) : null
   const noEntrega = cobertura === false
 
@@ -111,14 +114,22 @@ const OfferCard: React.FC<OfferCardProps> = ({
   }
 
   const minQty = offer.promo_min_qty || 1
-  // Las promos que requieren tarjeta/membresía (ej: Tarjeta Carrefour, Comunidad Coto) NO alteran el precio público
-  const effectivePrice = offer.requires_club
-    ? offer.precio
-    : (offer.promo_unit_price ?? offer.precio)
+  // Las promos que requieren tarjeta/membresía SOLO se descuentan del precio principal si el usuario marcó esa tarjeta
+  const effectivePrice =
+    offer.requires_club && !userHasClub
+      ? offer.precio
+      : (offer.promo_unit_price ?? offer.precio)
   const clubPrice =
-    offer.requires_club && offer.promo_unit_price && offer.promo_unit_price < offer.precio
+    offer.requires_club &&
+    !userHasClub &&
+    offer.promo_unit_price &&
+    offer.promo_unit_price < offer.precio
       ? offer.promo_unit_price
       : null
+  const displayUnitPrice =
+    offer.unit_price && offer.requires_club && userHasClub && effectivePrice < offer.precio
+      ? Math.round(offer.unit_price * (effectivePrice / offer.precio))
+      : offer.unit_price
   const referenceStrikePrice =
     effectivePrice < offer.precio
       ? offer.precio
@@ -191,8 +202,8 @@ const OfferCard: React.FC<OfferCardProps> = ({
 
         <div className="text-[10px] text-slate-500 font-medium mt-0.5 flex items-center justify-between">
           <span>
-            {offer.unit_price
-              ? `${formatPrice(offer.unit_price)} / ${offer.unit_measure}`
+            {displayUnitPrice
+              ? `${formatPrice(displayUnitPrice)} / ${offer.unit_measure}`
               : 'Precio unitario'}
           </span>
           <ExternalLink

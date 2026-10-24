@@ -16,9 +16,11 @@ import {
 } from 'lucide-react'
 import ProductRow from './components/ProductRow'
 import SmartCart from './components/SmartCart'
+import BenefitsModal from './components/BenefitsModal'
 import { STORE_BRANDS } from './components/OfferCard'
 import { useCart } from './cart/CartContext'
 import { useLocation } from './location/LocationContext'
+import { useBenefits } from './benefits/BenefitsContext'
 import { searchProducts, getStats } from './api'
 import type { ProductGroup, StatsSummary } from './types'
 
@@ -51,9 +53,11 @@ function App() {
   const [sortBy, setSortBy] = useState<'price_asc' | 'unit_price_asc'>('unit_price_asc')
   const [debounced, setDebounced] = useState(query)
   const [cartOpen, setCartOpen] = useState(false)
+  const [benefitsOpen, setBenefitsOpen] = useState(false)
 
   const { count, totalUnits } = useCart()
   const { cp, setCp, loading: cpLoading } = useLocation()
+  const { selectedCards, selectedDay } = useBenefits()
   const [cpInput, setCpInput] = useState(cp || '')
 
   useEffect(() => {
@@ -200,6 +204,25 @@ function App() {
               />
               {cpLoading && <Loader2 className="animate-spin text-blue-600 ml-1" size={12} />}
             </form>
+
+            <button
+              type="button"
+              onClick={() => setBenefitsOpen(true)}
+              className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-lg border transition-colors ${
+                selectedCards.length > 0
+                  ? 'bg-purple-50 text-purple-800 border-purple-300 hover:bg-purple-100'
+                  : 'bg-slate-100 text-slate-700 border-transparent hover:bg-slate-200'
+              }`}
+              title="Seleccionar mis tarjetas, billeteras y día de compra"
+            >
+              <CreditCard size={13} className="text-purple-600" />
+              <span className="capitalize">{selectedDay.slice(0, 3)}</span>
+              {selectedCards.length > 0 && (
+                <span className="bg-purple-600 text-white text-[10px] font-extrabold px-1.5 rounded-full">
+                  {selectedCards.length}
+                </span>
+              )}
+            </button>
 
             <button
               type="button"
@@ -467,7 +490,12 @@ function App() {
         </div>
       )}
 
-      <SmartCart open={cartOpen} onClose={() => setCartOpen(false)} />
+      <SmartCart
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+        onOpenBenefits={() => setBenefitsOpen(true)}
+      />
+      <BenefitsModal open={benefitsOpen} onClose={() => setBenefitsOpen(false)} />
     </div>
   )
 }

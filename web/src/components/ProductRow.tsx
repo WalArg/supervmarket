@@ -5,16 +5,20 @@ import { Plus, Minus, Flame } from 'lucide-react'
 import type { ProductGroup } from '../types'
 import OfferCard from './OfferCard'
 import { useCart } from '../cart/CartContext'
+import { useBenefits } from '../benefits/BenefitsContext'
 import 'swiper/css'
 import 'swiper/css/free-mode'
 
 const ProductRow: React.FC<{ group: ProductGroup }> = ({ group }) => {
   const { add, setQty, qtyOf } = useCart()
+  const { hasStoreClub } = useBenefits()
   const currentQty = qtyOf(group.ean)
 
-  // Ordenar por el mejor precio efectivo abierto a todo público (sin exigir tarjeta/club)
+  // Ordenar por el mejor precio efectivo según las tarjetas/membresías que realmente tenga el usuario
   const publicEff = (o: ProductGroup['offers'][number]) =>
-    o.requires_club ? o.precio : (o.promo_unit_price ?? o.precio)
+    o.requires_club && !hasStoreClub(o.supermercado)
+      ? o.precio
+      : (o.promo_unit_price ?? o.precio)
 
   const sortedOffers = [...group.offers].sort((a, b) => publicEff(a) - publicEff(b))
 

@@ -62,6 +62,28 @@ const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
         </div>
       </div>
 
+      {plan.bank_benefit && (plan.reintegro_bancario ?? 0) > 0 && (
+        <div className="mb-2.5 bg-purple-50 border border-purple-200 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-xs text-purple-950">
+          <div>
+            <span className="font-extrabold">💳 {plan.bank_benefit.label}</span>
+            <span className="block text-[10px] text-purple-700">
+              {plan.bank_benefit.day_label} ·{' '}
+              {plan.bank_benefit.cap
+                ? `Tope ${formatPrice(plan.bank_benefit.cap)}`
+                : 'Sin tope'}
+            </span>
+          </div>
+          <div className="text-right">
+            <span className="font-extrabold text-emerald-700">
+              -{formatPrice(plan.reintegro_bancario || 0)}
+            </span>
+            <span className="block text-[10px] font-bold text-slate-700">
+              Neto: {formatPrice(Math.max(0, effectiveSubtotal - (plan.reintegro_bancario || 0)))}
+            </span>
+          </div>
+        </div>
+      )}
+
       {cp && cobertura === true && (
         <p className="text-xs text-green-700 flex items-center gap-1 mb-2">
           <MapPin size={13} /> Entrega disponible en tu zona (CP {cp})

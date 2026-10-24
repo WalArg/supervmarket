@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { X, Trash2, Loader2, Sparkles, CreditCard, Truck, TrendingDown } from 'lucide-react'
+import { X, Trash2, Loader2, Sparkles, CreditCard, Truck, TrendingDown, Calendar } from 'lucide-react'
 import type { OptimizeMode, OptimizePlan } from '../types'
 import { useCart } from '../cart/CartContext'
 import { useLocation } from '../location/LocationContext'
+import { useBenefits } from '../benefits/BenefitsContext'
 import { optimize } from '../api'
 import { formatPrice } from './OfferCard'
 import StoreCart from './StoreCart'
@@ -13,11 +14,15 @@ const MODES: { id: OptimizeMode; label: string; desc: string }[] = [
   { id: 'balanceada', label: 'Balanceada', desc: 'Hasta 2 súper' },
 ]
 
-const SmartCart: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
+const SmartCart: React.FC<{
+  open: boolean
+  onClose: () => void
+  onOpenBenefits?: () => void
+}> = ({ open, onClose, onOpenBenefits }) => {
   const { items, remove, setQty, clear, totalUnits } = useCart()
   const { cp } = useLocation()
+  const { selectedCards, selectedDay, setSelectedDay } = useBenefits()
   const [mode, setMode] = useState<OptimizeMode>('ahorro')
-  const [includeClubs, setIncludeClubs] = useState(false)
   const [includeShipping, setIncludeShipping] = useState(false)
   const [plan, setPlan] = useState<OptimizePlan | null>(null)
   const [loading, setLoading] = useState(false)
@@ -29,7 +34,15 @@ const SmartCart: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onC
     }
     setLoading(true)
     try {
-      setPlan(await optimize(items, mode, { cp, includeClubs, includeShipping }))
+      setPlan(
+        await optimize(items, mode, {
+          cp,
+          includeClubs: false,
+          includeShipping,
+          selectedCards,
+          day: selectedDay,
+        }),
+      )
     } finally {
       setLoading(false)
     }
@@ -42,7 +55,7 @@ const SmartCart: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onC
     } else if (items.length === 0) {
       setPlan(null)
     }
-  }, [open, items, mode, cp, includeClubs, includeShipping])
+  }, [open, items, mode, cp, includeShipping, selectedCards, selectedDay])
 
   return (
     <div className={`fixed inset-0 z-50 ${open ? '' : 'pointer-events-none'}`}>
@@ -145,18 +158,24 @@ const SmartCart: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onC
               </div>
 
               <div className="bg-white rounded-xl border border-gray-200 p-3 space-y-2 text-xs">
-                <label className="flex items-center justify-between cursor-pointer">
-                  <span className="flex items-center gap-2 text-gray-700 font-medium">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-gray-800 font-semibold">
                     <CreditCard size={15} className="text-purple-600" />
-                    Tengo Club DIA / Mi Carrefour / Comunidad Coto
+                    <span>
+                      Día: <strong className="capitalize">{selectedDay}</strong> ·{' '}
+                      <strong>{selectedCards.length}</strong> tarjeta(s)/billetera(s)
+                    </span>
                   </span>
-                  <input
-                    type="checkbox"
-                    checked={includeClubs}
-                    onChange={e => setIncludeClubs(e.target.checked)}
-                    className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4"
-                  />
-                </label>
+                  {onOpenBenefits && (
+                    <button
+                      type="button"
+                      onClick={onOpenBenefits}
+                      className="px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 border border-purple-200 font-bold hover:bg-purple-100"
+                    >
+                      Configurar
+                    </button>
+                  )}
+                </div>
 
                 <label className="flex items-center justify-between cursor-pointer pt-1 border-t border-gray-100">
                   <span className="flex items-center gap-2 text-gray-700 font-medium">
@@ -211,7 +230,39 @@ const SmartCart: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onC
                     <span>Envío estimado: {formatPrice(plan.envio_estimado || 0)}</span>
                   </div>
                 )}
+
+                {(plan.reintegro_bancario_total ?? 0) > 0 && (
+                  <div className="text-xs text-emerald-200 mt-2 pt-2 border-t border-white/15 flex justify-between font-bold">
+                    <span>Reintegro tarjetas/billeteras ({plan.day_label}):</span>
+                    <span>-{formatPrice(plan.reintegro_bancario_total || 0)}</span>
+                  </div>
+                )}
               </div>
+
+              {plan.best_day_suggestion &&
+                plan.best_day_suggestion.day !== plan.day &&
+                plan.best_day_suggestion.saving > (plan.reintegro_bancario_total || 0) && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-xs flex items-center justify-between gap-2">
+                    <div>
+                      <div className="font-extrabold text-purple-950 flex items-center gap-1">
+                        <Calendar size={13} className="text-purple-600" />
+                        Mejor día para comprar con tus tarjetas:{' '}
+                        <span className="underline">{plan.best_day_suggestion.day_label}</span>
+                      </div>
+                      <div className="text-[11px] text-purple-800 mt-0.5">
+                        Ahorrás <strong>{formatPrice(plan.best_day_suggestion.saving)}</strong> en reintegros (
+                        {plan.best_day_suggestion.details.join(' · ')})
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDay(plan.best_day_suggestion!.day)}
+                      className="px-2.5 py-1.5 rounded-lg bg-purple-600 text-white font-extrabold whitespace-nowrap hover:bg-purple-700"
+                    >
+                      Ver {plan.best_day_suggestion.day_label}
+                    </button>
+                  </div>
+                )}
 
               {plan.excluded_stores && plan.excluded_stores.length > 0 && (
                 <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2.5">

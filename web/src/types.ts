@@ -38,29 +38,82 @@ export interface CartLineItem {
   link: string | null
 }
 
+export interface BankBenefit {
+  payment_id: string
+  label: string
+  pct: number
+  cap: number | null
+  kind: 'en_caja' | 'reintegro'
+  saving: number
+  day: string
+  day_label: string
+  official_url: string
+}
+
 export interface StorePlan {
   supermercado: string
   supports_cart: boolean
   checkout_url: string | null
   subtotal: number
   ahorro?: number
+  reintegro_bancario?: number
+  bank_benefit?: BankBenefit | null
   envio_estimado?: number
   free_shipping_threshold: number
   falta_envio_gratis: number
   items: CartLineItem[]
 }
 
+export interface BestDaySuggestion {
+  day: string
+  day_label: string
+  saving: number
+  details: string[]
+}
+
 export interface OptimizePlan {
   mode: OptimizeMode
   cp?: string | null
+  day?: string
+  day_label?: string
   stops: number
   subtotal_mercaderia?: number
   envio_estimado?: number
+  reintegro_bancario_total?: number
   total: number
   ahorro_total?: number
+  best_day_suggestion?: BestDaySuggestion | null
   excluded_stores?: string[]
   missing: { ean: string; nombre: string }[]
   carts: StorePlan[]
+}
+
+export interface PaymentOption {
+  id: string
+  name: string
+  category: 'club' | 'wallet' | 'bank'
+  store?: string
+}
+
+export interface DailyPromo {
+  supermercado: string
+  days: string[]
+  payment_id: string
+  label: string
+  pct: number
+  cap: number | null
+  kind: 'en_caja' | 'reintegro'
+  applies_online: boolean
+  official_url: string
+}
+
+export interface BenefitsCatalog {
+  today: string
+  today_label: string
+  weekdays: { id: string; label: string }[]
+  payment_options: PaymentOption[]
+  official_links: Record<string, string>
+  daily_promos: DailyPromo[]
 }
 
 export interface ListItem {

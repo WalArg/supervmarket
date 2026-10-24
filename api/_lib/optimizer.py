@@ -15,16 +15,20 @@ from .stores import (
     supports_cart, free_shipping_threshold, estimated_shipping_cost,
     VTEX_DOMAINS, sales_channel,
 )
-from . import regions, vtex_mcp
+from . import regions, vtex_mcp, benefits
 
 MODES = {"ahorro": None, "comodidad": 1, "balanceada": 2}
 
 
-def _calc_offer_line(offer: dict, qty: int, include_clubs: bool) -> dict:
+def _calc_offer_line(
+    offer: dict,
+    qty: int,
+    include_clubs: bool,
+    selected_cards: set[str] | None = None,
+) -> dict:
     """Calcula el precio real para `qty` unidades según las reglas de promoción del producto."""
     base_unit = float(offer["precio"])
     list_unit = float(offer.get("precio_lista") or base_unit)
-    promo_type = offer.get("promo_type")
     min_qty = int(offer.get("promo_min_qty") or 1)
     promo_unit = float(offer.get("promo_unit_price") or base_unit)
     req_club = bool(offer.get("requires_club"))
@@ -33,8 +37,12 @@ def _calc_offer_line(offer: dict, qty: int, include_clubs: bool) -> dict:
     regular_total = round(max(list_unit, base_unit) * qty, 2)
     base_total = round(base_unit * qty, 2)
 
-    # Si requiere membresía/tarjeta y el usuario no activó `include_clubs`, se cobra precio público
-    if req_club and not include_clubs:
+    has_club = benefits.user_has_store_club(
+        offer["supermercado"], selected_cards or set(), include_clubs_legacy=include_clubs
+    )
+
+    # Si requiere membresía/tarjeta y el usuario no tiene esa tarjeta/club, se cobra precio público
+    if req_club and not has_club:
         return {
             "line_total": base_total,
             "effective_unit": round(base_unit, 2),
@@ -72,8 +80,13 @@ def _calc_offer_line(offer: dict, qty: int, include_clubs: bool) -> dict:
     }
 
 
-def _assign(items: list[dict], offers_by_ean: dict, allowed_stores: set[str] | None,
-            include_clubs: bool = False):
+def _assign(
+    items: list[dict],
+    offers_by_ean: dict,
+    allowed_stores: set[str] | None,
+    include_clubs: bool = False,
+    selected_cards: set[str] | None = None,
+):
     """Asigna cada ítem al súper más conveniente dentro de `allowed_stores`."""
     assignment: dict[str, list[dict]] = {}
     merch_total = 0.0
@@ -88,7 +101,9 @@ def _assign(items: list[dict], offers_by_ean: dict, allowed_stores: set[str] | N
         for o in offers_by_ean.get(ean, []):
             if allowed_stores is not None and o["supermercado"] not in allowed_stores:
                 continue
-            calc = _calc_offer_line(o, qty, include_clubs=include_clubs)
+            calc = _calc_offer_line(
+                o, qty, include_clubs=include_clubs, selected_cards=selected_cards
+            )
             if best is None or calc["line_total"] < best_calc["line_total"]:
                 best = o
                 best_calc = calc
@@ -119,9 +134,15 @@ def _shipping_for_store(store: str, subtotal: float, include_shipping: bool) -> 
     return estimated_shipping_cost(store)
 
 
-def _best_combo(items: list[dict], offers_by_ean: dict, max_stores: int | None,
-                valid_stores: set[str] | None, include_clubs: bool = False,
-                include_shipping: bool = False):
+def _best_combo(
+    items: list[dict],
+    offers_by_ean: dict,
+    max_stores: int | None,
+    valid_stores: set[str] | None,
+    include_clubs: bool = False,
+    include_shipping: bool = False,
+    selected_cards: set[str] | None = None,
+):
     """Mejor solución usando a lo sumo `max_stores` súper (cobertura -> menor costo c/envío -> menos paradas)."""
     stores = sorted({
         o["supermercado"]
@@ -134,14 +155,18 @@ def _best_combo(items: list[dict], offers_by_ean: dict, max_stores: int | None,
 
     # Si no se incluye envío y es modo ahorro puro, asignar directo al mínimo por producto
     if max_stores is None and not include_shipping:
-        asg, merch, reg, cov = _assign(items, offers_by_ean, valid_stores, include_clubs=include_clubs)
+        asg, merch, reg, cov = _assign(
+            items, offers_by_ean, valid_stores, include_clubs=include_clubs, selected_cards=selected_cards
+        )
         return asg, merch, 0.0, reg, cov
 
     max_k = min(len(stores), max_stores or 4)
     best = None
     for k in range(1, max_k + 1):
         for combo in combinations(stores, k):
-            asg, merch, reg, cov = _assign(items, offers_by_ean, set(combo), include_clubs=include_clubs)
+            asg, merch, reg, cov = _assign(
+                items, offers_by_ean, set(combo), include_clubs=include_clubs, selected_cards=selected_cards
+            )
             if cov == 0:
                 continue
             ship = sum(
@@ -158,8 +183,15 @@ def _best_combo(items: list[dict], offers_by_ean: dict, max_stores: int | None,
     return best[1], best[2], best[3], best[4], best[5]
 
 
-def _build_carts(assignment: dict[str, list[dict]], include_shipping: bool = False):
+def _build_carts(
+    assignment: dict[str, list[dict]],
+    include_shipping: bool = False,
+    day: str | None = None,
+    selected_cards: set[str] | None = None,
+):
     carts = []
+    active_day = day or benefits.today_weekday_ar()
+    cards_set = selected_cards or set()
     for store, items in assignment.items():
         subtotal = round(sum(i["line_total"] for i in items), 2)
         regular_sub = round(sum(i["regular_total"] for i in items), 2)
@@ -167,6 +199,10 @@ def _build_carts(assignment: dict[str, list[dict]], include_shipping: bool = Fal
         threshold = free_shipping_threshold(store)
         falta_gratis = max(0.0, round(threshold - subtotal, 2)) if threshold else 0.0
         envio_est = _shipping_for_store(store, subtotal, include_shipping)
+        bank_benefit = benefits.best_cart_benefit_for_store(
+            store, subtotal, active_day, cards_set
+        )
+        reintegro_banco = bank_benefit["saving"] if bank_benefit else 0.0
 
         checkout = None
         if supports_cart(store):
@@ -183,6 +219,8 @@ def _build_carts(assignment: dict[str, list[dict]], include_shipping: bool = Fal
             "checkout_url": checkout,
             "subtotal": subtotal,
             "ahorro": ahorro_store,
+            "reintegro_bancario": reintegro_banco,
+            "bank_benefit": bank_benefit,
             "envio_estimado": envio_est,
             "free_shipping_threshold": threshold,
             "falta_envio_gratis": falta_gratis,
@@ -208,8 +246,10 @@ async def optimize(
     cp: str | None = None,
     include_clubs: bool = False,
     include_shipping: bool = False,
+    selected_cards: list[str] | None = None,
+    day: str | None = None,
 ) -> dict:
-    """items: [{ean, qty}]. Devuelve el plan con carritos por súper, ahorro real y validación de zona."""
+    """items: [{ean, qty}]. Devuelve el plan con carritos por súper, ahorro real y mejor día de compra."""
     eans = [it["ean"] for it in items]
     offers_by_ean, names = await vtex_mcp.live_offers_for_eans(eans, cp=cp)
     missing_live = [e for e in eans if e not in offers_by_ean]
@@ -227,6 +267,9 @@ async def optimize(
         excluded_stores = [c["supermercado"] for c in cov if c.get("delivers") is False]
         valid_stores = all_known - set(excluded_stores)
 
+    cards_set = set(selected_cards or [])
+    active_day = (day or benefits.today_weekday_ar()).lower().strip()
+
     max_stores = MODES.get(mode, None)
     assignment, merch_total, ship_total, regular_total, _ = _best_combo(
         items,
@@ -235,23 +278,55 @@ async def optimize(
         valid_stores,
         include_clubs=include_clubs,
         include_shipping=include_shipping,
+        selected_cards=cards_set,
     )
 
     found_eans = {i["ean"] for its in assignment.values() for i in its}
     missing = [{"ean": e, "nombre": names.get(e, e)} for e in eans if e not in found_eans]
-    carts = _build_carts(assignment, include_shipping=include_shipping)
+    carts = _build_carts(
+        assignment,
+        include_shipping=include_shipping,
+        day=active_day,
+        selected_cards=cards_set,
+    )
 
-    grand_total = round(merch_total + ship_total, 2)
+    reintegro_total = round(sum(c.get("reintegro_bancario") or 0.0 for c in carts), 2)
+    grand_total = round(merch_total + ship_total - reintegro_total, 2)
     ahorro_productos = round(max(0.0, regular_total - merch_total), 2)
+
+    # Calcular qué día de la semana da el mayor reintegro con las tarjetas del usuario
+    best_day_info = None
+    if cards_set and assignment:
+        for d_cand in benefits.WEEKDAYS_ES:
+            day_saving = 0.0
+            day_labels = []
+            for st, st_items in assignment.items():
+                sub = round(sum(i["line_total"] for i in st_items), 2)
+                b = benefits.best_cart_benefit_for_store(st, sub, d_cand, cards_set)
+                if b:
+                    day_saving += b["saving"]
+                    day_labels.append(f"{st}: {b['label']}")
+            day_saving = round(day_saving, 2)
+            if day_saving > 0 and (best_day_info is None or day_saving > best_day_info["saving"]):
+                best_day_info = {
+                    "day": d_cand,
+                    "day_label": benefits.WEEKDAY_LABELS.get(d_cand, d_cand.capitalize()),
+                    "saving": day_saving,
+                    "details": day_labels,
+                }
 
     return {
         "mode": mode,
         "cp": cp,
+        "day": active_day,
+        "day_label": benefits.WEEKDAY_LABELS.get(active_day, active_day.capitalize()),
         "stops": len(carts),
         "subtotal_mercaderia": merch_total,
         "envio_estimado": ship_total,
+        "reintegro_bancario_total": reintegro_total,
         "total": grand_total,
-        "ahorro_total": ahorro_productos,
+        "ahorro_total": round(ahorro_productos + reintegro_total, 2),
+        "best_day_suggestion": best_day_info,
         "excluded_stores": excluded_stores,
         "missing": missing,
         "carts": carts,

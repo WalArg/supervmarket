@@ -1,5 +1,12 @@
 import axios from 'axios'
-import type { ProductGroup, OptimizeMode, OptimizePlan, ListItem, StatsSummary } from './types'
+import type {
+  ProductGroup,
+  OptimizeMode,
+  OptimizePlan,
+  ListItem,
+  StatsSummary,
+  BenefitsCatalog,
+} from './types'
 
 // Mismo origen por defecto (/api en Vercel). VITE_API_URL para apuntar a otro host.
 const base = import.meta.env.VITE_API_URL || ''
@@ -30,7 +37,13 @@ export async function suggest(q: string): Promise<string[]> {
 export async function optimize(
   items: ListItem[],
   mode: OptimizeMode,
-  opts?: { cp?: string | null; includeClubs?: boolean; includeShipping?: boolean },
+  opts?: {
+    cp?: string | null
+    includeClubs?: boolean
+    includeShipping?: boolean
+    selectedCards?: string[]
+    day?: string | null
+  },
 ): Promise<OptimizePlan> {
   const payload = {
     items: items.map(i => ({ ean: i.ean, qty: i.qty })),
@@ -38,8 +51,15 @@ export async function optimize(
     cp: opts?.cp || null,
     include_clubs: opts?.includeClubs ?? false,
     include_shipping: opts?.includeShipping ?? false,
+    selected_cards: opts?.selectedCards ?? [],
+    day: opts?.day || null,
   }
   const { data } = await http.post('/api/optimize', payload)
+  return data
+}
+
+export async function getBenefits(): Promise<BenefitsCatalog> {
+  const { data } = await http.get('/api/benefits')
   return data
 }
 

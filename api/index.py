@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 sys.path.insert(0, os.path.dirname(__file__))
-from _lib import db, optimizer, carts, regions, vtex_mcp  # noqa: E402
+from _lib import db, optimizer, carts, regions, vtex_mcp, benefits  # noqa: E402
 from _lib.stores import VTEX_DOMAINS, COMPARE_ONLY        # noqa: E402
 
 STORE_NAMES_LOWER = {s.lower() for s in (*VTEX_DOMAINS.keys(), *COMPARE_ONLY, "thefoodmarket")}
@@ -46,6 +46,8 @@ class OptimizeRequest(BaseModel):
     cp: str | None = None
     include_clubs: bool = False
     include_shipping: bool = False
+    selected_cards: list[str] = []
+    day: str | None = None
 
 
 class ValidateItem(BaseModel):
@@ -107,6 +109,12 @@ async def regions_coverage(cp: str):
     return await regions.coverage(cp)
 
 
+@app.get("/api/benefits")
+async def get_benefits():
+    """Catálogo de tarjetas propias, bancos, billeteras y promociones por día de la semana."""
+    return benefits.get_benefits_catalog()
+
+
 @app.post("/api/optimize")
 async def optimize(req: OptimizeRequest):
     items = [i.model_dump() for i in req.items]
@@ -116,6 +124,8 @@ async def optimize(req: OptimizeRequest):
         cp=req.cp,
         include_clubs=req.include_clubs,
         include_shipping=req.include_shipping,
+        selected_cards=req.selected_cards,
+        day=req.day,
     )
 
 
