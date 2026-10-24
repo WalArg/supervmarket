@@ -316,6 +316,18 @@ _INVALID_BRANDS = {
     "", "generico", "genérico", "sin marca", "sin marca.", "s/m", "sin definir", "ninguna", "n/a",
 }
 
+_FILLER_TOKENS = {
+    "uat", "uht", "larga", "vida", "brick", "tetra", "brik", "botella", "lata",
+    "envase", "paquete", "bolsa", "caja", "sachet", "doypack", "pouch", "pet",
+    "clasica", "clasico", "tradicional", "fortificada", "fortificado", "vitamina",
+    "vitaminas", "calcio", "hierro", "con", "de", "del", "la", "el", "los", "las",
+    "para", "en", "por", "al", "y", "o", "x", "un", "u", "uni", "unid", "unidades",
+    "gr", "grs", "g", "kg", "kgs", "ml", "cc", "cm3", "l", "lt", "lts", "litro", "litros",
+}
+
+_NUMBER_WORDS = {"3": "tres", "9": "nueve", "5": "cinco", "7": "siete", "2": "dos"}
+_EAN_ALIASES: dict[str, set[str]] = {}
+
 
 def _is_valid_brand(b: str | None) -> bool:
     if not b:
@@ -323,8 +335,88 @@ def _is_valid_brand(b: str | None) -> bool:
     return b.strip().lower() not in _INVALID_BRANDS
 
 
+def _norm_brand_key(b: str) -> str:
+    tokens = [_NUMBER_WORDS.get(t, t) for t in _norm_text(b).split()]
+    return " ".join(tokens)
+
+
+def _singularize_token(t: str) -> str:
+    if len(t) > 5 and t.endswith("es") and t[-3] in "nlrdz":
+        return t[:-2]
+    if len(t) > 4 and t.endswith("s") and not t.endswith(("ss", "us", "is")):
+        return t[:-1]
+    return t
+
+
+def _canonical_signature(nombre: str, marca: str):
+    """Genera una firma canónica estricta `(brand_key, cant, u_norm, is_multipack, content_tokens)`
+    para fusionar únicamente productos idénticos que difieren de EAN entre cadenas.
+    """
+    if not _is_valid_brand(marca) or not nombre:
+        return None
+    brand_key = _norm_brand_key(marca)
+    if not brand_key:
+        return None
+
+    cant, u_tit = extraer_unidad_titulo(nombre)
+    if cant <= 0:
+        return None
+    _, u_norm = normalizar_unidad(1.0, u_tit)
+
+    s = "".join(
+        c for c in unicodedata.normalize("NFD", nombre.lower())
+        if unicodedata.category(c) != "Mn"
+    )
+    is_multipack = bool(
+        re.search(r"\b\d+\s*x\s*\d+|\bx\s*\d+\s*(?:un|u|l|ml|cc|g|gr)|\b(?:multipack|pack|sixpack)\b", s)
+    )
+
+    # Normalizar sinónimos exactos de la industria alimentaria argentina
+    s = re.sub(r"\b0\s*%?\s*tenor\s+graso\b|\b0\s*%\s*grasa\b", " descremada ", s)
+    s = re.sub(
+        r"\b0\s*%?\s*lactosa\b|\bsin\s+lactosa\b|\bdeslactosad[ao]s?\b|\breducid[ao]\s+en\s+lactosa\b",
+        " zero_lactosa ",
+        s,
+    )
+    if "zero_lactosa" in s:
+        s = re.sub(r"\b(?:parcialmente\s+)?descremad[ao]s?\b", " ", s)
+    s = re.sub(r"\bsin\s+azucar(?:es)?\b", " sin_azucar ", s)
+
+    # Quitar expresiones de medida ("1.5 l", "473 ml", "90 grs", "2%", "3%")
+    s = re.sub(
+        r"\b\d+(?:[.,]\d+)?\s*(?:l|lt|lts|litro|litros|ml|cc|cm3|g|gr|grs|gramos?|kg|kgs|kilos?|%|un|u|uni|unid|unidades)\b",
+        " ",
+        s,
+    )
+    # Quitar el "2" suelto de "Leche liviana 2 fortificada"
+    s = re.sub(r"\bliviana\s+2\b", "liviana", s)
+
+    raw_tokens = re.sub(r"[^a-z0-9_]+", " ", s).split()
+    brand_tokens = set(brand_key.split())
+
+    content_tokens: set[str] = set()
+    for t in raw_tokens:
+        t_mapped = _NUMBER_WORDS.get(t, t) if _NUMBER_WORDS.get(t) in brand_tokens else t
+        if t_mapped in brand_tokens or t in _FILLER_TOKENS or t.isdigit():
+            continue
+        content_tokens.add(_singularize_token(t))
+
+    if not content_tokens:
+        return None
+
+    return (brand_key, round(cant, 3), u_norm, is_multipack, frozenset(content_tokens))
+
+
+def _compatible_gs1_prefix(ean1: str, ean2: str) -> bool:
+    """Si ambos son EAN-13 argentinos ('779...'), exige que compartan el prefijo de fabricante (primeros 7 dígitos)."""
+    if ean1.isdigit() and ean2.isdigit() and len(ean1) == 13 and len(ean2) == 13:
+        if ean1.startswith("779") and ean2.startswith("779"):
+            return ean1[:7] == ean2[:7]
+    return True
+
+
 def _store_in_memory(flat_products: list[dict]) -> list[dict]:
-    """Agrupa en memoria por EAN, recalcula precios por unidad (`kg`, `l`, `un`) con promo y guarda en RAM."""
+    """Agrupa en memoria por EAN, fusiona EANs gemelos del mismo fabricante/variante/tamaño y guarda en RAM."""
     by_ean: dict[str, dict] = {}
     for d in flat_products:
         if not d.get("ean") or not d.get("precio_venta") or int(d.get("stock") or 0) <= 0:
@@ -346,18 +438,55 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
         offer = _to_offer_dict(d)
         g["offers_by_store"][d["supermercado"]] = offer
 
-        # Persistir en el catálogo en memoria de la sesión para el optimizador Smart Cart
-        _LIVE_PRODUCTS_MEM[ean] = {
-            "ean": ean,
-            "nombre": g["nombre"],
-            "marca": g["marca"],
-            "imagen": g["imagen"],
-        }
-        mem_offers = _LIVE_OFFERS_MEM.setdefault(ean, {})
-        mem_offers[d["supermercado"]] = {**offer, "ean": ean, "nombre": g["nombre"]}
+    # Segunda pasada genérica: fusionar grupos con distinto EAN pero idéntica firma canónica
+    # (Misma marca + Mismo peso/volumen + Mismos tokens de producto/variante + Cadenas disjuntas + Mismo prefijo GS1)
+    ean_list = sorted(
+        by_ean.keys(),
+        key=lambda e: (-len(by_ean[e]["offers_by_store"]), e),
+    )
+    by_sig: dict[tuple, list[str]] = {}
+    merged_away: set[str] = set()
+
+    for ean in ean_list:
+        g = by_ean[ean]
+        sig = _canonical_signature(g["nombre"], g["marca"])
+        if not sig:
+            continue
+        candidates = by_sig.get(sig, [])
+        merged = False
+        for primary_ean in candidates:
+            if primary_ean in merged_away:
+                continue
+            primary_g = by_ean[primary_ean]
+            # 1. Ningún supermercado puede repetirse entre ambos grupos
+            if not set(primary_g["offers_by_store"].keys()).isdisjoint(g["offers_by_store"].keys()):
+                continue
+            # 2. Prefijo de fabricante GS1 compatible
+            if not _compatible_gs1_prefix(primary_ean, ean):
+                continue
+            # 3. Coherencia de precios (evitar unir un bulto mal rotulado con una unidad)
+            p_main = min(o["precio"] for o in primary_g["offers_by_store"].values())
+            p_cand = min(o["precio"] for o in g["offers_by_store"].values())
+            if not (0.45 <= (p_cand / p_main) <= 2.2):
+                continue
+
+            # Fusionar ofertas dentro del grupo principal
+            for st, off in g["offers_by_store"].items():
+                primary_g["offers_by_store"][st] = off
+            if not primary_g["imagen"] and g["imagen"]:
+                primary_g["imagen"] = g["imagen"]
+            _EAN_ALIASES.setdefault(primary_ean, set()).add(ean)
+            merged_away.add(ean)
+            merged = True
+            break
+
+        if not merged:
+            by_sig.setdefault(sig, []).append(ean)
 
     groups: list[dict] = []
     for ean, g in by_ean.items():
+        if ean in merged_away:
+            continue
         cant, u_tit = extraer_unidad_titulo(g["nombre"])
         offers = list(g["offers_by_store"].values())
         for o in offers:
@@ -366,6 +495,18 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
                 p_u, u_norm = normalizar_unidad(eff_p / cant, u_tit)
                 o["unit_price"] = sanity_precio_unidad(eff_p, p_u, u_norm)
                 o["unit_measure"] = u_norm
+
+        # Persistir en el catálogo en memoria de la sesión para el optimizador Smart Cart
+        _LIVE_PRODUCTS_MEM[ean] = {
+            "ean": ean,
+            "nombre": g["nombre"],
+            "marca": g["marca"],
+            "imagen": g["imagen"],
+        }
+        mem_offers = _LIVE_OFFERS_MEM.setdefault(ean, {})
+        for st, off in g["offers_by_store"].items():
+            mem_offers[st] = {**off, "ean": ean, "nombre": g["nombre"]}
+
         groups.append({
             "ean": ean,
             "nombre": g["nombre"],
