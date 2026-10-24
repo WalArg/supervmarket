@@ -319,9 +319,9 @@ _INVALID_BRANDS = {
 _FILLER_TOKENS = {
     "uat", "uht", "larga", "vida", "brick", "tetra", "brik", "botella", "lata",
     "envase", "paquete", "bolsa", "caja", "sachet", "doypack", "pouch", "pet",
-    "clasica", "clasico", "tradicional", "fortificada", "fortificado", "vitamina",
-    "vitaminas", "calcio", "hierro", "con", "de", "del", "la", "el", "los", "las",
-    "para", "en", "por", "al", "y", "o", "x", "un", "u", "uni", "unid", "unidades",
+    "clasica", "clasico", "tradicional", "regular", "sabor", "fortificada", "fortificado",
+    "vitamina", "vitaminas", "calcio", "hierro", "con", "de", "del", "la", "el", "los",
+    "las", "para", "en", "por", "al", "y", "o", "x", "un", "u", "uni", "unid", "unidades",
     "gr", "grs", "g", "kg", "kgs", "ml", "cc", "cm3", "l", "lt", "lts", "litro", "litros",
 }
 
@@ -381,6 +381,8 @@ def _canonical_signature(nombre: str, marca: str):
     if "zero_lactosa" in s:
         s = re.sub(r"\b(?:parcialmente\s+)?descremad[ao]s?\b", " ", s)
     s = re.sub(r"\bsin\s+azucar(?:es)?\b", " sin_azucar ", s)
+    if re.search(r"\b(?:black|zero)\b", s):
+        s = s.replace("sin_azucar", " ")
 
     # Quitar expresiones de medida ("1.5 l", "473 ml", "90 grs", "2%", "3%")
     s = re.sub(
@@ -397,7 +399,9 @@ def _canonical_signature(nombre: str, marca: str):
     content_tokens: set[str] = set()
     for t in raw_tokens:
         t_mapped = _NUMBER_WORDS.get(t, t) if _NUMBER_WORDS.get(t) in brand_tokens else t
-        if t_mapped in brand_tokens or t in _FILLER_TOKENS or t.isdigit():
+        if t_mapped in brand_tokens or t in _FILLER_TOKENS or t.isdigit() or len(t) <= 1:
+            continue
+        if t == "cola" and ("pepsi" in brand_tokens or "coca" in brand_tokens):
             continue
         content_tokens.add(_singularize_token(t))
 
@@ -637,17 +641,20 @@ async def live_search_and_sync(
 
 async def search_live_grouped(
     query: str,
-    sort_by: str = "price_asc",
+    sort_by: str = "unit_price_asc",
     only_offers: bool = False,
     cp: str | None = None,
 ) -> list[dict]:
-    """Devuelve los grupos de productos 100% desde la búsqueda en vivo (sin base de datos)."""
+    """Devuelve los grupos de productos 100% desde la búsqueda en vivo (sin base de datos),
+    filtrando falsos positivos de subcadena (ej. 'Pepsina' al buscar 'Pepsi') y ordenando
+    de arriba hacia abajo por el precio por litro/kilo/unidad más conveniente.
+    """
     q_clean = query.strip()
     effective_q = q_clean if len(q_clean) >= 2 else "coca cola leche"
     res = await live_search_and_sync(
         effective_q, limit_per_store=18, only_offers=only_offers, cp=cp
     )
-    groups = [
+    raw_groups = [
         {
             **g,
             "offers": list(g["offers"]),
@@ -655,29 +662,70 @@ async def search_live_grouped(
         for g in res.get("groups", [])
     ]
 
+    # 1. Filtro estricto por palabra completa (evita 'Pepsina' o 'Cerveza Imperial' al buscar 'Pepsi',
+    #    o 'Bastones' al buscar 'Stones')
+    _STOP = {"de", "del", "la", "el", "los", "las", "con", "sin", "en", "para", "por", "al", "y", "o", "x"}
+    q_words = [w for w in _norm_text(q_clean).split() if w not in _STOP and len(w) >= 2]
+
+    if q_words and not q_clean.isdigit():
+        q_sings = [_singularize_token(_NUMBER_WORDS.get(w, w)) for w in q_words]
+
+        def _matches_strict(g: dict) -> bool:
+            doc_tokens = _norm_text(f"{g['nombre']} {g['marca']}").split()
+            doc_sings = {_singularize_token(_NUMBER_WORDS.get(t, t)) for t in doc_tokens}
+            doc_raw = set(doc_tokens)
+            for qw, qs in zip(q_words, q_sings):
+                if qw not in doc_raw and qs not in doc_sings:
+                    return False
+            return True
+
+        strict_groups = [g for g in raw_groups if _matches_strict(g)]
+        groups = strict_groups if strict_groups else raw_groups
+    else:
+        groups = raw_groups
+
     if only_offers:
         groups = [
             g for g in groups
             if any(o.get("promo_label") or (o.get("discount") or 0) >= 5 for o in g["offers"])
         ]
 
-    first_tok = _norm_text(q_clean).split()[0] if q_clean else ""
+    first_tok = _singularize_token(q_words[0]) if q_words else ""
 
     for g in groups:
         if sort_by == "unit_price_asc":
-            g["offers"].sort(key=lambda o: (o["unit_price"] is None, o["unit_price"] or 0))
+            g["offers"].sort(
+                key=lambda o: (
+                    o.get("unit_price") is None,
+                    o.get("unit_price") or 999999,
+                    o.get("promo_unit_price") or o["precio"],
+                )
+            )
         else:
             g["offers"].sort(key=lambda o: o.get("promo_unit_price") or o["precio"])
 
     def _group_sort_key(g: dict):
-        name_norm = _norm_text(g["nombre"])
-        if first_tok:
-            starts = 2 if name_norm.startswith(first_tok) else (1 if f" {first_tok}" in name_norm else 0)
+        name_tokens = [_singularize_token(t) for t in _norm_text(g["nombre"]).split()]
+        brand_tokens = {_singularize_token(t) for t in _norm_text(g["marca"]).split()}
+
+        # Tier 0: El producto ES de esa marca (ej. marca 'PEPSI') o su nombre empieza con lo buscado (ej. 'Leche...')
+        # Tier 1: Productos secundarios que contienen la palabra más adelante (ej. 'Dulce de leche' al buscar 'leche')
+        if q_words:
+            is_brand_match = all(_singularize_token(w) in brand_tokens for w in q_words)
+            starts_with_query = bool(name_tokens and name_tokens[0] == first_tok)
+            tier = 0 if (is_brand_match or starts_with_query) else 1
         else:
-            starts = 1
-        stores_cnt = len(g["offers"])
+            tier = 0
+
         best_p = min((o.get("promo_unit_price") or o["precio"]) for o in g["offers"]) if g["offers"] else 999999
-        return (-starts, -stores_cnt, best_p)
+        best_u = min(
+            (o.get("unit_price") or (o.get("promo_unit_price") or o["precio"]))
+            for o in g["offers"]
+        ) if g["offers"] else 999999
+
+        if sort_by == "unit_price_asc":
+            return (tier, best_u, best_p, -len(g["offers"]))
+        return (tier, best_p, best_u, -len(g["offers"]))
 
     groups.sort(key=_group_sort_key)
     return groups

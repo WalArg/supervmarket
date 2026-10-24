@@ -48,7 +48,7 @@ function App() {
   const [results, setResults] = useState<ProductGroup[]>([])
   const [stats, setStats] = useState<StatsSummary | null>(null)
   const [loading, setLoading] = useState(false)
-  const [sortBy, setSortBy] = useState<'price_asc' | 'unit_price_asc'>('price_asc')
+  const [sortBy, setSortBy] = useState<'price_asc' | 'unit_price_asc'>('unit_price_asc')
   const [debounced, setDebounced] = useState(query)
   const [cartOpen, setCartOpen] = useState(false)
 
@@ -203,13 +203,13 @@ function App() {
 
             <button
               type="button"
-              onClick={() => setSortBy(p => (p === 'price_asc' ? 'unit_price_asc' : 'price_asc'))}
+              onClick={() => setSortBy(p => (p === 'unit_price_asc' ? 'price_asc' : 'unit_price_asc'))}
               className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
               title="Cambiar criterio de ordenamiento"
             >
               <ArrowUpDown size={13} className="text-blue-600" />
               <span className="hidden sm:inline">
-                {sortBy === 'price_asc' ? 'Menor precio' : 'Precio x Kg/L'}
+                {sortBy === 'unit_price_asc' ? 'Precio x Kg/L/Un' : 'Menor precio'}
               </span>
             </button>
 
