@@ -27,14 +27,13 @@ import unicodedata
 import urllib.parse
 import httpx
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SCRAPER_DIR = os.path.join(REPO_ROOT, "scraper")
-if SCRAPER_DIR not in sys.path:
-    sys.path.insert(0, SCRAPER_DIR)
-
-from vtex import parse_vtex_product  # noqa: E402
-from coto import parse_coto_record   # noqa: E402
-from utils import extraer_unidad_titulo, normalizar_unidad, sanity_precio_unidad  # noqa: E402
+from .parsers import (  # noqa: E402
+    parse_vtex_product,
+    parse_coto_record,
+    extraer_unidad_titulo,
+    normalizar_unidad,
+    sanity_precio_unidad,
+)
 from .stores import VTEX_DOMAINS, VTEX_SALES_CHANNELS, supports_cart              # noqa: E402
 from . import regions as regions_mod                                              # noqa: E402
 
@@ -419,7 +418,7 @@ async def live_search_and_sync(
 
     order_by = "OrderByBestDiscountDESC" if only_offers else "OrderByTopSaleDESC"
 
-    async with httpx.AsyncClient(timeout=5.5, follow_redirects=True) as client:
+    async with httpx.AsyncClient(timeout=4.0, follow_redirects=True) as client:
         vtex_names = [
             st for st in LIVE_VTEX_DOMAINS.keys()
             if region_map.get(st) != "__NO_DELIVERY__"
