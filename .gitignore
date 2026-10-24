@@ -1,0 +1,28 @@
+# Node / Frontend
+web/node_modules/
+web/dist/
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Datos pesados o temporales locales
+raw/
+.github/
+*.db
+*.db-journal
+*.sqlite
+*.log
+*.zip
+___*
+*Error.txt
+gitignore
+
+# Entorno y sistema
+.env
+.env.local
+.DS_Store
+Thumbs.db

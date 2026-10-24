@@ -1,0 +1,3 @@
+aiohttp>=3.9
+aiosqlite>=0.20      # backend local (desarrollo)
+asyncpg>=0.29        # backend producción (Neon/Postgres)

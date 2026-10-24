@@ -1,0 +1,6 @@
+fastapi>=0.110
+httpx>=0.27
+pydantic>=2.6
+uvicorn>=0.29
+aiosqlite>=0.20      # backend local (desarrollo)
+asyncpg>=0.29        # backend producción (Neon/Postgres)
