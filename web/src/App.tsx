@@ -208,17 +208,17 @@ function App() {
             <button
               type="button"
               onClick={() => setBenefitsOpen(true)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-lg border transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-extrabold rounded-lg border transition-colors ${
                 selectedCards.length > 0
-                  ? 'bg-purple-50 text-purple-800 border-purple-300 hover:bg-purple-100'
-                  : 'bg-slate-100 text-slate-700 border-transparent hover:bg-slate-200'
+                  ? 'bg-purple-600 text-white border-purple-600 hover:bg-purple-700 shadow-2xs'
+                  : 'bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100'
               }`}
               title="Seleccionar mis tarjetas, billeteras y día de compra"
             >
-              <CreditCard size={13} className="text-purple-600" />
-              <span className="capitalize">{selectedDay.slice(0, 3)}</span>
+              <CreditCard size={14} className={selectedCards.length > 0 ? 'text-white' : 'text-purple-600'} />
+              <span>Mis Tarjetas · <span className="capitalize">{selectedDay.slice(0, 3)}</span></span>
               {selectedCards.length > 0 && (
-                <span className="bg-purple-600 text-white text-[10px] font-extrabold px-1.5 rounded-full">
+                <span className="bg-white text-purple-700 text-[10px] font-extrabold px-1.5 rounded-full">
                   {selectedCards.length}
                 </span>
               )}
@@ -366,6 +366,29 @@ function App() {
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-3 max-w-7xl">
+        {filterMode === 'club_offers' && (
+          <div className="mb-3 bg-purple-50 border border-purple-200 rounded-xl px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs text-purple-950">
+            <div className="flex items-center gap-2 font-semibold">
+              <CreditCard size={15} className="text-purple-600 shrink-0" />
+              <span>
+                Mostrando productos con promos de Club/Tarjeta · Día activo:{' '}
+                <strong className="capitalize">{selectedDay}</strong> (
+                {selectedCards.length > 0
+                  ? `${selectedCards.length} tarjetas tuyas activas`
+                  : 'ninguna tarjeta seleccionada aún'}
+                )
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBenefitsOpen(true)}
+              className="px-3 py-1 rounded-lg bg-purple-600 text-white font-extrabold hover:bg-purple-700"
+            >
+              Elegir mis Tarjetas y Día
+            </button>
+          </div>
+        )}
+
         {/* Leyenda compacta si el usuario toca el botón (?) */}
         {showGuide && (
           <div className="mb-3 bg-white rounded-xl border border-slate-200 p-3 flex flex-wrap items-center justify-between gap-2 text-xs shadow-2xs">
