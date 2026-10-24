@@ -10,12 +10,7 @@ import sqlite3
 import asyncio
 import unicodedata
 from .stores import supports_cart
-
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SCRAPER_DIR = os.path.join(REPO_ROOT, "scraper")
-if SCRAPER_DIR not in sys.path:
-    sys.path.insert(0, SCRAPER_DIR)
-from utils import extraer_unidad_titulo, normalizar_unidad, sanity_precio_unidad  # noqa: E402
+from .parsers import extraer_unidad_titulo, normalizar_unidad, sanity_precio_unidad
 
 _DSN = os.environ.get("DATABASE_URL", "sqlite:///./supervmarket.db")
 IS_SQLITE = _DSN.startswith("sqlite")
@@ -68,7 +63,14 @@ async def get_pool():
 def _get_sqlite() -> sqlite3.Connection:
     global _sqlite_conn
     if _sqlite_conn is None:
-        _sqlite_conn = sqlite3.connect(_sqlite_path(), check_same_thread=False, timeout=30)
+        path = _sqlite_path()
+        try:
+            if not os.path.exists(path):
+                _sqlite_conn = sqlite3.connect(":memory:", check_same_thread=False)
+            else:
+                _sqlite_conn = sqlite3.connect(path, check_same_thread=False, timeout=30)
+        except Exception:
+            _sqlite_conn = sqlite3.connect(":memory:", check_same_thread=False)
         _sqlite_conn.row_factory = sqlite3.Row
         _sqlite_conn.create_function("unaccent", 1, _py_unaccent)
         for stmt in SQLITE_MIGRATIONS:
