@@ -592,7 +592,12 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
         cant, u_tit = extraer_unidad_titulo(g["nombre"])
         offers = list(g["offers_by_store"].values())
         for o in offers:
-            eff_p = float(o.get("promo_unit_price") or o["precio"])
+            # Solo aplicar descuento al precio unitario ($/l, $/kg, $/un) si la promo es abierta a todo público
+            eff_p = (
+                float(o["precio"])
+                if o.get("requires_club")
+                else float(o.get("promo_unit_price") or o["precio"])
+            )
             if cant > 0:
                 p_u, u_norm = normalizar_unidad(eff_p / cant, u_tit)
                 o["unit_price"] = sanity_precio_unidad(eff_p, p_u, u_norm)
@@ -816,17 +821,20 @@ async def search_live_grouped(
 
     first_tok = _singularize_token(q_words[0]) if q_words else ""
 
+    def _public_eff(o: dict) -> float:
+        return float(o["precio"]) if o.get("requires_club") else float(o.get("promo_unit_price") or o["precio"])
+
     for g in groups:
         if sort_by == "unit_price_asc":
             g["offers"].sort(
                 key=lambda o: (
                     o.get("unit_price") is None,
                     o.get("unit_price") or 999999,
-                    o.get("promo_unit_price") or o["precio"],
+                    _public_eff(o),
                 )
             )
         else:
-            g["offers"].sort(key=lambda o: o.get("promo_unit_price") or o["precio"])
+            g["offers"].sort(key=_public_eff)
 
     def _group_sort_key(g: dict):
         name_tokens = [_singularize_token(t) for t in _norm_text(g["nombre"]).split()]
@@ -841,9 +849,9 @@ async def search_live_grouped(
         else:
             tier = 0
 
-        best_p = min((o.get("promo_unit_price") or o["precio"]) for o in g["offers"]) if g["offers"] else 999999
+        best_p = min(_public_eff(o) for o in g["offers"]) if g["offers"] else 999999
         best_u = min(
-            (o.get("unit_price") or (o.get("promo_unit_price") or o["precio"]))
+            (o.get("unit_price") or _public_eff(o))
             for o in g["offers"]
         ) if g["offers"] else 999999
 

@@ -111,7 +111,14 @@ const OfferCard: React.FC<OfferCardProps> = ({
   }
 
   const minQty = offer.promo_min_qty || 1
-  const effectivePrice = offer.promo_unit_price ?? offer.precio
+  // Las promos que requieren tarjeta/membresía (ej: Tarjeta Carrefour, Comunidad Coto) NO alteran el precio público
+  const effectivePrice = offer.requires_club
+    ? offer.precio
+    : (offer.promo_unit_price ?? offer.precio)
+  const clubPrice =
+    offer.requires_club && offer.promo_unit_price && offer.promo_unit_price < offer.precio
+      ? offer.promo_unit_price
+      : null
   const referenceStrikePrice =
     effectivePrice < offer.precio
       ? offer.precio
@@ -211,7 +218,9 @@ const OfferCard: React.FC<OfferCardProps> = ({
               <Flame size={10} className="text-orange-600 shrink-0" />
             )}
             <span className="truncate">
-              {offer.promo_label || `${Math.round(offer.discount)}% OFF`}
+              {clubPrice
+                ? `${formatPrice(clubPrice)} · ${offer.promo_label}`
+                : offer.promo_label || `${Math.round(offer.discount)}% OFF`}
             </span>
           </span>
           {minQty > 1 && (

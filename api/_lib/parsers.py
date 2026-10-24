@@ -478,6 +478,8 @@ def parse_coto_discounts(precio_lista: float, descuentos_raw: list) -> dict:
         m_nxm = re.search(r"\b([2346])\s*x\s*([12345])\b", low_txt)
 
         if m_2da:
+            if is_comunidad and res["promo_etiqueta"] and not res["requiere_club"]:
+                continue
             pct = float(m_2da.group(1) or m_2da.group(2)) / 100.0
             eff = p_dto or round(precio_lista * (2.0 - pct) / 2.0, 2)
             res.update({
@@ -490,6 +492,8 @@ def parse_coto_discounts(precio_lista: float, descuentos_raw: list) -> dict:
             continue
 
         if m_nxm:
+            if is_comunidad and res["promo_etiqueta"] and not res["requiere_club"]:
+                continue
             n, m = int(m_nxm.group(1)), int(m_nxm.group(2))
             if n > m > 0:
                 eff = p_dto or round(precio_lista * (m / n), 2)
@@ -506,14 +510,14 @@ def parse_coto_discounts(precio_lista: float, descuentos_raw: list) -> dict:
             pct_calc = int(round((1.0 - p_dto / precio_lista) * 100))
             if not is_comunidad:
                 res["precio_venta"] = p_dto
-                if p_dto <= res["precio_promo_unit"]:
+                if res["requiere_club"] or p_dto <= res["precio_promo_unit"]:
                     res["precio_promo_unit"] = p_dto
                     res["promo_etiqueta"] = f"{pct_calc}% OFF"
                     res["promo_tipo"] = "DIRECT"
                     res["promo_min_qty"] = 1
                     res["requiere_club"] = False
             else:
-                if p_dto < res["precio_promo_unit"]:
+                if (res["promo_etiqueta"] is None or res["requiere_club"]) and p_dto < res["precio_promo_unit"]:
                     res["precio_promo_unit"] = p_dto
                     res["promo_etiqueta"] = f"{pct_calc}% Comunidad Coto"
                     res["promo_tipo"] = "CLUB_PCT"

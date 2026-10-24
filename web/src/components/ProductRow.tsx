@@ -12,12 +12,13 @@ const ProductRow: React.FC<{ group: ProductGroup }> = ({ group }) => {
   const { add, setQty, qtyOf } = useCart()
   const currentQty = qtyOf(group.ean)
 
-  // Ordenar siempre por el mejor precio efectivo (incluyendo promoción si la tiene)
-  const sortedOffers = [...group.offers].sort(
-    (a, b) => (a.promo_unit_price ?? a.precio) - (b.promo_unit_price ?? b.precio),
-  )
+  // Ordenar por el mejor precio efectivo abierto a todo público (sin exigir tarjeta/club)
+  const publicEff = (o: ProductGroup['offers'][number]) =>
+    o.requires_club ? o.precio : (o.promo_unit_price ?? o.precio)
 
-  const effectivePrices = sortedOffers.map(o => o.promo_unit_price ?? o.precio)
+  const sortedOffers = [...group.offers].sort((a, b) => publicEff(a) - publicEff(b))
+
+  const effectivePrices = sortedOffers.map(publicEff)
   const minEffectivePrice = Math.min(...effectivePrices)
   const maxEffectivePrice = Math.max(...effectivePrices)
   const savingsPct =
@@ -126,7 +127,7 @@ const ProductRow: React.FC<{ group: ProductGroup }> = ({ group }) => {
           className="w-full"
         >
           {sortedOffers.map((offer, idx) => {
-            const eff = offer.promo_unit_price ?? offer.precio
+            const eff = publicEff(offer)
             return (
               <SwiperSlide
                 key={`${offer.supermercado}-${offer.sku_id}-${idx}`}
