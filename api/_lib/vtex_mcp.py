@@ -92,6 +92,70 @@ def build_vtex_segment_cookie(sc: str = "1", region_id: str | None = None) -> st
     return base64.b64encode(raw).decode("ascii")
 
 
+def _edit_distance(a: str, b: str) -> int:
+    """Distancia de Damerau-Levenshtein rápida para corrección ortográfica (ej: 'pecsi' <-> 'pepsi' = 1)."""
+    if a == b:
+        return 0
+    la, lb = len(a), len(b)
+    if abs(la - lb) > 2:
+        return 99
+    prev = list(range(lb + 1))
+    curr = [0] * (lb + 1)
+    prev2 = [0] * (lb + 1)
+    for i in range(1, la + 1):
+        curr[0] = i
+        for j in range(1, lb + 1):
+            cost = 0 if a[i - 1] == b[j - 1] else 1
+            curr[j] = min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost)
+            if i > 1 and j > 1 and a[i - 1] == b[j - 2] and a[i - 2] == b[j - 1]:
+                curr[j] = min(curr[j], prev2[j - 2] + 1)
+        prev2, prev, curr = prev, curr, prev2
+    return prev[lb]
+
+
+def _detect_corrected_query(q_norm: str, vtex_products: list[dict]) -> str | None:
+    """Si el usuario escribió un error de tipeo (ej. 'pecsi', 'hugies', 'matarazo') y VTEX Intelligent Search
+    encontró la marca/producto real ('pepsi', 'huggies', 'matarazzo'), devuelve el query corregido
+    para re-consultar Coto Digital en la Etapa 2.
+    """
+    if not vtex_products or q_norm.isdigit():
+        return None
+    q_tokens = _norm_text(q_norm).split()
+    if not q_tokens:
+        return None
+
+    # Contar frecuencia de tokens en los productos que devolvió VTEX Intelligent Search
+    vocab_freq: dict[str, int] = {}
+    for p in vtex_products:
+        for tok in _norm_text(f"{p.get('marca', '')} {p.get('nombre', '')}").split():
+            if len(tok) >= 3:
+                vocab_freq[tok] = vocab_freq.get(tok, 0) + 1
+
+    corrected_tokens: list[str] = []
+    changed = False
+    for qt in q_tokens:
+        if len(qt) < 4 or vocab_freq.get(qt, 0) >= 2:
+            corrected_tokens.append(qt)
+            continue
+        max_dist = 1 if len(qt) <= 5 else 2
+        best_word = qt
+        best_score = (99, 0)
+        for cand, freq in vocab_freq.items():
+            if freq < 2 or abs(len(cand) - len(qt)) > 1:
+                continue
+            d = _edit_distance(qt, cand)
+            if 1 <= d <= max_dist:
+                score = (d, -freq)
+                if score < best_score:
+                    best_score = score
+                    best_word = cand
+        if best_word != qt:
+            changed = True
+        corrected_tokens.append(best_word)
+
+    return " ".join(corrected_tokens) if changed else None
+
+
 async def fetch_vtex_store_live(
     client: httpx.AsyncClient,
     store: str,
@@ -107,35 +171,69 @@ async def fetch_vtex_store_live(
     sc = str(VTEX_SALES_CHANNELS.get(store, "1"))
     sc_qs = f"&sc={sc}" if sc != "1" else ""
 
-    q_clean = query.strip()
-    if q_clean.isdigit() and 8 <= len(q_clean) <= 14:
-        url = f"{base}/api/catalog_system/pub/products/search?fq=alternateIds_Ean:{q_clean}{sc_qs}"
-    else:
-        q_enc = urllib.parse.quote(q_clean)
-        end = max(0, min(limit - 1, 49))
-        url = (
-            f"{base}/api/catalog_system/pub/products/search"
-            f"?ft={q_enc}&O={order_by}&_from=0&_to={end}{sc_qs}"
-        )
-
     req_headers = dict(HEADERS)
     if region_id or sc != "1":
         seg = build_vtex_segment_cookie(sc=sc, region_id=region_id)
         req_headers["Cookie"] = f"vtex_segment={seg}"
 
+    q_clean = query.strip()
+    if q_clean.isdigit() and 8 <= len(q_clean) <= 14:
+        url = f"{base}/api/catalog_system/pub/products/search?fq=alternateIds_Ean:{q_clean}{sc_qs}"
+        try:
+            r = await client.get(url, headers=req_headers)
+            if r.status_code not in (200, 206):
+                return []
+            data = r.json()
+            if not isinstance(data, list):
+                return []
+            return [
+                p for raw in data
+                if (p := parse_vtex_product(raw, store)) and int(p.get("stock") or 0) > 0
+            ]
+        except Exception:
+            return []
+
+    q_enc = urllib.parse.quote(q_clean)
+    count = max(1, min(limit, 40))
+    is_sort = "discount:desc" if "Discount" in order_by else "orders:desc"
+
+    # 1. Intentar primero VTEX Intelligent Search (`fuzzy=auto` corrige errores como 'pecsi' -> 'pepsi')
+    is_url = (
+        f"{base}/api/io/_v/api/intelligent-search/product_search/"
+        f"?query={q_enc}&count={count}&sort={is_sort}&fuzzy=auto&operator=and"
+    )
     try:
-        r = await client.get(url, headers=req_headers)
+        r = await client.get(is_url, headers=req_headers)
+        if r.status_code in (200, 206):
+            payload = r.json()
+            prods = payload.get("products") if isinstance(payload, dict) else None
+            if isinstance(prods, list) and prods:
+                out = [
+                    p for raw in prods
+                    if (p := parse_vtex_product(raw, store)) and int(p.get("stock") or 0) > 0
+                ]
+                if out:
+                    return out
+    except Exception:
+        pass
+
+    # 2. Fallback a VTEX Catalog Search clásico
+    end = max(0, min(limit - 1, 49))
+    legacy_url = (
+        f"{base}/api/catalog_system/pub/products/search"
+        f"?ft={q_enc}&O={order_by}&_from=0&_to={end}{sc_qs}"
+    )
+    try:
+        r = await client.get(legacy_url, headers=req_headers)
         if r.status_code not in (200, 206):
             return []
         data = r.json()
         if not isinstance(data, list):
             return []
-        out = []
-        for raw_prod in data:
-            parsed = parse_vtex_product(raw_prod, store)
-            if parsed and int(parsed.get("stock") or 0) > 0:
-                out.append(parsed)
-        return out
+        return [
+            p for raw in data
+            if (p := parse_vtex_product(raw, store)) and int(p.get("stock") or 0) > 0
+        ]
     except Exception:
         return []
 
@@ -606,10 +704,14 @@ async def live_search_and_sync(
                 by_store[st_name] = 0
 
         # Etapa 2: Completado cruzado por EAN (`fq=alternateIds_Ean:...`) en VTEX
+        # + Re-consulta automática a Coto si VTEX Intelligent Search corrigió un error de tipeo (ej. 'pecsi' -> 'pepsi')
+        vtex_only_prods = [p for p in flat_products if p.get("supermercado") != "Coto"]
+        corrected_q = _detect_corrected_query(q_norm, vtex_only_prods)
+
         top_eans = ean_priority[:22]
+        ean_tasks = []
+        ean_task_stores = []
         if top_eans and not q_norm.isdigit():
-            ean_tasks = []
-            ean_task_stores = []
             for st in SUPERMARKET_CHAINS:
                 if region_map.get(st) == "__NO_DELIVERY__":
                     continue
@@ -621,12 +723,17 @@ async def live_search_and_sync(
                         )
                     )
                     ean_task_stores.append(st)
-            if ean_tasks:
-                ean_results = await asyncio.gather(*ean_tasks, return_exceptions=True)
-                for st_name, extra in zip(ean_task_stores, ean_results):
-                    if isinstance(extra, list) and extra:
-                        flat_products.extend(extra)
-                        by_store[st_name] = by_store.get(st_name, 0) + len(extra)
+
+        if corrected_q and corrected_q != q_norm:
+            ean_tasks.append(fetch_coto_live(client, corrected_q, limit=limit_per_store))
+            ean_task_stores.append("Coto")
+
+        if ean_tasks:
+            ean_results = await asyncio.gather(*ean_tasks, return_exceptions=True)
+            for st_name, extra in zip(ean_task_stores, ean_results):
+                if isinstance(extra, list) and extra:
+                    flat_products.extend(extra)
+                    by_store[st_name] = by_store.get(st_name, 0) + len(extra)
 
     groups = _store_in_memory(flat_products)
     _QUERY_GROUPS_CACHE[cache_key] = (now, groups)
@@ -680,7 +787,24 @@ async def search_live_grouped(
             return True
 
         strict_groups = [g for g in raw_groups if _matches_strict(g)]
-        groups = strict_groups if strict_groups else raw_groups
+        if strict_groups:
+            groups = strict_groups
+        else:
+            # Si no hubo coincidencias exactas porque el usuario tipeó mal (ej. 'pecsi', 'hugies', 'matarazo'),
+            # permitimos tolerancia ortográfica Damerau-Levenshtein (distancia <= 1 o 2 en palabras del mismo largo)
+            def _matches_fuzzy_typo(g: dict) -> bool:
+                doc_tokens = _norm_text(f"{g['nombre']} {g['marca']}").split()
+                for qw in q_words:
+                    max_d = 1 if len(qw) <= 5 else 2
+                    if not any(
+                        abs(len(dt) - len(qw)) <= 1 and _edit_distance(qw, dt) <= max_d
+                        for dt in doc_tokens
+                    ):
+                        return False
+                return True
+
+            fuzzy_groups = [g for g in raw_groups if _matches_fuzzy_typo(g)]
+            groups = fuzzy_groups if fuzzy_groups else raw_groups
     else:
         groups = raw_groups
 

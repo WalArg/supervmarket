@@ -201,11 +201,22 @@ def sanity_precio_unidad(precio_total: float, precio_unidad: float, unidad: str)
 
 
 def _has_bin_restriction(teaser: dict) -> bool:
-    conds = teaser.get("Conditions") or teaser.get("<Conditions>k__BackingField") or {}
-    params = conds.get("Parameters") or conds.get("<Parameters>k__BackingField") or []
+    conds = (
+        teaser.get("Conditions")
+        or teaser.get("conditions")
+        or teaser.get("<Conditions>k__BackingField")
+        or {}
+    )
+    params = (
+        conds.get("Parameters")
+        or conds.get("parameters")
+        or conds.get("<Parameters>k__BackingField")
+        or []
+    )
     for p in params:
-        p_name = str(p.get("Name") or p.get("<Name>k__BackingField") or "")
-        if "RestrictionsBins" in p_name and (p.get("Value") or p.get("<Value>k__BackingField")):
+        p_name = str(p.get("Name") or p.get("name") or p.get("<Name>k__BackingField") or "")
+        p_val = p.get("Value") or p.get("value") or p.get("<Value>k__BackingField")
+        if "RestrictionsBins" in p_name and p_val:
             return True
     return False
 
@@ -340,9 +351,15 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
         "requiere_club": False,
     }
 
-    teasers = (comm.get("PromotionTeasers") or []) + (comm.get("Teasers") or [])
+    teasers = (
+        (comm.get("PromotionTeasers") or [])
+        + (comm.get("Teasers") or [])
+        + (comm.get("teasers") or [])
+    )
     for t in teasers:
-        t_name = str(t.get("Name") or t.get("<Name>k__BackingField") or "").strip()
+        t_name = str(
+            t.get("Name") or t.get("name") or t.get("<Name>k__BackingField") or ""
+        ).strip()
         if not t_name:
             continue
         cand = _parse_active_teaser(t_name, precio_venta, list_price, force_club=_has_bin_restriction(t))
