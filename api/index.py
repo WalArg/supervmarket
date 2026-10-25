@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 sys.path.insert(0, os.path.dirname(__file__))
-from _lib import db, optimizer, carts, regions, vtex_mcp, benefits  # noqa: E402
+from _lib import db, optimizer, carts, regions, vtex_mcp, benefits, mercadolibre  # noqa: E402
 from _lib.stores import VTEX_DOMAINS, COMPARE_ONLY        # noqa: E402
 
 STORE_NAMES_LOWER = {s.lower() for s in (*VTEX_DOMAINS.keys(), *COMPARE_ONLY, "thefoodmarket")}
@@ -113,6 +113,16 @@ async def regions_coverage(cp: str):
 async def get_benefits():
     """Catálogo de tarjetas propias, bancos, billeteras y promociones por día de la semana."""
     return benefits.get_benefits_catalog()
+
+
+@app.get("/api/meli/callback")
+async def meli_callback(code: str):
+    """Callback de OAuth de Mercado Libre para guardar el token permanente."""
+    ok = await mercadolibre.exchange_auth_code(code)
+    return {
+        "status": "success" if ok else "error",
+        "message": "Mercado Libre vinculado exitosamente a SuperVmarket." if ok else "Error al vincular.",
+    }
 
 
 @app.post("/api/optimize")

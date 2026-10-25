@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, ShoppingBasket, User } from 'lucide-react'
 import SearchScreen from './components/SearchScreen'
 import ListScreen from './components/ListScreen'
@@ -10,6 +10,22 @@ type Tab = 'buscar' | 'lista' | 'perfil'
 function App() {
   const [tab, setTab] = useState<Tab>('buscar')
   const { totalUnits } = useCart()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+    if (code) {
+      fetch(`/api/meli/callback?code=${encodeURIComponent(code)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.status === 'success') {
+            alert('🎉 ¡Mercado Libre vinculado exitosamente a SuperVmarket!')
+          }
+          window.history.replaceState({}, document.title, window.location.pathname)
+        })
+        .catch(() => {})
+    }
+  }, [])
 
   const go = (t: Tab) => {
     setTab(t)

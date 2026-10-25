@@ -36,6 +36,7 @@ from .parsers import (  # noqa: E402
 )
 from .stores import VTEX_DOMAINS, VTEX_SALES_CHANNELS, supports_cart              # noqa: E402
 from . import regions as regions_mod                                              # noqa: E402
+from .mercadolibre import fetch_mercadolibre_live                                # noqa: E402
 
 LIVE_VTEX_DOMAINS: dict[str, str] = {
     **VTEX_DOMAINS,
@@ -699,10 +700,11 @@ async def live_search_and_sync(
         shopify_names = list(SHOPIFY_DOMAINS.keys())
         for sh_st in shopify_names:
             tasks.append(fetch_shopify_live(client, sh_st, q_norm, limit=10))
+        tasks.append(fetch_mercadolibre_live(client, q_norm, limit=12))
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        all_names = vtex_names + ["Coto"] + shopify_names
+        all_names = vtex_names + ["Coto"] + shopify_names + ["MercadoLibre"]
         flat_products: list[dict] = []
         by_store: dict[str, int] = {}
         store_eans: dict[str, set[str]] = {st: set() for st in all_names}
