@@ -1,11 +1,12 @@
-"""Módulo de integración con Mercado Libre Supermercado (MLA1403).
+"""Módulo de integración con Mercado Libre Supermercado y Catálogo (MLA).
 
-Permite consultar en vivo precios, ofertas con Envío FULL y stock oficial de Mercado Libre
-para contrastar contra los supermercados físicos tradicionales (Coto, Carrefour, Día, Jumbo).
+Permite consultar en vivo productos, precios oficiales, envíos FULL y ofertas
+utilizando la API oficial de Mercado Libre Developers con Client Credentials.
 """
 
 import os
 import time
+import asyncio
 import urllib.parse
 import httpx
 from .parsers import (
@@ -16,159 +17,71 @@ from .parsers import (
 
 MELI_CLIENT_ID = os.getenv("MELI_CLIENT_ID", "6947318731363625")
 MELI_CLIENT_SECRET = os.getenv("MELI_CLIENT_SECRET", "g6qrGOxdw6iIatBY6osc35Jq6wVqE9PS")
-MELI_REDIRECT_URI = os.getenv("MELI_REDIRECT_URI", "https://vsupermarket.vercel.app")
 
-# Persistencia en memoria y archivo de tokens
-_TOKEN_STATE: dict = {
-    "access_token": None,
-    "refresh_token": os.getenv("MELI_REFRESH_TOKEN", ""),
-    "expires_at": 0.0,
-}
-
-TOKEN_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "meli_token.json")
+_CACHED_TOKEN: str | None = None
+_TOKEN_EXPIRES_AT: float = 0.0
 
 
-def _load_saved_token():
-    try:
-        import json
-        if os.path.exists(TOKEN_FILE):
-            with open(TOKEN_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                _TOKEN_STATE["access_token"] = data.get("access_token")
-                _TOKEN_STATE["refresh_token"] = data.get("refresh_token")
-                _TOKEN_STATE["expires_at"] = data.get("expires_at", 0.0)
-    except Exception:
-        pass
-
-
-_load_saved_token()
-
-
-def save_token_state(access_token: str, refresh_token: str, expires_in: int):
-    import json
-    _TOKEN_STATE["access_token"] = access_token
-    _TOKEN_STATE["refresh_token"] = refresh_token
-    _TOKEN_STATE["expires_at"] = time.time() + expires_in - 120  # Margen de 2 min
-    try:
-        with open(TOKEN_FILE, "w", encoding="utf-8") as f:
-            json.dump(_TOKEN_STATE, f)
-    except Exception:
-        pass
-
-
-async def exchange_auth_code(code: str) -> bool:
-    """Intercambia el código de autorización temporal por access_token y refresh_token permanentes."""
-    url = "https://api.mercadolibre.com/oauth/token"
-    payload = {
-        "grant_type": "authorization_code",
-        "client_id": MELI_CLIENT_ID,
-        "client_secret": MELI_CLIENT_SECRET,
-        "code": code.strip(),
-        "redirect_uri": MELI_REDIRECT_URI,
-    }
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        try:
-            r = await client.post(url, data=payload)
-            if r.status_code == 200:
-                data = r.json()
-                save_token_state(
-                    data["access_token"],
-                    data.get("refresh_token", ""),
-                    data.get("expires_in", 21600),
-                )
-                return True
-        except Exception:
-            pass
-    return False
-
-
-async def refresh_access_token() -> str | None:
-    """Refresca el access_token usando el refresh_token permanente."""
-    rf = _TOKEN_STATE.get("refresh_token")
-    if not rf:
-        # Intentar flujo client_credentials como fallback
-        url = "https://api.mercadolibre.com/oauth/token"
-        payload = {
-            "grant_type": "client_credentials",
-            "client_id": MELI_CLIENT_ID,
-            "client_secret": MELI_CLIENT_SECRET,
-        }
-        async with httpx.AsyncClient(timeout=8.0) as client:
-            try:
-                r = await client.post(url, data=payload)
-                if r.status_code == 200:
-                    data = r.json()
-                    _TOKEN_STATE["access_token"] = data["access_token"]
-                    _TOKEN_STATE["expires_at"] = time.time() + data.get("expires_in", 21600) - 120
-                    return data["access_token"]
-            except Exception:
-                return None
+async def get_meli_token(client: httpx.AsyncClient) -> str | None:
+    """Obtiene o reutiliza el token de acceso oficial de la aplicación de Mercado Libre."""
+    global _CACHED_TOKEN, _TOKEN_EXPIRES_AT
+    now = time.time()
+    if _CACHED_TOKEN and now < _TOKEN_EXPIRES_AT:
+        return _CACHED_TOKEN
 
     url = "https://api.mercadolibre.com/oauth/token"
     payload = {
-        "grant_type": "refresh_token",
+        "grant_type": "client_credentials",
         "client_id": MELI_CLIENT_ID,
         "client_secret": MELI_CLIENT_SECRET,
-        "refresh_token": rf,
     }
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        try:
-            r = await client.post(url, data=payload)
-            if r.status_code == 200:
-                data = r.json()
-                save_token_state(
-                    data["access_token"],
-                    data.get("refresh_token", rf),
-                    data.get("expires_in", 21600),
-                )
-                return data["access_token"]
-        except Exception:
-            pass
+    try:
+        r = await client.post(url, data=payload, timeout=8.0)
+        if r.status_code == 200:
+            data = r.json()
+            _CACHED_TOKEN = data["access_token"]
+            _TOKEN_EXPIRES_AT = now + float(data.get("expires_in", 21600)) - 180
+            return _CACHED_TOKEN
+    except Exception:
+        pass
     return None
 
 
-async def get_valid_token() -> str | None:
-    if _TOKEN_STATE.get("access_token") and time.time() < _TOKEN_STATE.get("expires_at", 0):
-        return _TOKEN_STATE["access_token"]
-    return await refresh_access_token()
-
-
-def parse_meli_item(item: dict) -> dict | None:
-    """Parsea un resultado de Mercado Libre al formato estándar de SuperVmarket."""
+def parse_meli_product(prod: dict, item: dict) -> dict | None:
+    """Convierte un producto y su mejor oferta en el formato unificado de SuperVmarket."""
     try:
-        title = item.get("title") or ""
         price = float(item.get("price") or 0)
         if price <= 0:
             return None
 
+        title = prod.get("name") or ""
+        item_id = item.get("item_id") or ""
         orig_price = item.get("original_price")
         orig_price_f = float(orig_price) if orig_price else price
 
-        # Identificar EAN / GTIN de los atributos oficiales
-        ean = None
+        # Extraer atributos canónicos: marca, EAN/GTIN
         brand = None
-        for a in item.get("attributes", []):
+        ean = None
+        for a in prod.get("attributes", []):
             aid = a.get("id")
-            if aid == "GTIN":
+            if aid == "BRAND":
+                brand = a.get("value_name")
+            elif aid == "GTIN":
                 val = str(a.get("value_name") or "").strip()
                 if val.isdigit() and 8 <= len(val) <= 14:
                     ean = val
-            elif aid == "BRAND":
-                brand = a.get("value_name")
 
-        item_id = item.get("id") or ""
-        permalink = item.get("permalink") or f"https://articulo.mercadolibre.com.ar/{item_id}"
-        thumbnail = item.get("thumbnail") or ""
-        if thumbnail.startswith("http://"):
-            thumbnail = "https://" + thumbnail[7:]
-        # Imagen de mayor calidad
-        thumbnail = thumbnail.replace("-I.jpg", "-O.jpg")
+        # Imagen
+        pictures = prod.get("pictures") or []
+        image_url = pictures[0].get("url") if pictures else None
+        if image_url and image_url.startswith("http://"):
+            image_url = "https://" + image_url[7:]
 
+        # Envíos y beneficios
         shipping = item.get("shipping") or {}
         is_full = shipping.get("logistic_type") == "fulfillment"
-        free_ship = shipping.get("free_shipping") is True
+        free_shipping = shipping.get("free_shipping") is True
 
-        # Etiqueta de promoción
         promo_label = None
         if orig_price_f > price:
             pct = round((1 - price / orig_price_f) * 100)
@@ -176,9 +89,10 @@ def parse_meli_item(item: dict) -> dict | None:
                 promo_label = f"{pct}% OFF"
         elif is_full:
             promo_label = "⚡ Envío FULL"
-        elif free_ship:
+        elif free_shipping:
             promo_label = "🚚 Envío Gratis"
 
+        # Cálculo de precio unitario ($/kg, $/L)
         cant, unidad = extraer_unidad_titulo(title)
         cant_norm, unidad_norm = normalizar_unidad(cant, unidad)
 
@@ -187,6 +101,8 @@ def parse_meli_item(item: dict) -> dict | None:
             raw_u = price / cant_norm
             if sanity_precio_unidad(price, raw_u, unidad_norm):
                 unit_p = round(raw_u, 2)
+
+        permalink = f"https://articulo.mercadolibre.com.ar/{item_id}"
 
         return {
             "supermercado": "MercadoLibre",
@@ -204,7 +120,7 @@ def parse_meli_item(item: dict) -> dict | None:
             "discount": round((1 - price / orig_price_f) * 100) if orig_price_f > price else 0,
             "stock": 100,
             "url": permalink,
-            "imagen": thumbnail,
+            "imagen": image_url,
             "requires_club": False,
             "is_full": is_full,
         }
@@ -215,33 +131,57 @@ def parse_meli_item(item: dict) -> dict | None:
 async def fetch_mercadolibre_live(
     client: httpx.AsyncClient,
     query: str,
-    limit: int = 15,
+    limit: int = 10,
 ) -> list[dict]:
-    """Consulta en vivo productos de supermercado en Mercado Libre."""
-    token = await get_valid_token()
+    """Consulta productos en vivo desde el catálogo oficial de Mercado Libre."""
+    token = await get_meli_token(client)
     if not token:
         return []
 
-    q_enc = urllib.parse.quote(query.strip())
-    # Búsqueda restringida a la categoría Alimentos y Bebidas / Supermercado (MLA1403)
-    url = f"https://api.mercadolibre.com/sites/MLA/search?q={q_enc}&category=MLA1403&limit={limit}"
+    q_clean = query.strip()
+    is_ean = q_clean.isdigit() and 8 <= len(q_clean) <= 14
+    if is_ean:
+        url = f"https://api.mercadolibre.com/products/search?status=active&site_id=MLA&product_identifier={q_clean}"
+    else:
+        q_enc = urllib.parse.quote(q_clean)
+        url = f"https://api.mercadolibre.com/products/search?status=active&site_id=MLA&q={q_enc}"
+
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
-        "User-Agent": "SuperVmarket/1.0",
+        "User-Agent": "SuperVmarket/2.0",
     }
 
     try:
-        r = await client.get(url, headers=headers)
+        r = await client.get(url, headers=headers, timeout=4.5)
         if r.status_code != 200:
             return []
         data = r.json()
-        results = data.get("results", [])
-        out = []
-        for raw in results:
-            parsed = parse_meli_item(raw)
-            if parsed:
-                out.append(parsed)
-        return out
+        products = data.get("results", [])
+        if not products:
+            return []
+
+        # Consultar precios en paralelo para los primeros productos del catálogo
+        async def _fetch_product_best_item(prod: dict) -> dict | None:
+            pid = prod.get("id")
+            if not pid:
+                return None
+            it_url = f"https://api.mercadolibre.com/products/{pid}/items"
+            try:
+                ir = await client.get(it_url, headers=headers, timeout=3.5)
+                if ir.status_code == 200:
+                    items = ir.json().get("results", [])
+                    if items:
+                        # Ordenar por menor precio para traer la mejor oferta disponible en MeLi
+                        best_item = min(items, key=lambda x: float(x.get("price") or 999999))
+                        return parse_meli_product(prod, best_item)
+            except Exception:
+                pass
+            return None
+
+        tasks = [_fetch_product_best_item(p) for p in products[:limit]]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        return [r for r in results if isinstance(r, dict) and r]
     except Exception:
         return []
