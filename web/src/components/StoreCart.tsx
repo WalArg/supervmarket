@@ -112,7 +112,7 @@ const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
           </div>
         )}
 
-        {plan.supports_cart && checkout ? (
+        {checkout ? (
           <a
             href={checkout}
             target="_blank"
@@ -123,7 +123,7 @@ const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
           </a>
         ) : (
           <p className="text-[12px] text-slate-500 bg-slate-50 rounded-xl p-2.5">
-            {storeLabel(plan.supermercado)} no permite armar el carrito automático. Tocá cada producto en el buscador para abrirlo en su web.
+            {storeLabel(plan.supermercado)}: Tocá cada producto arriba para abrirlo en su web.
           </p>
         )}
       </div>

@@ -30,7 +30,7 @@ COUNTABLE_ITEM_KEYWORDS = (
 )
 
 MULTIPACK_REGEX = re.compile(
-    r'(\d+)\s*[xX×]\s*(\d+(?:[.,]\d+)?)\s*'
+    r'(\d+)\s*(?:botellas?|latas?|unidades?|un|u|paquetes?|packs?)?\s*[xX×]\s*(\d+(?:[.,]\d+)?)\s*'
     r'(l|lt|lts|litro|litros|ml|cc|cm3|g|gr|grs|gramo|gramos|grm|kg|kgs|kilogramo|un|u|unid|unidades|m|mts|metros)\b',
     re.IGNORECASE,
 )
@@ -38,7 +38,8 @@ MULTIPACK_REGEX = re.compile(
 MULTIPACK_REV_REGEX = re.compile(
     r'(\d+(?:[.,]\d+)?)\s*'
     r'(l|lt|lts|litro|litros|ml|cc|cm3|g|gr|grs|gramo|gramos|grm|kg|kgs|kilogramo)\s*\.?\s*'
-    r'[xX×]\s*(\d+)\s*(?:un|u|uni|unid|unidades|pack|paq)?\b',
+    r'(?:caja|pack|paq|display|bolsa|fardo)?\s*'
+    r'(?:[xX×]|de)\s*(\d+)\s*(?:un|u|uni|unid|unidades|botellas?|latas?|pack|paq)?\b',
     re.IGNORECASE,
 )
 

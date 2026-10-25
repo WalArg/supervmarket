@@ -54,22 +54,33 @@ def parse_meli_product(prod: dict, item: dict) -> dict | None:
         if price <= 0:
             return None
 
-        title = prod.get("name") or ""
+        # Atributos de catálogo certificados por Mercado Libre
+        attrs_map = {a.get("id"): a.get("value_name") for a in prod.get("attributes", [])}
+        manual_title = attrs_map.get("MANUAL_TITLE")
+        raw_name = prod.get("name") or ""
+        title = manual_title if (manual_title and len(manual_title) > len(raw_name)) else raw_name
+
+        # Detección de multipacks en atributos (ej: UNITS_PER_PACK = 3 o 6)
+        upp_str = str(attrs_map.get("UNITS_PER_PACK") or attrs_map.get("PACKAGE_UNITS_COUNT") or "1")
+        upp = int(upp_str) if upp_str.isdigit() else 1
+        import re
+        if upp > 1 and not re.search(r"\b(?:pack|caja|x\s*\d+|\d+\s*botellas?|\d+\s*unidades?)\b", title, re.IGNORECASE):
+            title = f"{title} (Pack x{upp})"
+
         item_id = item.get("item_id") or ""
         orig_price = item.get("original_price")
         orig_price_f = float(orig_price) if orig_price else price
 
         # Extraer atributos canónicos: marca, EAN/GTIN
-        brand = None
+        brand = attrs_map.get("BRAND")
         ean = None
-        for a in prod.get("attributes", []):
-            aid = a.get("id")
-            if aid == "BRAND":
-                brand = a.get("value_name")
-            elif aid == "GTIN":
-                val = str(a.get("value_name") or "").strip()
-                if val.isdigit() and 8 <= len(val) <= 14:
-                    ean = val
+        gtin_val = str(attrs_map.get("GTIN") or "").strip()
+        # GTIN puede contener varios EANs separados por coma en MeLi
+        for candidate in gtin_val.split(","):
+            c_clean = candidate.strip()
+            if c_clean.isdigit() and 8 <= len(c_clean) <= 14:
+                ean = c_clean
+                break
 
         # Imagen
         pictures = prod.get("pictures") or []
@@ -92,8 +103,24 @@ def parse_meli_product(prod: dict, item: dict) -> dict | None:
         elif free_shipping:
             promo_label = "🚚 Envío Gratis"
 
-        # Cálculo de precio unitario ($/kg, $/L)
-        cant, unidad = extraer_unidad_titulo(title)
+        # 1. Priorizar volumen/peso total certificado de Mercado Libre (ej: "2.25 L" o "1 kg")
+        net_vol = attrs_map.get("NET_VOLUME") or attrs_map.get("TOTAL_VOLUME")
+        net_weight = attrs_map.get("NET_WEIGHT") or attrs_map.get("TOTAL_WEIGHT")
+
+        cant, unidad = None, None
+        if net_vol:
+            c, u = extraer_unidad_titulo(f"Prod {net_vol}")
+            if c and u in ("l", "ml", "cc"):
+                cant, unidad = c, u
+        elif net_weight:
+            c, u = extraer_unidad_titulo(f"Prod {net_weight}")
+            if c and u in ("kg", "g", "gr"):
+                cant, unidad = c, u
+
+        # 2. Si MeLi no tenía atributo neto certificado, extraer del título completo
+        if not cant or not unidad:
+            cant, unidad = extraer_unidad_titulo(title)
+
         cant_norm, unidad_norm = normalizar_unidad(cant, unidad)
 
         unit_p = None

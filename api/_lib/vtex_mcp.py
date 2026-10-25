@@ -419,6 +419,7 @@ _FILLER_TOKENS = {
     "uat", "uht", "larga", "vida", "brick", "tetra", "brik", "botella", "lata",
     "envase", "paquete", "bolsa", "caja", "sachet", "doypack", "pouch", "pet",
     "clasica", "clasico", "tradicional", "regular", "sabor", "fortificada", "fortificado",
+    "suave", "palo", "hoja", "tipo",
     "vitamina", "vitaminas", "calcio", "hierro", "con", "de", "del", "la", "el", "los",
     "las", "para", "en", "por", "al", "y", "o", "x", "un", "u", "uni", "unid", "unidades",
     "gr", "grs", "g", "kg", "kgs", "ml", "cc", "cm3", "l", "lt", "lts", "litro", "litros",

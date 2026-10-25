@@ -212,6 +212,8 @@ def _build_carts(
                 for i in items if i.get("sku_id")
             ]
             checkout = f"{VTEX_DOMAINS[store]}/checkout/cart/add?{'&'.join(parts)}"
+        elif items and items[0].get("link"):
+            checkout = items[0].get("link")
 
         carts.append({
             "supermercado": store,
@@ -265,7 +267,7 @@ async def optimize(
         cov = await regions.coverage(cp)
         all_known = {c["supermercado"] for c in cov}
         excluded_stores = [c["supermercado"] for c in cov if c.get("delivers") is False]
-        valid_stores = all_known - set(excluded_stores)
+        valid_stores = (all_known - set(excluded_stores)) | {"MercadoLibre", "LaBarraCCU", "TheFoodMarket"}
 
     cards_set = set(selected_cards or [])
     active_day = (day or benefits.today_weekday_ar()).lower().strip()
