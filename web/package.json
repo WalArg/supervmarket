@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@zxing/browser": "^0.2.1",
+    "@zxing/library": "^0.23.0",
     "axios": "^1.13.3",
     "clsx": "^2.1.1",
     "framer-motion": "^12.29.2",

@@ -671,17 +671,30 @@ async def live_search_and_sync(
             st for st in LIVE_VTEX_DOMAINS.keys()
             if region_map.get(st) != "__NO_DELIVERY__"
         ]
-        tasks = [
-            fetch_vtex_store_live(
-                client,
-                st,
-                q_norm,
-                limit=limit_per_store,
-                order_by=order_by,
-                region_id=region_map.get(st),
-            )
-            for st in vtex_names
-        ]
+        is_ean = q_norm.isdigit() and 8 <= len(q_norm) <= 14
+        if is_ean:
+            # Búsqueda exacta indexada por EAN directo en cada cadena VTEX
+            tasks = [
+                fetch_vtex_by_eans_live(
+                    client,
+                    st,
+                    [q_norm],
+                    region_id=region_map.get(st),
+                )
+                for st in vtex_names
+            ]
+        else:
+            tasks = [
+                fetch_vtex_store_live(
+                    client,
+                    st,
+                    q_norm,
+                    limit=limit_per_store,
+                    order_by=order_by,
+                    region_id=region_map.get(st),
+                )
+                for st in vtex_names
+            ]
         tasks.append(fetch_coto_live(client, q_norm, limit=limit_per_store))
         shopify_names = list(SHOPIFY_DOMAINS.keys())
         for sh_st in shopify_names:
