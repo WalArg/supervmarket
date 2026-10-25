@@ -50,6 +50,7 @@ PAYMENT_OPTIONS = [
     {"id": "cencopay", "name": "Cencopay / Tarj. Cencosud", "category": "club", "store": "Jumbo/Disco/Vea"},
     {"id": "mas_club", "name": "Más Club (MásOnline)", "category": "club", "store": "Masonline"},
     {"id": "tu_farmacity", "name": "Tu Farmacity", "category": "club", "store": "Farmacity"},
+    {"id": "meli_plus", "name": "Meli+ (Mercado Libre)", "category": "club", "store": "MercadoLibre"},
 
     # Billeteras Virtuales
     {"id": "modo", "name": "MODO", "category": "wallet"},

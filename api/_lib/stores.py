@@ -45,6 +45,9 @@ FREE_SHIPPING = {
     "Simplicity": 25000,
     "Farmaonline": 25000,
     "Farmaplus": 25000,
+    "MercadoLibre": 33000,
+    "TheFoodMarket": 28000,
+    "LaBarraCCU": 25000,
 }
 
 # Costo estimado de envío a domicilio (ARS) cuando no se alcanza el umbral de envío gratis.
@@ -60,6 +63,9 @@ SHIPPING_COST = {
     "Simplicity": 3900,
     "Farmaonline": 3900,
     "Farmaplus": 3900,
+    "MercadoLibre": 4900,
+    "TheFoodMarket": 4500,
+    "LaBarraCCU": 4500,
 }
 
 
