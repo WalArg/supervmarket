@@ -165,7 +165,7 @@ async def search_grouped(query: str, sort_by: str = "price_asc", only_offers: bo
         args = [f"%{t}%" for t in tokens]
 
     if only_offers:
-        conds.append("(pr.promo_etiqueta IS NOT NULL OR pr.descuento >= 5)")
+        conds.append("((pr.promo_etiqueta IS NOT NULL AND pr.requiere_club = 0) OR pr.descuento >= 5)")
 
     where_clause = " AND ".join(conds) if conds else "1=1"
     safe_limit = max(20, min(int(limit or 120), 300))

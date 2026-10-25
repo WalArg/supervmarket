@@ -83,11 +83,12 @@ const SearchScreen: React.FC = () => {
   const visible = useMemo(
     () =>
       results.filter(g => {
+        if (onlyOffers && !g.offers.some(o => (o.discount >= 5) || (o.promo_label && !o.requires_club))) return false
         if (onlyMulti && g.offers.length < 2) return false
         if (onlyBulk && !g.offers.some(o => (o.promo_min_qty || 1) > 1 && !o.requires_club)) return false
         return true
       }),
-    [results, onlyMulti, onlyBulk],
+    [results, onlyOffers, onlyMulti, onlyBulk],
   )
 
   const runSearch = (q: string) => {

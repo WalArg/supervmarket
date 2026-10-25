@@ -832,7 +832,11 @@ async def search_live_grouped(
     if only_offers:
         groups = [
             g for g in groups
-            if any(o.get("promo_label") or (o.get("discount") or 0) >= 5 for o in g["offers"])
+            if any(
+                (o.get("discount") or 0) >= 5
+                or (o.get("promo_label") and not o.get("requires_club"))
+                for o in g["offers"]
+            )
         ]
 
     first_tok = _singularize_token(q_words[0]) if q_words else ""
