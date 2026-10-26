@@ -49,36 +49,54 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
   const [includeShipping, setIncludeShipping] = useState(false)
   const [plan, setPlan] = useState<OptimizePlan | null>(null)
   const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState(false)
 
   const itemsKey = items.map(i => `${i.ean}:${i.qty}`).join(',')
 
   const handleSelectMode = (newMode: OptimizeMode) => {
     setMode(newMode)
     if (plan?.all_plans?.[newMode]) {
-      setPlan(plan.all_plans[newMode])
+      const selected = plan.all_plans[newMode]
+      setPlan({
+        ...selected,
+        all_plans: plan.all_plans,
+        mode_previews: plan.mode_previews,
+      })
     }
   }
 
   useEffect(() => {
     if (!items.length) {
       setPlan(null)
+      setLoadError(false)
       return
     }
 
     // Si ya tenemos el plan precalculado en memoria para este modo, lo aplicamos al instante (0ms)
     if (plan?.all_plans?.[mode]) {
-      setPlan(plan.all_plans[mode])
+      const selected = plan.all_plans[mode]
+      setPlan({
+        ...selected,
+        all_plans: plan.all_plans,
+        mode_previews: plan.mode_previews,
+      })
       return
     }
 
     let alive = true
     const t = setTimeout(() => {
       setLoading(true)
+      setLoadError(false)
       optimize(items, mode, { cp, includeShipping, selectedCards, day: selectedDay })
         .then(p => {
-          if (alive) setPlan(p)
+          if (alive) {
+            setPlan(p)
+            setLoadError(false)
+          }
         })
-        .catch(() => {})
+        .catch(() => {
+          if (alive) setLoadError(true)
+        })
         .finally(() => {
           if (alive) setLoading(false)
         })
@@ -272,11 +290,13 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
                     >
                       {m.id === 'ahorro'
                         ? `${preview.stops} súper`
-                        : preview.diff > 0
-                          ? `+${formatPrice(preview.diff)}`
-                          : preview.stops === 1
-                            ? '1 súper'
-                            : `${preview.stops} súper`}
+                        : preview.covered_items !== undefined && preview.total_items !== undefined && preview.covered_items < preview.total_items
+                          ? `${preview.covered_items}/${preview.total_items} items`
+                          : preview.diff > 0
+                            ? `+${formatPrice(preview.diff)}`
+                            : preview.stops === 1
+                              ? '1 súper'
+                              : `${preview.stops} súper`}
                     </span>
                   ) : (
                     <span className="text-[10px] text-slate-400 mt-0.5 leading-none">—</span>
@@ -285,6 +305,32 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
               )
             })}
           </div>
+
+          {loadError && !plan && (
+            <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-[12px] flex items-center justify-between gap-2 shadow-2xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <AlertCircle size={17} className="text-amber-600 shrink-0" />
+                <span className="truncate">Demora al cotizar en vivo. Podés reintentar.</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setLoading(true)
+                  setLoadError(false)
+                  optimize(items, mode, { cp, includeShipping, selectedCards, day: selectedDay })
+                    .then(p => {
+                      setPlan(p)
+                      setLoadError(false)
+                    })
+                    .catch(() => setLoadError(true))
+                    .finally(() => setLoading(false))
+                }}
+                className="px-3 py-1.5 rounded-xl bg-amber-600 text-white font-bold text-[11px] shrink-0 active:scale-95 transition-all shadow-xs"
+              >
+                Reintentar
+              </button>
+            </div>
+          )}
 
           {/* Resumen total con ahorro */}
           <div className="rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white p-4 relative overflow-hidden shadow-md shadow-blue-500/10">

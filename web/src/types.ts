@@ -76,6 +76,8 @@ export interface ModePreview {
   stops: number
   ahorro_total: number
   diff: number
+  covered_items?: number
+  total_items?: number
 }
 
 export interface OptimizePlan {

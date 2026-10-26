@@ -1296,10 +1296,12 @@ async def live_offers_for_eans(eans: list[str], cp: str | None = None):
 
     missing_eans = [e for e in eans if e not in _LIVE_OFFERS_MEM]
     digit_eans = [e for e in missing_eans if e.isdigit()]
-    if digit_eans:
-        await live_lookup_eans(digit_eans, cp=cp)
-
     non_digit = [e for e in missing_eans if not e.isdigit()]
+
+    sync_tasks = []
+    if digit_eans:
+        sync_tasks.append(live_lookup_eans(digit_eans, cp=cp))
+
     for e in non_digit:
         term = ""
         if e.startswith("PRODUCE_"):
@@ -1307,7 +1309,13 @@ async def live_offers_for_eans(eans: list[str], cp: str | None = None):
         elif e.startswith("MEAT_"):
             term = e.replace("MEAT_", "").replace("_", " ")
         if term:
-            await live_search_and_sync(term, limit_per_store=10)
+            sync_tasks.append(live_search_and_sync(term, limit_per_store=4))
+
+    if sync_tasks:
+        try:
+            await asyncio.wait_for(asyncio.gather(*sync_tasks, return_exceptions=True), timeout=5.5)
+        except Exception:
+            pass
 
     out: dict[str, list[dict]] = {}
     names: dict[str, str] = {}

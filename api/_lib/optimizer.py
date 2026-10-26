@@ -340,23 +340,9 @@ async def optimize(
         for e, offs in db_offers.items():
             offers_by_ean.setdefault(e, []).extend(offs)
         names.update(db_names)
-
-        # Si aún faltan ofertas, buscamos en vivo por nombre del producto
-        still_missing = [it for it in missing_live if it["ean"] not in offers_by_ean]
-        for it in still_missing:
-            q = (it.get("nombre") or "").strip()
-            ean = it["ean"]
-            if not q:
-                if ean.startswith("PRODUCE_"):
-                    q = ean.replace("PRODUCE_", "").replace("_", " ")
-                elif ean.startswith("MEAT_"):
-                    q = ean.replace("MEAT_", "").replace("_", " ")
-            if q:
-                await vtex_mcp.live_search_and_sync(q, limit_per_store=12)
-                live_offs, live_names = await vtex_mcp.live_offers_for_eans([ean], cp=cp)
-                if ean in live_offs:
-                    offers_by_ean[ean] = live_offs[ean]
-                    names[ean] = live_names.get(ean, q)
+        for it in missing_live:
+            if it["ean"] not in names and it.get("nombre"):
+                names[it["ean"]] = it["nombre"]
 
     valid_stores: set[str] | None = None
     excluded_stores: list[str] = []
@@ -381,22 +367,25 @@ async def optimize(
             include_clubs, include_shipping, cards_set, active_day, cp
         )
 
-    active_plan = all_plans.get(mode) or all_plans["ahorro"]
-    base_total = all_plans["ahorro"]["total"]
+    base_plan = all_plans.get("ahorro") or list(all_plans.values())[0]
+    base_total = base_plan["total"]
 
     mode_previews = {}
     for m in ["ahorro", "balanceada", "comodidad"]:
         p = all_plans[m]
         diff = round(p["total"] - base_total, 2)
+        covered_count = len(items) - len(p.get("missing", []))
         mode_previews[m] = {
             "total": p["total"],
             "stops": p["stops"],
             "ahorro_total": p["ahorro_total"],
             "diff": diff,
+            "covered_items": covered_count,
+            "total_items": len(items),
         }
 
-    for p in all_plans.values():
-        p["all_plans"] = all_plans
-        p["mode_previews"] = mode_previews
-
+    # Retornamos el plan activo SIN referencias circulares
+    active_plan = dict(all_plans.get(mode) or base_plan)
+    active_plan["all_plans"] = all_plans
+    active_plan["mode_previews"] = mode_previews
     return active_plan
