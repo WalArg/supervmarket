@@ -38,6 +38,7 @@ app.add_middleware(
 class CartItem(BaseModel):
     ean: str
     qty: int = 1
+    nombre: str | None = None
 
 
 class OptimizeRequest(BaseModel):

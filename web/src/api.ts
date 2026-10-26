@@ -46,7 +46,7 @@ export async function optimize(
   },
 ): Promise<OptimizePlan> {
   const payload = {
-    items: items.map(i => ({ ean: i.ean, qty: i.qty })),
+    items: items.map(i => ({ ean: i.ean, qty: i.qty, nombre: i.nombre })),
     mode,
     cp: opts?.cp || null,
     include_clubs: opts?.includeClubs ?? false,

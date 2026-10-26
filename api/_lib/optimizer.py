@@ -253,23 +253,46 @@ async def optimize(
     selected_cards: list[str] | None = None,
     day: str | None = None,
 ) -> dict:
-    """items: [{ean, qty}]. Devuelve el plan con carritos por súper, ahorro real y mejor día de compra."""
+    """items: [{ean, qty, nombre?}]. Devuelve el plan con carritos por súper, ahorro real y mejor día de compra."""
     eans = [it["ean"] for it in items]
     offers_by_ean, names = await vtex_mcp.live_offers_for_eans(eans, cp=cp)
-    missing_live = [e for e in eans if e not in offers_by_ean]
+
+    missing_live = [it for it in items if it["ean"] not in offers_by_ean]
     if missing_live:
-        db_offers, db_names = await offers_for_eans(missing_live)
+        missing_eans = [it["ean"] for it in missing_live]
+        db_offers, db_names = await offers_for_eans(missing_eans)
         for e, offs in db_offers.items():
             offers_by_ean.setdefault(e, []).extend(offs)
         names.update(db_names)
+
+        # Si aún faltan ofertas, buscamos en vivo por nombre del producto
+        still_missing = [it for it in missing_live if it["ean"] not in offers_by_ean]
+        for it in still_missing:
+            q = (it.get("nombre") or "").strip()
+            ean = it["ean"]
+            if not q:
+                if ean.startswith("PRODUCE_"):
+                    q = ean.replace("PRODUCE_", "").replace("_", " ")
+                elif ean.startswith("MEAT_"):
+                    q = ean.replace("MEAT_", "").replace("_", " ")
+            if q:
+                await vtex_mcp.live_search_and_sync(q, limit_per_store=12)
+                live_offs, live_names = await vtex_mcp.live_offers_for_eans([ean], cp=cp)
+                if ean in live_offs:
+                    offers_by_ean[ean] = live_offs[ean]
+                    names[ean] = live_names.get(ean, q)
 
     valid_stores: set[str] | None = None
     excluded_stores: list[str] = []
     if cp:
         cov = await regions.coverage(cp)
-        all_known = {c["supermercado"] for c in cov}
         excluded_stores = [c["supermercado"] for c in cov if c.get("delivers") is False]
-        valid_stores = (all_known - set(excluded_stores)) | {"MercadoLibre", "LaBarraCCU", "TheFoodMarket"}
+        if excluded_stores:
+            all_known = {c["supermercado"] for c in cov} | {
+                "MercadoLibre", "LaBarraCCU", "TheFoodMarket",
+                "LaBarata", "TonelPrivado", "DePastura", "ArcorEnCasa", "Coto"
+            }
+            valid_stores = all_known - set(excluded_stores)
 
     cards_set = set(selected_cards or [])
     active_day = (day or benefits.today_weekday_ar()).lower().strip()
