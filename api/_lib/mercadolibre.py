@@ -129,7 +129,18 @@ def parse_meli_product(prod: dict, item: dict) -> dict | None:
             if sanity_precio_unidad(price, raw_u, unidad_norm):
                 unit_p = round(raw_u, 2)
 
-        permalink = f"https://articulo.mercadolibre.com.ar/{item_id}"
+        prod_id = prod.get("id")
+        if prod_id and str(prod_id).startswith("MLA"):
+            permalink = f"https://www.mercadolibre.com.ar/p/{prod_id}"
+        elif item_id:
+            clean_item_id = (
+                f"MLA-{item_id[3:]}"
+                if (item_id.startswith("MLA") and not item_id.startswith("MLA-"))
+                else item_id
+            )
+            permalink = f"https://articulo.mercadolibre.com.ar/{clean_item_id}"
+        else:
+            permalink = "https://www.mercadolibre.com.ar/supermercado"
 
         return {
             "supermercado": "MercadoLibre",

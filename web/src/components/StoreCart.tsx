@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { ExternalLink, CheckCircle2, AlertTriangle, CreditCard, Flame, Truck } from 'lucide-react'
+import { ExternalLink, CheckCircle2, AlertTriangle, CreditCard, Flame, Truck, Copy, Check } from 'lucide-react'
 import type { StorePlan } from '../types'
 import { validateCart } from '../api'
 import { useLocation } from '../location/LocationContext'
@@ -17,6 +17,14 @@ const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
   const { cp } = useLocation()
   const [validation, setValidation] = useState<Validation | null>(null)
   const [checking, setChecking] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyList = () => {
+    const text = plan.items.map(i => `${i.qty}× ${i.nombre}`).join('\n')
+    navigator.clipboard?.writeText?.(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   // Verifica stock y precio final en vivo contra el carrito real del súper
   useEffect(() => {
@@ -146,11 +154,30 @@ const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
 
         {/* Guía para tiendas que no permiten changuito multi-producto automatizado por URL (como Coto) */}
         {!plan.supports_cart && plan.items.length > 1 && (
-          <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-2.5 text-[11px] text-amber-900 flex items-start gap-2">
-            <AlertTriangle size={15} className="text-amber-600 shrink-0 mt-0.5" />
-            <span>
-              <strong>{storeLabel(plan.supermercado)}:</strong> Tocá cada producto de la lista arriba para abrirlo y agregarlo en su web.
-            </span>
+          <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-3 text-[12px] text-amber-900 space-y-2">
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={15} className="text-amber-600 shrink-0 mt-0.5" />
+              <span>
+                <strong>{storeLabel(plan.supermercado)}:</strong> Tocá cada producto de la lista arriba para abrirlo y agregarlo en su web.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleCopyList}
+              className="w-full py-1.5 px-2.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors active:scale-[0.99]"
+            >
+              {copied ? (
+                <>
+                  <Check size={13} className="text-emerald-700" />
+                  <span className="text-emerald-800">¡Lista copiada al portapapeles!</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={13} />
+                  <span>Copiar lista de productos</span>
+                </>
+              )}
+            </button>
           </div>
         )}
 
