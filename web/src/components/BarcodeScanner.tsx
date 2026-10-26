@@ -107,6 +107,38 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, onClose }) 
 
         // 2. Probar API nativa BarcodeDetector (ultra rápida por aceleración GPU)
         const hasNative = typeof window !== 'undefined' && 'BarcodeDetector' in window
+
+        // Filtro anti-ruido óptico y consenso de 2 cuadros (evita lecturas espurias en botellas curvas de vidrio oscuro)
+        let lastCandidate = ''
+        let candidateCount = 0
+        let lastCandidateTime = 0
+
+        const isGenuinelyValidCode = (val: string): boolean => {
+          if (!/^\d{8,14}$/.test(val)) return false
+          if (val.length === 13) {
+            // En EAN-13, prefijos 920-929 no existen en la asignación oficial GS1 mundial
+            const p3 = parseInt(val.slice(0, 3), 10)
+            if (p3 >= 920 && p3 <= 929) return false
+          }
+          return true
+        }
+
+        const verifyAndEmit = (val: string): boolean => {
+          if (!isGenuinelyValidCode(val)) return false
+          const now = Date.now()
+          if (val === lastCandidate && now - lastCandidateTime < 700) {
+            candidateCount++
+            if (candidateCount >= 2) {
+              return true
+            }
+          } else {
+            lastCandidate = val
+            candidateCount = 1
+            lastCandidateTime = now
+          }
+          return false
+        }
+
         if (hasNative) {
           try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -129,7 +161,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, onClose }) 
                   if (barcodes && barcodes.length > 0) {
                     for (const b of barcodes) {
                       const val = (b.rawValue || '').trim()
-                      if (/^\d{8,14}$/.test(val)) {
+                      if (verifyAndEmit(val)) {
                         stopped = true
                         handleSuccess(val)
                         return
@@ -186,8 +218,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, onClose }) 
         if (videoRef.current) {
           zxingControls = await reader.decodeFromStream(stream, videoRef.current, res => {
             if (!res || stopped) return
-            const text = res.getText()
-            if (/^\d{8,14}$/.test(text)) {
+            const text = (res.getText() || '').trim()
+            if (verifyAndEmit(text)) {
               stopped = true
               zxingControls?.stop()
               handleSuccess(text)

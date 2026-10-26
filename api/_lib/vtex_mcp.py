@@ -408,6 +408,7 @@ def _to_offer_dict(d: dict) -> dict:
         "promo_unit_price": promo_unit,
         "requires_club": bool(d.get("requiere_club")),
         "supports_cart": supports_cart(d["supermercado"]),
+        "nombre": d.get("nombre") or "",
     }
 
 
@@ -533,7 +534,14 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             "marca": d_marca if _is_valid_brand(d_marca) else "Genérico",
             "imagen": d.get("imagen") or "",
             "offers_by_store": {},
+            "all_names": set(),
         })
+        d_nom = (d.get("nombre") or "").strip()
+        if d_nom:
+            g["all_names"].add(d_nom)
+            # Si el nombre de este proveedor tiene variante específica (ej: '24.7') y el actual no, enriquecer el título
+            if ("24.7" in d_nom or "24 7" in d_nom) and not ("24.7" in g["nombre"] or "24 7" in g["nombre"]):
+                g["nombre"] = d_nom
         if not g["imagen"] and d.get("imagen"):
             g["imagen"] = d["imagen"]
         if not _is_valid_brand(g["marca"]) and _is_valid_brand(d_marca):
@@ -577,6 +585,7 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             # Fusionar ofertas dentro del grupo principal
             for st, off in g["offers_by_store"].items():
                 primary_g["offers_by_store"][st] = off
+            primary_g.setdefault("all_names", set()).update(g.get("all_names") or [])
             if not primary_g["imagen"] and g["imagen"]:
                 primary_g["imagen"] = g["imagen"]
             _EAN_ALIASES.setdefault(primary_ean, set()).add(ean)
@@ -622,6 +631,7 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             "marca": g["marca"],
             "imagen": g["imagen"],
             "offers": offers,
+            "all_names": list(g.get("all_names") or []),
         })
     return groups
 
@@ -799,7 +809,8 @@ async def search_live_grouped(
         q_sings = [_singularize_token(_NUMBER_WORDS.get(w, w)) for w in q_words]
 
         def _matches_strict(g: dict) -> bool:
-            doc_tokens = _norm_text(f"{g['nombre']} {g['marca']}").split()
+            all_text = f"{g['nombre']} {g['marca']} " + " ".join(g.get("all_names") or [])
+            doc_tokens = _norm_text(all_text).split()
             doc_sings = {_singularize_token(_NUMBER_WORDS.get(t, t)) for t in doc_tokens}
             doc_raw = set(doc_tokens)
             for qw, qs in zip(q_words, q_sings):
@@ -814,7 +825,8 @@ async def search_live_grouped(
             # Si no hubo coincidencias exactas porque el usuario tipeó mal (ej. 'pecsi', 'hugies', 'matarazo'),
             # permitimos tolerancia ortográfica Damerau-Levenshtein (distancia <= 1 o 2 en palabras del mismo largo)
             def _matches_fuzzy_typo(g: dict) -> bool:
-                doc_tokens = _norm_text(f"{g['nombre']} {g['marca']}").split()
+                all_text = f"{g['nombre']} {g['marca']} " + " ".join(g.get("all_names") or [])
+                doc_tokens = _norm_text(all_text).split()
                 for qw in q_words:
                     max_d = 1 if len(qw) <= 5 else 2
                     if not any(
