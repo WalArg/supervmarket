@@ -211,8 +211,18 @@ async def fetch_mercadolibre_live(
                 if ir.status_code == 200:
                     items = ir.json().get("results", [])
                     if items:
-                        # Ordenar por menor precio para traer la mejor oferta disponible en MeLi
-                        best_item = min(items, key=lambda x: float(x.get("price") or 999999))
+                        # Priorizar ofertas de Supermercado Libre y Full (que son las que aparecen destacadas
+                        # en la ficha oficial del producto y cuentan con envío en el día), y dentro de ellas la más económica.
+                        def _item_rank(it: dict):
+                            price = float(it.get("price") or 999999)
+                            tags = it.get("tags") or []
+                            is_super = 0 if "supermarket_eligible" in tags else 1
+                            shipping = it.get("shipping") or {}
+                            is_full = 0 if shipping.get("logistic_type") == "fulfillment" else 1
+                            is_official = 0 if it.get("official_store_id") else 1
+                            return (is_super, is_full, is_official, price)
+
+                        best_item = min(items, key=_item_rank)
                         return parse_meli_product(prod, best_item)
             except Exception:
                 pass
