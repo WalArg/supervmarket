@@ -331,7 +331,19 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
     if not ean:
         return None
 
-    base_price = float(comm.get("Price") or 0)
+    # En VTEX Intelligent Search, priceRange.sellingPrice refleja el precio retail real
+    # de vidriera de la tienda, mientras que commertialOffer a veces contiene listas
+    # de costo mayorista regional o desactualizadas por segmentación.
+    pr_selling = (
+        prod.get("priceRange", {})
+        .get("sellingPrice", {})
+        .get("lowPrice")
+    )
+    if pr_selling is not None and float(pr_selling) > 0:
+        base_price = float(pr_selling)
+    else:
+        base_price = float(comm.get("Price") or 0)
+
     if base_price <= 0:
         return None
 
