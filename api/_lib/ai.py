@@ -31,7 +31,7 @@ PRESET_RECIPES: dict[str, dict[str, Any]] = {
             {"query": "vacio", "qty": 1, "unit": "kg", "item_pedido": "Vacío (1 kg)"},
             {"query": "chorizo", "qty": 6, "unit": "un", "item_pedido": "6 chorizos (~1 kg)"},
             {"query": "morcilla", "qty": 3, "unit": "un", "item_pedido": "3 morcillas (~1 kg)"},
-            {"query": "fernet branca 750", "qty": 1, "unit": "un", "item_pedido": "Fernet Branca 750ml (1 un)"},
+            {"query": "fernet branca tradicional 750", "qty": 1, "unit": "un", "item_pedido": "Fernet Branca Tradicional 750ml (1 un)"},
             {"query": "coca cola 2.25", "qty": 2, "unit": "un", "item_pedido": "Coca Cola 2.25L (2 un)"},
             {"query": "carbon 4kg", "qty": 1, "unit": "un", "item_pedido": "Carbón 4kg (1 bolsa)"},
         ],
@@ -95,7 +95,26 @@ async def _match_product_in_catalog(query: str, cp: str | None = None) -> dict[s
         groups = await vtex_mcp.search_live_grouped(query, sort_by="price_asc", cp=cp)
         if not groups:
             return None
-        g = groups[0]
+
+        q_lower = query.lower()
+        candidates = groups
+
+        # Si el usuario NO pidió "menta" expresamente, filtrar variantes saborizadas con menta (ej: Branca Menta)
+        if "menta" not in q_lower:
+            no_menta = [g for g in candidates if "menta" not in g["nombre"].lower()]
+            if no_menta:
+                candidates = no_menta
+
+        # Descartar packs múltiples (x3, x6, combo) si no se pidió explícitamente pack o combo
+        if not any(pk in q_lower for pk in ("pack", "combo", "x3", "x6", "x12", "botellas")):
+            single_units = [
+                g for g in candidates
+                if not re.search(r"\b(?:pack|combo|x\s*\d+\s*u|x\d+|caja\s*x|\d+\s*botellas)\b", g["nombre"].lower())
+            ]
+            if single_units:
+                candidates = single_units
+
+        g = candidates[0]
         offers = g.get("offers", [])
         if not offers:
             return None

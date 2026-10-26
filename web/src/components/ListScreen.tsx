@@ -53,6 +53,7 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
   const [loadError, setLoadError] = useState(false)
 
   const itemsKey = items.map(i => `${i.ean}:${i.qty}`).join(',')
+  const planContextKey = `${itemsKey}|${cp || ''}|${includeShipping}|${selectedCards.join(',')}|${selectedDay}`
 
   const handleSelectMode = (newMode: OptimizeMode) => {
     setMode(newMode)
@@ -60,6 +61,7 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
       const selected = plan.all_plans[newMode]
       setPlan({
         ...selected,
+        context_key: plan.context_key,
         all_plans: plan.all_plans,
         mode_previews: plan.mode_previews,
       })
@@ -73,11 +75,12 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
       return
     }
 
-    // Si ya tenemos el plan precalculado en memoria para este modo, lo aplicamos al instante (0ms)
-    if (plan?.all_plans?.[mode]) {
+    // Si ya tenemos el plan precalculado para ESTE MISMO CP, productos, tarjetas y día, aplicamos el modo en 0ms
+    if (plan && plan.context_key === planContextKey && plan.all_plans?.[mode]) {
       const selected = plan.all_plans[mode]
       setPlan({
         ...selected,
+        context_key: planContextKey,
         all_plans: plan.all_plans,
         mode_previews: plan.mode_previews,
       })
@@ -91,7 +94,10 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
       optimize(items, mode, { cp, includeShipping, selectedCards, day: selectedDay })
         .then(p => {
           if (alive) {
-            setPlan(p)
+            setPlan({
+              ...p,
+              context_key: planContextKey,
+            })
             setLoadError(false)
           }
         })

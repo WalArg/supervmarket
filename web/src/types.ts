@@ -97,6 +97,7 @@ export interface OptimizePlan {
   carts: StorePlan[]
   all_plans?: Record<OptimizeMode, OptimizePlan>
   mode_previews?: Record<OptimizeMode, ModePreview>
+  context_key?: string
 }
 
 export interface PaymentOption {
