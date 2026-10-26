@@ -20,6 +20,28 @@ MELI_CLIENT_SECRET = os.getenv("MELI_CLIENT_SECRET", "g6qrGOxdw6iIatBY6osc35Jq6w
 
 _CACHED_TOKEN: str | None = None
 _TOKEN_EXPIRES_AT: float = 0.0
+_SELLER_REP_CACHE: dict[int, tuple[str | None, str | None]] = {}
+
+
+async def _ensure_seller_reputations(client: httpx.AsyncClient, token: str, seller_ids: list[int]):
+    """Consulta en batch y cachea la reputación oficial de los vendedores de MeLi."""
+    missing = [sid for sid in seller_ids if sid and sid not in _SELLER_REP_CACHE]
+    if not missing:
+        return
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+    for chunk in [missing[i:i + 20] for i in range(0, len(missing), 20)]:
+        ids_str = ",".join(str(s) for s in chunk)
+        try:
+            r = await client.get(f"https://api.mercadolibre.com/users?ids={ids_str}", headers=headers, timeout=2.5)
+            if r.status_code == 200:
+                for entry in r.json():
+                    b = entry.get("body", {})
+                    sid = b.get("id")
+                    if sid:
+                        rep = b.get("seller_reputation", {})
+                        _SELLER_REP_CACHE[sid] = (rep.get("level_id"), rep.get("power_seller_status"))
+        except Exception:
+            pass
 
 
 async def get_meli_token(client: httpx.AsyncClient) -> str | None:
@@ -211,16 +233,30 @@ async def fetch_mercadolibre_live(
                 if ir.status_code == 200:
                     items = ir.json().get("results", [])
                     if items:
-                        # Priorizar ofertas de Supermercado Libre y Full (que son las que aparecen destacadas
-                        # en la ficha oficial del producto y cuentan con envío en el día), y dentro de ellas la más económica.
+                        sids = [it.get("seller_id") for it in items if it.get("seller_id")]
+                        await _ensure_seller_reputations(client, token, sids)
+
+                        # Priorizar ofertas de Supermercado Libre y Full de vendedores Platinum / Verde (5_green),
+                        # que son los únicos que ganan la Buy Box oficial mostrada en la web de Mercado Libre.
                         def _item_rank(it: dict):
                             price = float(it.get("price") or 999999)
                             tags = it.get("tags") or []
                             is_super = 0 if "supermarket_eligible" in tags else 1
                             shipping = it.get("shipping") or {}
                             is_full = 0 if shipping.get("logistic_type") == "fulfillment" else 1
+
+                            sid = it.get("seller_id")
+                            lvl, pwr = _SELLER_REP_CACHE.get(sid, (None, None))
+                            if lvl == "5_green" or pwr in ("platinum", "gold"):
+                                rep = 0
+                            elif lvl == "4_light_green" or pwr == "silver":
+                                rep = 1
+                            else:
+                                rep = 2
+
                             is_official = 0 if it.get("official_store_id") else 1
-                            return (is_super, is_full, is_official, price)
+                            has_deal = 0 if it.get("original_price") else 1
+                            return (is_super, is_full, rep, is_official, has_deal, price)
 
                         best_item = min(items, key=_item_rank)
                         return parse_meli_product(prod, best_item)
