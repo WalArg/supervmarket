@@ -190,12 +190,12 @@ def parse_meli_product(prod: dict, item: dict, seller_meta: dict | None = None) 
             "imagen": image_url,
             "requires_club": False,
             "is_full": is_full,
+            "free_shipping": free_shipping,
+            "shipping_cost": float(shipping.get("cost") or 0.0),
         }
         if seller_meta:
             result.update(seller_meta)
         return result
-    except Exception:
-        return None
     except Exception:
         return None
 
@@ -326,7 +326,7 @@ async def fetch_mercadolibre_live(
                             "seller_name": primary_seller,
                             "seller_reputation": best_u.get("level_id") or "unrated",
                             "power_seller_status": best_u.get("power_seller_status"),
-                            "free_shipping_threshold": 33000,
+                            "free_shipping": best_ship.get("free_shipping") is True,
                             "shipping_cost": float(best_ship.get("cost") or 0.0),
                             "meli_options": meli_options,
                         }

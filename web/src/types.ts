@@ -30,6 +30,7 @@ export interface Offer {
   seller_name?: string | null
   seller_reputation?: string | null
   power_seller_status?: string | null
+  free_shipping?: boolean
   free_shipping_threshold?: number | null
   shipping_cost?: number | null
   is_full?: boolean

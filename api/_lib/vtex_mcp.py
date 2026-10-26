@@ -605,6 +605,7 @@ def _to_offer_dict(d: dict) -> dict:
         "seller_name": d.get("seller_name"),
         "seller_reputation": d.get("seller_reputation"),
         "power_seller_status": d.get("power_seller_status"),
+        "free_shipping": bool(d.get("free_shipping")),
         "free_shipping_threshold": d.get("free_shipping_threshold"),
         "shipping_cost": d.get("shipping_cost"),
         "is_full": d.get("is_full"),

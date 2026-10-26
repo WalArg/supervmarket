@@ -205,8 +205,6 @@ def _build_carts(
         regular_sub = round(sum(i["regular_total"] for i in items), 2)
         ahorro_store = round(max(0.0, regular_sub - subtotal), 2)
         threshold = free_shipping_threshold(store)
-        if store == "MercadoLibre" and "meli_plus" in cards_set:
-            threshold = 15000
         falta_gratis = max(0.0, round(threshold - subtotal, 2)) if threshold else 0.0
         envio_est = _shipping_for_store(store, subtotal, include_shipping)
         bank_benefit = benefits.best_cart_benefit_for_store(

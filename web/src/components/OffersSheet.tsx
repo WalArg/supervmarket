@@ -124,20 +124,22 @@ const OffersSheet: React.FC<{
                           </div>
                         )}
 
-                        {/* Umbral de envío gratis para Mercado Libre */}
+                        {/* Estado oficial de envío desde la API de Mercado Libre */}
                         {r.o.supermercado === 'MercadoLibre' && (
                           <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1 flex-wrap">
-                            <span>🚚</span>
-                            {r.eff >= (r.o.free_shipping_threshold || 33000) ? (
-                              <span className="text-emerald-700 font-semibold">¡Envío gratis incluido!</span>
+                            {r.o.free_shipping ? (
+                              <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                                🚚 ¡Envío gratis oficial en esta publicación!
+                              </span>
+                            ) : r.o.is_full ? (
+                              <span className="text-slate-600 flex items-center gap-1">
+                                <span>⚡</span>
+                                <span>Envío FULL · Acumulable en changuito para bonificar envío</span>
+                              </span>
                             ) : (
-                              <span>
-                                Envío gratis desde $33.000 (o $15.000 c/Meli+)
-                                {r.eff * 2 >= 33000 ? (
-                                  <strong className="text-emerald-700 font-bold ml-1">· ¡Llevando 2 tenés envío gratis!</strong>
-                                ) : (
-                                  <span className="text-slate-400 ml-1">· Faltan {formatPrice(33000 - r.eff)}</span>
-                                )}
+                              <span className="text-slate-500 flex items-center gap-1">
+                                <span>🚚</span>
+                                <span>Envío con costo según destino</span>
                               </span>
                             )}
                           </div>
@@ -218,7 +220,7 @@ const OffersSheet: React.FC<{
                                   )}
                                 </div>
                                 <div className="text-[11px] text-slate-500 mt-0.5">
-                                  {opt.free_shipping ? '🚚 Envío gratis' : '🚚 Envío a domicilio'}
+                                  {opt.free_shipping ? '🚚 Envío gratis oficial' : opt.is_full ? '⚡ FULL · Acumulable' : '🚚 Envío a domicilio'}
                                 </div>
                               </div>
                               <div className="text-right shrink-0 flex items-center gap-2">
