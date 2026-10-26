@@ -134,7 +134,7 @@ const OffersSheet: React.FC<{
                             ) : r.o.is_full ? (
                               <span className="text-slate-600 flex items-center gap-1">
                                 <span>⚡</span>
-                                <span>Envío FULL · Acumulable en changuito para bonificar envío</span>
+                                <span>Envío FULL · Acumulable en changuito (Envío gratis superando $65.000)</span>
                               </span>
                             ) : (
                               <span className="text-slate-500 flex items-center gap-1">
