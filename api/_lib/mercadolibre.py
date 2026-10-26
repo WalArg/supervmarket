@@ -204,8 +204,9 @@ async def fetch_mercadolibre_live(
     client: httpx.AsyncClient,
     query: str,
     limit: int = 10,
+    cp: str | None = None,
 ) -> list[dict]:
-    """Consulta productos en vivo desde el catálogo oficial de Mercado Libre."""
+    """Consulta productos en vivo desde el catálogo oficial de Mercado Libre y cotiza envío real según el CP."""
     token = await get_meli_token(client)
     if not token:
         return []
@@ -322,12 +323,31 @@ async def fetch_mercadolibre_live(
                         else:
                             primary_seller = best_nick
 
+                        exact_shipping_cost = float(best_ship.get("cost") or 0.0)
+                        is_free_shipping = best_ship.get("free_shipping") is True
+
+                        # Cotización 100% dinámica en vivo por Código Postal oficial
+                        if cp and best_item.get("item_id"):
+                            try:
+                                it_id = best_item["item_id"]
+                                so_url = f"https://api.mercadolibre.com/items/{it_id}/shipping_options?zip_code={cp}"
+                                so_r = await client.get(so_url, headers=headers, timeout=2.0)
+                                if so_r.status_code == 200:
+                                    opts = so_r.json().get("options", [])
+                                    if opts:
+                                        dyn_cost = float(opts[0].get("cost", 0.0))
+                                        exact_shipping_cost = dyn_cost
+                                        if dyn_cost == 0:
+                                            is_free_shipping = True
+                            except Exception:
+                                pass
+
                         seller_meta = {
                             "seller_name": primary_seller,
                             "seller_reputation": best_u.get("level_id") or "unrated",
                             "power_seller_status": best_u.get("power_seller_status"),
-                            "free_shipping": best_ship.get("free_shipping") is True,
-                            "shipping_cost": float(best_ship.get("cost") or 0.0),
+                            "free_shipping": is_free_shipping,
+                            "shipping_cost": exact_shipping_cost,
                             "meli_options": meli_options,
                         }
 

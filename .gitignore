@@ -12,6 +12,10 @@ venv/
 # Datos pesados o temporales locales
 raw/
 .github/
+.agents/
+mcp_server/
+scraper/
+scratch/
 *.db
 *.db-journal
 *.sqlite

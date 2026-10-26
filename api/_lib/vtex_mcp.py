@@ -1139,7 +1139,7 @@ async def live_search_and_sync(
         woocommerce_names = list(WOOCOMMERCE_DOMAINS.keys())
         for wc_st in woocommerce_names:
             tasks.append(fetch_woocommerce_live(client, wc_st, q_norm, limit=10))
-        tasks.append(fetch_mercadolibre_live(client, q_norm, limit=12))
+        tasks.append(fetch_mercadolibre_live(client, q_norm, limit=12, cp=cp))
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
