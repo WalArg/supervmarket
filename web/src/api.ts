@@ -97,3 +97,79 @@ export async function searchLocations(q: string): Promise<GeocodeLocation[]> {
   return data
 }
 
+export interface ReceiptItemResult {
+  nombre_ticket: string
+  qty: number
+  precio_ticket: number
+  subtotal_ticket: number
+  matched: boolean
+  product?: {
+    ean: string
+    nombre: string
+    imagen?: string
+    supermercado: string
+    precio: number
+    subtotal: number
+    promo_label?: string
+  } | null
+  ahorro: number
+}
+
+export interface ReceiptAnalysis {
+  ok: boolean
+  supermercado: string
+  total_ticket: number
+  total_supervmarket: number
+  ahorro: number
+  ahorro_porcentaje: number
+  items: ReceiptItemResult[]
+}
+
+export interface RecipeIngredient {
+  item_pedido: string
+  qty: number
+  unit: string
+  matched: boolean
+  subtotal?: number
+  product?: {
+    ean: string
+    nombre: string
+    imagen?: string
+    supermercado: string
+    precio: number
+    subtotal: number
+    promo_label?: string
+  } | null
+}
+
+export interface RecipeCartResult {
+  ok: boolean
+  titulo: string
+  porciones: number
+  prompt_original: string
+  total_estimado: number
+  ingredientes: RecipeIngredient[]
+}
+
+export async function analyzeReceipt(
+  image: string,
+  mimeType?: string,
+  cp?: string | null,
+): Promise<ReceiptAnalysis> {
+  const { data } = await http.post('/api/ai/receipt', {
+    image,
+    mime_type: mimeType || 'image/jpeg',
+    cp,
+  })
+  return data
+}
+
+export async function generateRecipeCart(
+  prompt: string,
+  cp?: string | null,
+): Promise<RecipeCartResult> {
+  const { data } = await http.post('/api/ai/recipe', { prompt, cp })
+  return data
+}
+
+

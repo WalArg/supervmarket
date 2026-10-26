@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 sys.path.insert(0, os.path.dirname(__file__))
-from _lib import db, optimizer, carts, regions, vtex_mcp, benefits, mercadolibre, geocoding  # noqa: E402
+from _lib import db, optimizer, carts, regions, vtex_mcp, benefits, mercadolibre, geocoding, ai  # noqa: E402
 from _lib.stores import VTEX_DOMAINS, COMPARE_ONLY        # noqa: E402
 
 STORE_NAMES_LOWER = {s.lower() for s in (*VTEX_DOMAINS.keys(), *COMPARE_ONLY, "thefoodmarket")}
@@ -60,6 +60,17 @@ class ValidateItem(BaseModel):
 class ValidateRequest(BaseModel):
     supermercado: str
     items: list[ValidateItem]
+    cp: str | None = None
+
+
+class ReceiptRequest(BaseModel):
+    image: str
+    mime_type: str = "image/jpeg"
+    cp: str | None = None
+
+
+class RecipeRequest(BaseModel):
+    prompt: str
     cp: str | None = None
 
 
@@ -156,3 +167,15 @@ async def optimize(req: OptimizeRequest):
 async def validate(req: ValidateRequest):
     items = [i.model_dump() for i in req.items]
     return await carts.validate_cart(req.supermercado, items, cp=req.cp)
+
+
+@app.post("/api/ai/receipt")
+async def ai_receipt(req: ReceiptRequest):
+    """Vision AI: analiza un ticket de compra y compara precios contra SuperVmarket."""
+    return await ai.analyze_receipt(req.image, mime_type=req.mime_type, cp=req.cp)
+
+
+@app.post("/api/ai/recipe")
+async def ai_recipe(req: RecipeRequest):
+    """Prompt-to-Cart AI: desglose de receta o menú en changuito optimizado."""
+    return await ai.generate_recipe_cart(req.prompt, cp=req.cp)

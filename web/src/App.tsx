@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Search, ShoppingBasket, User } from 'lucide-react'
+import { Search, ShoppingBasket, User, Sparkles } from 'lucide-react'
 import SearchScreen from './components/SearchScreen'
 import ListScreen from './components/ListScreen'
 import ProfileScreen from './components/ProfileScreen'
+import AIScreen from './components/AIScreen'
 import { LocationModal } from './components/LocationModal'
 import { useCart } from './cart/CartContext'
 
-type Tab = 'buscar' | 'lista' | 'perfil'
+type Tab = 'buscar' | 'lista' | 'ia' | 'perfil'
 
 function App() {
   const [tab, setTab] = useState<Tab>('buscar')
@@ -34,9 +35,10 @@ function App() {
   }
 
   const NAV: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'buscar', label: 'Buscar', icon: <Search size={22} /> },
-    { id: 'lista', label: 'Mi lista', icon: <ShoppingBasket size={22} /> },
-    { id: 'perfil', label: 'Perfil', icon: <User size={22} /> },
+    { id: 'buscar', label: 'Buscar', icon: <Search size={21} /> },
+    { id: 'lista', label: 'Mi lista', icon: <ShoppingBasket size={21} /> },
+    { id: 'ia', label: 'Asistente IA', icon: <Sparkles size={21} /> },
+    { id: 'perfil', label: 'Perfil', icon: <User size={21} /> },
   ]
 
   return (
@@ -47,13 +49,14 @@ function App() {
           <SearchScreen />
         </div>
         {tab === 'lista' && <ListScreen onGoSearch={() => go('buscar')} onGoProfile={() => go('perfil')} />}
+        {tab === 'ia' && <AIScreen onGoCart={() => go('lista')} onGoSearch={() => go('buscar')} />}
         {tab === 'perfil' && <ProfileScreen />}
       </div>
 
       <LocationModal />
 
       <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 pb-safe">
-        <div className="max-w-xl mx-auto grid grid-cols-3">
+        <div className="max-w-xl mx-auto grid grid-cols-4">
           {NAV.map(n => {
             const on = tab === n.id
             return (
