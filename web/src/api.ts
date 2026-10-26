@@ -76,3 +76,24 @@ export async function validateCart(
   const { data } = await http.post('/api/cart/validate', { supermercado, items, cp })
   return data
 }
+
+export interface GeocodeLocation {
+  cp: string
+  neighborhood: string
+  zone?: string
+  label: string
+  display_name: string
+  lat?: number | string
+  lon?: number | string
+}
+
+export async function reverseGeocode(lat: number, lon: number): Promise<GeocodeLocation> {
+  const { data } = await http.get('/api/geocode/reverse', { params: { lat, lon } })
+  return data
+}
+
+export async function searchLocations(q: string): Promise<GeocodeLocation[]> {
+  const { data } = await http.get('/api/geocode/search', { params: { q } })
+  return data
+}
+

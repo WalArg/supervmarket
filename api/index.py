@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 sys.path.insert(0, os.path.dirname(__file__))
-from _lib import db, optimizer, carts, regions, vtex_mcp, benefits, mercadolibre  # noqa: E402
+from _lib import db, optimizer, carts, regions, vtex_mcp, benefits, mercadolibre, geocoding  # noqa: E402
 from _lib.stores import VTEX_DOMAINS, COMPARE_ONLY        # noqa: E402
 
 STORE_NAMES_LOWER = {s.lower() for s in (*VTEX_DOMAINS.keys(), *COMPARE_ONLY, "thefoodmarket")}
@@ -107,6 +107,18 @@ async def suggest(q: str):
 async def regions_coverage(cp: str):
     """Qué supermercados entregan en ese código postal."""
     return await regions.coverage(cp)
+
+
+@app.get("/api/geocode/reverse")
+async def geocode_reverse(lat: float, lon: float):
+    """Geocodificación inversa: GPS (lat/lon) a CP argentino y barrio."""
+    return await geocoding.reverse_geocode(lat, lon)
+
+
+@app.get("/api/geocode/search")
+async def geocode_search(q: str = ""):
+    """Búsqueda y autocompletado por nombre de barrio, calle o código postal."""
+    return await geocoding.search_locations(q)
 
 
 @app.get("/api/benefits")

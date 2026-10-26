@@ -3,6 +3,7 @@ import { Search, ShoppingBasket, User } from 'lucide-react'
 import SearchScreen from './components/SearchScreen'
 import ListScreen from './components/ListScreen'
 import ProfileScreen from './components/ProfileScreen'
+import { LocationModal } from './components/LocationModal'
 import { useCart } from './cart/CartContext'
 
 type Tab = 'buscar' | 'lista' | 'perfil'
@@ -48,6 +49,8 @@ function App() {
         {tab === 'lista' && <ListScreen onGoSearch={() => go('buscar')} onGoProfile={() => go('perfil')} />}
         {tab === 'perfil' && <ProfileScreen />}
       </div>
+
+      <LocationModal />
 
       <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 pb-safe">
         <div className="max-w-xl mx-auto grid grid-cols-3">

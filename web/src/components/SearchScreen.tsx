@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, Clock, TrendingUp, SearchX } from 'lucide-react'
+import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, Clock, TrendingUp, SearchX, MapPin, ChevronDown } from 'lucide-react'
 import ProductCard from './ProductCard'
 import BarcodeScanner from './BarcodeScanner'
 import { searchProducts } from '../api'
@@ -32,7 +32,7 @@ const Chip: React.FC<{ active: boolean; onClick: () => void; children: React.Rea
 )
 
 const SearchScreen: React.FC = () => {
-  const { cp } = useLocation()
+  const { cp, locationLabel, openModal } = useLocation()
   const [query, setQuery] = useState('')
   const [debounced, setDebounced] = useState('')
   const [results, setResults] = useState<ProductGroup[]>([])
@@ -115,7 +115,15 @@ const SearchScreen: React.FC = () => {
             <h1 className="text-[20px] font-extrabold tracking-tight">
               Super<span className="text-blue-600">V</span>market
             </h1>
-            {cp && <span className="text-[12px] font-semibold text-slate-500">CP {cp}</span>}
+            <button
+              type="button"
+              onClick={openModal}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50/90 hover:bg-blue-100/80 border border-blue-200/80 text-blue-700 text-[11px] font-bold active:scale-95 transition-all max-w-[200px] shadow-2xs"
+            >
+              <MapPin size={12} className="text-blue-600 shrink-0" />
+              <span className="truncate">{locationLabel || (cp ? `CP ${cp}` : 'Elegir zona')}</span>
+              <ChevronDown size={11} className="text-blue-500 shrink-0" />
+            </button>
           </div>
           <form
             onSubmit={e => {

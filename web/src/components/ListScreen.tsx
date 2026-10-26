@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Trash2, Loader2, Share2, Calendar, CreditCard, ShoppingBasket, TrendingDown, Plus, Minus, Truck } from 'lucide-react'
+import { Trash2, Loader2, Share2, Calendar, CreditCard, ShoppingBasket, TrendingDown, Plus, Minus, Truck, MapPin } from 'lucide-react'
 import type { OptimizeMode, OptimizePlan } from '../types'
 import { useCart } from '../cart/CartContext'
 import { useLocation } from '../location/LocationContext'
@@ -21,7 +21,7 @@ const DAY_LABEL: Record<string, string> = {
 
 const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> = ({ onGoSearch, onGoProfile }) => {
   const { items, remove, setQty, clear, totalUnits } = useCart()
-  const { cp } = useLocation()
+  const { cp, locationLabel, exactAddress, setExactAddress, openModal } = useLocation()
   const { selectedCards, selectedDay, setSelectedDay } = useBenefits()
   const [mode, setMode] = useState<OptimizeMode>('ahorro')
   const [includeShipping, setIncludeShipping] = useState(false)
@@ -211,6 +211,30 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
           <span className="text-[13px] font-bold text-blue-600">Cambiar</span>
         </button>
 
+        {/* Ubicación de entrega */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <MapPin size={18} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] font-extrabold text-slate-900 truncate">
+                {locationLabel || (cp ? `CP ${cp}` : 'Sin ubicación')}
+              </p>
+              <p className="text-[11px] text-slate-500 truncate">
+                {exactAddress || 'Tocá cambiar para editar zona'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={openModal}
+            className="h-8 px-2.5 rounded-lg bg-blue-50 text-blue-700 text-[12px] font-bold hover:bg-blue-100 active:scale-95 transition-all"
+          >
+            Cambiar
+          </button>
+        </div>
+
         <label className="flex items-center justify-between bg-white rounded-2xl border border-slate-200/80 px-3 py-3">
           <span className="flex items-center gap-2 text-[13px] font-semibold text-slate-700">
             <Truck size={17} className="text-slate-500" /> Sumar costo de envío
@@ -249,6 +273,25 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
         )}
 
         {plan?.carts.map(c => <StoreCart key={c.supermercado} plan={c} />)}
+
+        {/* Dirección exacta para el envío final */}
+        {plan && (
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-3.5 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] font-bold text-slate-800 flex items-center gap-1.5">
+                <MapPin size={14} className="text-blue-600" /> Dirección exacta de entrega
+              </span>
+              <span className="text-[11px] text-slate-400 font-medium">Para el repartidor</span>
+            </div>
+            <input
+              type="text"
+              value={exactAddress || ''}
+              onChange={e => setExactAddress(e.target.value)}
+              placeholder="Ej: Av. Santa Fe 3200, Piso 4 Depto B (opcional)"
+              className="w-full h-10 px-3 rounded-xl border border-slate-200 text-[13px] placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+        )}
 
         {plan && plan.missing.length > 0 && (
           <p className="text-[12px] text-red-700 bg-red-50 rounded-xl p-2.5">
