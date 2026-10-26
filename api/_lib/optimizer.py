@@ -244,6 +244,82 @@ def _build_carts(
     return carts
 
 
+def _compute_single_plan(
+    target_mode: str,
+    items: list[dict],
+    eans: list[str],
+    offers_by_ean: dict,
+    names: dict,
+    valid_stores: set[str] | None,
+    excluded_stores: list[str],
+    include_clubs: bool,
+    include_shipping: bool,
+    cards_set: set[str],
+    active_day: str,
+    cp: str | None,
+) -> dict:
+    max_stores = MODES.get(target_mode, None)
+    assignment, merch_total, ship_total, regular_total, _ = _best_combo(
+        items,
+        offers_by_ean,
+        max_stores,
+        valid_stores,
+        include_clubs=include_clubs,
+        include_shipping=include_shipping,
+        selected_cards=cards_set,
+    )
+
+    found_eans = {i["ean"] for its in assignment.values() for i in its}
+    missing = [{"ean": e, "nombre": names.get(e, e)} for e in eans if e not in found_eans]
+    carts = _build_carts(
+        assignment,
+        include_shipping=include_shipping,
+        day=active_day,
+        selected_cards=cards_set,
+    )
+
+    reintegro_total = round(sum(c.get("reintegro_bancario") or 0.0 for c in carts), 2)
+    grand_total = round(merch_total + ship_total - reintegro_total, 2)
+    ahorro_productos = round(max(0.0, regular_total - merch_total), 2)
+
+    best_day_info = None
+    if cards_set and assignment:
+        for d_cand in benefits.WEEKDAYS_ES:
+            day_saving = 0.0
+            day_labels = []
+            for st, st_items in assignment.items():
+                sub = round(sum(i["line_total"] for i in st_items), 2)
+                b = benefits.best_cart_benefit_for_store(st, sub, d_cand, cards_set)
+                if b:
+                    day_saving += b["saving"]
+                    day_labels.append(f"{st}: {b['label']}")
+            day_saving = round(day_saving, 2)
+            if day_saving > 0 and (best_day_info is None or day_saving > best_day_info["saving"]):
+                best_day_info = {
+                    "day": d_cand,
+                    "day_label": benefits.WEEKDAY_LABELS.get(d_cand, d_cand.capitalize()),
+                    "saving": day_saving,
+                    "details": day_labels,
+                }
+
+    return {
+        "mode": target_mode,
+        "cp": cp,
+        "day": active_day,
+        "day_label": benefits.WEEKDAY_LABELS.get(active_day, active_day.capitalize()),
+        "stops": len(carts),
+        "subtotal_mercaderia": merch_total,
+        "envio_estimado": ship_total,
+        "reintegro_bancario_total": reintegro_total,
+        "total": grand_total,
+        "ahorro_total": round(ahorro_productos + reintegro_total, 2),
+        "best_day_suggestion": best_day_info,
+        "excluded_stores": excluded_stores,
+        "missing": missing,
+        "carts": carts,
+    }
+
+
 async def optimize(
     items: list[dict],
     mode: str = "ahorro",
@@ -297,64 +373,30 @@ async def optimize(
     cards_set = set(selected_cards or [])
     active_day = (day or benefits.today_weekday_ar()).lower().strip()
 
-    max_stores = MODES.get(mode, None)
-    assignment, merch_total, ship_total, regular_total, _ = _best_combo(
-        items,
-        offers_by_ean,
-        max_stores,
-        valid_stores,
-        include_clubs=include_clubs,
-        include_shipping=include_shipping,
-        selected_cards=cards_set,
-    )
+    # Precalculamos los 3 modos en 1 ms para cambio instantáneo (0ms) en la interfaz
+    all_plans = {}
+    for m in ["ahorro", "balanceada", "comodidad"]:
+        all_plans[m] = _compute_single_plan(
+            m, items, eans, offers_by_ean, names, valid_stores, excluded_stores,
+            include_clubs, include_shipping, cards_set, active_day, cp
+        )
 
-    found_eans = {i["ean"] for its in assignment.values() for i in its}
-    missing = [{"ean": e, "nombre": names.get(e, e)} for e in eans if e not in found_eans]
-    carts = _build_carts(
-        assignment,
-        include_shipping=include_shipping,
-        day=active_day,
-        selected_cards=cards_set,
-    )
+    active_plan = all_plans.get(mode) or all_plans["ahorro"]
+    base_total = all_plans["ahorro"]["total"]
 
-    reintegro_total = round(sum(c.get("reintegro_bancario") or 0.0 for c in carts), 2)
-    grand_total = round(merch_total + ship_total - reintegro_total, 2)
-    ahorro_productos = round(max(0.0, regular_total - merch_total), 2)
+    mode_previews = {}
+    for m in ["ahorro", "balanceada", "comodidad"]:
+        p = all_plans[m]
+        diff = round(p["total"] - base_total, 2)
+        mode_previews[m] = {
+            "total": p["total"],
+            "stops": p["stops"],
+            "ahorro_total": p["ahorro_total"],
+            "diff": diff,
+        }
 
-    # Calcular qué día de la semana da el mayor reintegro con las tarjetas del usuario
-    best_day_info = None
-    if cards_set and assignment:
-        for d_cand in benefits.WEEKDAYS_ES:
-            day_saving = 0.0
-            day_labels = []
-            for st, st_items in assignment.items():
-                sub = round(sum(i["line_total"] for i in st_items), 2)
-                b = benefits.best_cart_benefit_for_store(st, sub, d_cand, cards_set)
-                if b:
-                    day_saving += b["saving"]
-                    day_labels.append(f"{st}: {b['label']}")
-            day_saving = round(day_saving, 2)
-            if day_saving > 0 and (best_day_info is None or day_saving > best_day_info["saving"]):
-                best_day_info = {
-                    "day": d_cand,
-                    "day_label": benefits.WEEKDAY_LABELS.get(d_cand, d_cand.capitalize()),
-                    "saving": day_saving,
-                    "details": day_labels,
-                }
+    for p in all_plans.values():
+        p["all_plans"] = all_plans
+        p["mode_previews"] = mode_previews
 
-    return {
-        "mode": mode,
-        "cp": cp,
-        "day": active_day,
-        "day_label": benefits.WEEKDAY_LABELS.get(active_day, active_day.capitalize()),
-        "stops": len(carts),
-        "subtotal_mercaderia": merch_total,
-        "envio_estimado": ship_total,
-        "reintegro_bancario_total": reintegro_total,
-        "total": grand_total,
-        "ahorro_total": round(ahorro_productos + reintegro_total, 2),
-        "best_day_suggestion": best_day_info,
-        "excluded_stores": excluded_stores,
-        "missing": missing,
-        "carts": carts,
-    }
+    return active_plan

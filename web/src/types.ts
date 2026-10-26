@@ -71,6 +71,13 @@ export interface BestDaySuggestion {
   details: string[]
 }
 
+export interface ModePreview {
+  total: number
+  stops: number
+  ahorro_total: number
+  diff: number
+}
+
 export interface OptimizePlan {
   mode: OptimizeMode
   cp?: string | null
@@ -86,6 +93,8 @@ export interface OptimizePlan {
   excluded_stores?: string[]
   missing: { ean: string; nombre: string }[]
   carts: StorePlan[]
+  all_plans?: Record<OptimizeMode, OptimizePlan>
+  mode_previews?: Record<OptimizeMode, ModePreview>
 }
 
 export interface PaymentOption {

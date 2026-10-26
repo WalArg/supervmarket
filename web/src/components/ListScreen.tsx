@@ -52,11 +52,25 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
 
   const itemsKey = items.map(i => `${i.ean}:${i.qty}`).join(',')
 
+  const handleSelectMode = (newMode: OptimizeMode) => {
+    setMode(newMode)
+    if (plan?.all_plans?.[newMode]) {
+      setPlan(plan.all_plans[newMode])
+    }
+  }
+
   useEffect(() => {
     if (!items.length) {
       setPlan(null)
       return
     }
+
+    // Si ya tenemos el plan precalculado en memoria para este modo, lo aplicamos al instante (0ms)
+    if (plan?.all_plans?.[mode]) {
+      setPlan(plan.all_plans[mode])
+      return
+    }
+
     let alive = true
     const t = setTimeout(() => {
       setLoading(true)
@@ -229,20 +243,47 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
             </h2>
           </div>
 
-          {/* Selector de modo */}
-          <div className="grid grid-cols-3 p-1 bg-slate-200/70 rounded-xl">
-            {MODES.map(m => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => setMode(m.id)}
-                className={`h-8 rounded-lg text-[12px] font-bold transition-all ${
-                  mode === m.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
+          {/* Selector de modo con precios precalculados e instantáneos */}
+          <div className="grid grid-cols-3 p-1.5 bg-slate-200/80 rounded-2xl gap-1">
+            {MODES.map(m => {
+              const isSelected = mode === m.id
+              const preview = plan?.mode_previews?.[m.id]
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => handleSelectMode(m.id)}
+                  className={`py-2 px-1 rounded-xl flex flex-col items-center justify-center text-center transition-all ${
+                    isSelected
+                      ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-900/5'
+                      : 'text-slate-600 hover:text-slate-900 active:scale-[0.98]'
+                  }`}
+                >
+                  <span className="text-[12px] font-extrabold leading-tight">{m.label}</span>
+                  {preview ? (
+                    <span
+                      className={`text-[10px] font-bold mt-0.5 leading-none ${
+                        isSelected
+                          ? 'text-blue-600 font-extrabold'
+                          : preview.diff > 0
+                            ? 'text-amber-700 font-semibold'
+                            : 'text-emerald-700 font-semibold'
+                      }`}
+                    >
+                      {m.id === 'ahorro'
+                        ? `${preview.stops} súper`
+                        : preview.diff > 0
+                          ? `+${formatPrice(preview.diff)}`
+                          : preview.stops === 1
+                            ? '1 súper'
+                            : `${preview.stops} súper`}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-slate-400 mt-0.5 leading-none">—</span>
+                  )}
+                </button>
+              )
+            })}
           </div>
 
           {/* Resumen total con ahorro */}
