@@ -48,6 +48,7 @@ FREE_SHIPPING = {
     "MercadoLibre": 33000,
     "TheFoodMarket": 28000,
     "LaBarraCCU": 25000,
+    "LaBarata": 35000,
 }
 
 # Costo estimado de envío a domicilio (ARS) cuando no se alcanza el umbral de envío gratis.
@@ -66,6 +67,7 @@ SHIPPING_COST = {
     "MercadoLibre": 4900,
     "TheFoodMarket": 4500,
     "LaBarraCCU": 4500,
+    "LaBarata": 4500,
 }
 
 

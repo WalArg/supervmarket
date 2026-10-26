@@ -22,6 +22,7 @@ import re
 import time
 import json
 import base64
+import html
 import asyncio
 import unicodedata
 import urllib.parse
@@ -45,6 +46,10 @@ LIVE_VTEX_DOMAINS: dict[str, str] = {
 
 SHOPIFY_DOMAINS: dict[str, str] = {
     "LaBarraCCU": "https://labarraccu.com.ar",
+}
+
+TIENDANUBE_DOMAINS: dict[str, str] = {
+    "LaBarata": "https://labarata.ar",
 }
 
 SUPERMARKET_CHAINS = ("Jumbo", "Disco", "Vea", "Carrefour", "Dia", "Masonline")
@@ -383,6 +388,81 @@ async def fetch_shopify_live(
         return []
 
 
+async def fetch_tiendanube_live(
+    client: httpx.AsyncClient,
+    store: str,
+    query: str,
+    limit: int = 10,
+) -> list[dict]:
+    """Consulta en vivo el buscador de una tienda Tiendanube pública (extrayendo microdatos Schema.org JSON-LD)."""
+    base = TIENDANUBE_DOMAINS.get(store)
+    if not base:
+        return []
+    q_enc = urllib.parse.quote(query.strip())
+    url = f"{base}/search/?q={q_enc}"
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "es-419,es;q=0.9",
+    }
+    try:
+        r = await client.get(url, headers=headers, timeout=4.0, follow_redirects=True)
+        if r.status_code != 200:
+            return []
+        json_lds = re.findall(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', r.text, re.DOTALL)
+        out = []
+        for j in json_lds:
+            if len(out) >= limit:
+                break
+            try:
+                data = json.loads(j.strip())
+                if data.get("@type") == "Product":
+                    name = html.unescape(data.get("name") or "").strip()
+                    offers = data.get("offers") or {}
+                    price_str = str(offers.get("price") or "0").replace(",", ".")
+                    price = float(price_str)
+                    link = offers.get("url") or data.get("mainEntityOfPage", {}).get("@id") or ""
+                    image = data.get("image") or ""
+                    in_stock = "InStock" in str(offers.get("availability") or "")
+                    if not name or price <= 0 or not in_stock:
+                        continue
+                    cant, u_tit = extraer_unidad_titulo(name)
+                    p_u, u_norm = normalizar_unidad(price / cant if cant > 0 else price, u_tit)
+                    p_u = sanity_precio_unidad(price, p_u, u_norm)
+                    slug = link.rstrip("/").split("/")[-1] if "/" in link else name[:12]
+                    out.append({
+                        "ean": f"TN_{store.upper()}_{slug}",
+                        "nombre": name,
+                        "marca": store,
+                        "modelo": "",
+                        "tipo": "",
+                        "imagen": image,
+                        "supermercado": store,
+                        "precio_venta": price,
+                        "precio_lista": price,
+                        "descuento": 0.0,
+                        "promo_etiqueta": None,
+                        "promo_tipo": None,
+                        "promo_min_qty": 1,
+                        "precio_promo_unit": price,
+                        "requiere_club": False,
+                        "precio_por_unidad": p_u,
+                        "unidad_medida": u_norm,
+                        "categorias": "Frutas y Verduras",
+                        "stock": 1,
+                        "itemId": slug,
+                        "link": link,
+                    })
+            except Exception:
+                continue
+        return out
+    except Exception:
+        return []
+
+
 def _to_offer_dict(d: dict) -> dict:
     precio = float(d["precio_venta"])
     p_lista = float(d.get("precio_lista") or precio)
@@ -520,35 +600,171 @@ def _compatible_gs1_prefix(ean1: str, ean2: str) -> bool:
     return True
 
 
+_PRODUCE_EXCLUDED_WORDS = {
+    "pure", "salsa", "extracto", "fritas", "frita", "congeladas", "congelada", "congelado", "congelados",
+    "chips", "jugo", "jugos", "mermelada", "dulce", "dulces", "galletita", "galletitas", "yogur", "yogurisimo",
+    "postre", "postrecito", "helado", "bebida", "bebidas", "agua", "aguas", "cerveza", "cervezas",
+    "semilla", "semillas", "lata", "latas", "conserva", "conservas", "tetrabrik", "tetra", "doypack",
+    "shampoo", "acondicionador", "jabon", "nestum", "avena", "alfajor", "alfajores", "tortilla", "tortillas",
+    "tapas", "empanadas", "empanada", "tarta", "tartas", "pelado", "cubeteado", "triturado", "polvo",
+    "pan", "pancho", "hamburguesa", "noquis", "ravioles", "fideos", "snack", "snacks", "arroz",
+    "rebozador", "premezcla", "harina", "bizcochuelo", "aceite", "vinagre", "aderezo", "mayonesa",
+    "ketchup", "mostaza", "gelatina", "barra", "barrita", "chocolate", "bombones", "caramelos",
+    "bocaditos", "rellenos", "relleno", "obleas", "turron", "turrón", "granola", "mix", "alimento",
+    "pizza", "prepizza", "leberwurst", "salchicha", "salame", "queso", "embutido", "fiambre",
+}
+
+_PRODUCE_INDUSTRIAL_BRANDS = {
+    "arcor", "knorr", "lay's", "lays", "mc cain", "la campagnola", "canale", "orali",
+    "powerade", "gatorade", "levite", "cepita", "dahi", "yogurisimo", "menu box", "zummy",
+    "cuisine y co", "cuisine & co", "pepitos", "traviata", "melitas", "mazza", "fargo",
+    "artesano", "la salteña", "la saltena", "pringles", "integra", "9 de oro", "1891",
+}
+
+_PRODUCE_TAXONOMY = [
+    # TOMATES
+    ("tomate_perita", "Tomate Perita (x kg)", [r"\btomate\b.*\bperita\b"]),
+    ("tomate_cherry", "Tomate Cherry (x kg)", [r"\btomate\b.*\bcherry\b"]),
+    ("tomate_redondo", "Tomate Redondo (x kg)", [r"\btomate\b.*\b(redondo|platense|comun|grande)\b", r"\btomate\b"]),
+    
+    # PAPAS Y BATATAS
+    ("papa_negra", "Papa Negra (x kg)", [r"\bpapa\b.*\bnegra\b"]),
+    ("papa_blanca", "Papa Blanca (x kg)", [r"\bpapa\b.*\bblanca\b"]),
+    ("papa_cepillada", "Papa Cepillada (x kg)", [r"\bpapa\b.*\b(cepillada|lavada)\b", r"\bpapa\b"]),
+    ("batata", "Batata (x kg)", [r"\bbatata\b"]),
+
+    # CEBOLLAS
+    ("cebolla_morada", "Cebolla Morada (x kg)", [r"\bcebolla\b.*\bmorada\b"]),
+    ("cebolla_verdeo", "Cebolla de Verdeo (x kg / atado)", [r"\b(cebolla\b.*\bverdeo|verdeo)\b"]),
+    ("cebolla_comun", "Cebolla Común (x kg)", [r"\bcebolla\b"]),
+
+    # BANANAS
+    ("banana_ecuador", "Banana Ecuador Seleccionada (x kg)", [r"\bbanana\b.*\b(ecuador|cavendish|seleccion|premium)\b"]),
+    ("banana_comun", "Banana Fresca (x kg)", [r"\b(banana|platano)\b"]),
+
+    # MANZANAS
+    ("manzana_verde", "Manzana Verde (x kg)", [r"\bmanzana\b.*\b(verde|granny)\b"]),
+    ("manzana_roja", "Manzana Roja (x kg)", [r"\bmanzana\b.*\b(roja|deliciosa|red|pink lady|gala)\b", r"\bmanzana\b"]),
+
+    # CITRICOS
+    ("naranja_jugo", "Naranja para Jugo (x kg)", [r"\bnaranja\b.*\bjugo\b"]),
+    ("naranja_ombligo", "Naranja de Ombligo (x kg)", [r"\bnaranja\b.*\b(ombligo|valencia)\b", r"\bnaranja\b"]),
+    ("mandarina", "Mandarina (x kg)", [r"\bmandarina\b"]),
+    ("limon", "Limón (x kg)", [r"\blimon\b"]),
+    ("pomelo", "Pomelo (x kg)", [r"\bpomelo\b"]),
+
+    # ZAPALLOS
+    ("zapallo_anco", "Zapallo Anco / Calabaza (x kg)", [r"\b(zapallo\b.*\banco|calabaza|calabacin)\b"]),
+    ("zapallo_cabutia", "Zapallo Cabutiá (x kg)", [r"\b(zapallo\b.*\bcabutia)\b"]),
+    ("zapallo_redondo", "Zapallo Redondo (x kg)", [r"\bzapallo\b"]),
+
+    # ZANAHORIAS
+    ("zanahoria", "Zanahoria (x kg)", [r"\bzanahoria\b"]),
+
+    # MORRONES
+    ("morron_rojo", "Morrón Rojo (x kg)", [r"\b(morron|pimiento)\b.*\brojo\b"]),
+    ("morron_verde", "Morrón Verde (x kg)", [r"\b(morron|pimiento)\b.*\bverde\b"]),
+    ("morron_amarillo", "Morrón Amarillo (x kg)", [r"\b(morron|pimiento)\b.*\bamarillo\b"]),
+
+    # HOJAS
+    ("lechuga_criolla", "Lechuga Criolla (x kg)", [r"\blechuga\b.*\bcriolla\b"]),
+    ("lechuga_mantecosa", "Lechuga Mantecosa (x kg)", [r"\blechuga\b.*\bmantecosa\b"]),
+    ("lechuga_capuchina", "Lechuga Capuchina (x kg)", [r"\blechuga\b.*\b(capuchina|iceberg)\b"]),
+    ("lechuga_comun", "Lechuga (x kg)", [r"\blechuga\b"]),
+    ("acelga", "Acelga (x atado / kg)", [r"\bacelga\b"]),
+    ("espinaca", "Espinaca (x atado / kg)", [r"\bespinaca\b"]),
+    ("rucula", "Rúcula (x atado / kg)", [r"\brucula\b"]),
+
+    # OTROS
+    ("palta_hass", "Palta Hass (x kg / un)", [r"\bpalta\b"]),
+    ("berenjena", "Berenjena (x kg)", [r"\bberenjena\b"]),
+    ("zucchini", "Zucchini (x kg)", [r"\bzucchini\b"]),
+    ("zapallito_verde", "Zapallito Redondo Verde (x kg)", [r"\bzapallito\b"]),
+    ("pepino", "Pepino (x kg)", [r"\bpepino\b"]),
+    ("choclo", "Choclo (x un / kg)", [r"\bchoclo\b"]),
+    ("ajo", "Ajo (cabeza / x kg)", [r"\bajo\b"]),
+    ("pera", "Pera Williams (x kg)", [r"\bpera\b"]),
+    ("frutilla", "Frutilla (x kg / bandeja)", [r"\bfrutilla\b"]),
+    ("durazno", "Durazno (x kg)", [r"\bdurazno\b"]),
+    ("uva", "Uva (x kg)", [r"\buva\b"]),
+]
+
+
+def _match_produce(p: dict) -> tuple[str, str] | None:
+    nom = _norm_text(p.get("nombre") or "")
+    marca = _norm_text(p.get("marca") or "")
+    tokens = set(nom.split())
+    if tokens & _PRODUCE_EXCLUDED_WORDS:
+        return None
+    if marca in _PRODUCE_INDUSTRIAL_BRANDS:
+        return None
+
+    u = p.get("unidad_medida") or ""
+    has_kg = (u == "kg" or "kg" in nom or "kilo" in nom or "granel" in nom or "atado" in nom or "bolsa" in nom)
+    # Si el título indica gramos de paquete cerrado (ej: 160g, 450g) sin indicar kg, es producto industrial
+    if re.search(r"\b\d+\s*g(?:r|rs|rm|rms)?\b", nom) and not has_kg:
+        return None
+
+    # En los supermercados, el código de barras comercial GS1 (779...) indica producto de fábrica empaquetado.
+    # La fruta y verdura fresca usa códigos internos de balanza (20..29) o códigos de tienda (TN_, etc.)
+    ean = str(p.get("ean") or "")
+    if ean.startswith("779") and not ("granel" in nom or "cosecha" in nom or "seleccion" in nom or "bolsa" in nom):
+        return None
+
+    for key, display_name, patterns in _PRODUCE_TAXONOMY:
+        for pat in patterns:
+            if re.search(pat, nom):
+                return key, display_name
+    return None
+
+
 def _store_in_memory(flat_products: list[dict]) -> list[dict]:
-    """Agrupa en memoria por EAN, fusiona EANs gemelos del mismo fabricante/variante/tamaño y guarda en RAM."""
+    """Agrupa en memoria por EAN, unifica frutas/verduras a granel en identidades canónicas,
+    fusiona EANs gemelos del mismo fabricante/variante/tamaño y guarda en RAM."""
     by_ean: dict[str, dict] = {}
     for d in flat_products:
         if not d.get("ean") or not d.get("precio_venta") or int(d.get("stock") or 0) <= 0:
             continue
-        ean = str(d["ean"])
-        d_marca = (d.get("marca") or "").strip()
+
+        prod_match = _match_produce(d)
+        if prod_match:
+            canon_key, display_title = prod_match
+            ean = f"PRODUCE_{canon_key.upper()}"
+            d_nom = display_title
+            d_marca = "Verdulería"
+        else:
+            ean = str(d["ean"])
+            d_nom = (d.get("nombre") or "").strip()
+            d_marca = (d.get("marca") or "").strip()
+
         g = by_ean.setdefault(ean, {
             "ean": ean,
-            "nombre": d.get("nombre") or "",
-            "marca": d_marca if _is_valid_brand(d_marca) else "Genérico",
+            "nombre": d_nom if prod_match else (d.get("nombre") or ""),
+            "marca": "Verdulería" if prod_match else (d_marca if _is_valid_brand(d_marca) else "Genérico"),
             "imagen": d.get("imagen") or "",
             "offers_by_store": {},
             "all_names": set(),
         })
-        d_nom = (d.get("nombre") or "").strip()
-        if d_nom:
-            g["all_names"].add(d_nom)
-            # Si el nombre de este proveedor tiene variante específica (ej: '24.7') y el actual no, enriquecer el título
-            if ("24.7" in d_nom or "24 7" in d_nom) and not ("24.7" in g["nombre"] or "24 7" in g["nombre"]):
-                g["nombre"] = d_nom
+
+        orig_nom = (d.get("nombre") or "").strip()
+        if orig_nom:
+            g["all_names"].add(orig_nom)
+            if not prod_match and ("24.7" in orig_nom or "24 7" in orig_nom) and not ("24.7" in g["nombre"] or "24 7" in g["nombre"]):
+                g["nombre"] = orig_nom
         if not g["imagen"] and d.get("imagen"):
             g["imagen"] = d["imagen"]
         if not _is_valid_brand(g["marca"]) and _is_valid_brand(d_marca):
             g["marca"] = d_marca
 
         offer = _to_offer_dict(d)
-        g["offers_by_store"][d["supermercado"]] = offer
+        if prod_match and d["supermercado"] in g["offers_by_store"]:
+            existing = g["offers_by_store"][d["supermercado"]]
+            p_exist = existing.get("unit_price") or existing.get("precio") or float("inf")
+            p_new = offer.get("unit_price") or offer.get("precio") or float("inf")
+            if p_new < p_exist:
+                g["offers_by_store"][d["supermercado"]] = offer
+        else:
+            g["offers_by_store"][d["supermercado"]] = offer
 
     # Segunda pasada genérica: fusionar grupos con distinto EAN pero idéntica firma canónica
     # (Misma marca + Mismo peso/volumen + Mismos tokens de producto/variante + Cadenas disjuntas + Mismo prefijo GS1)
@@ -560,6 +776,8 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
     merged_away: set[str] = set()
 
     for ean in ean_list:
+        if ean.startswith("PRODUCE_"):
+            continue
         g = by_ean[ean]
         sig = _canonical_signature(g["nombre"], g["marca"])
         if not sig:
@@ -602,17 +820,18 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             continue
         cant, u_tit = extraer_unidad_titulo(g["nombre"])
         offers = list(g["offers_by_store"].values())
-        for o in offers:
-            # Solo aplicar descuento al precio unitario ($/l, $/kg, $/un) si la promo es abierta a todo público
-            eff_p = (
-                float(o["precio"])
-                if o.get("requires_club")
-                else float(o.get("promo_unit_price") or o["precio"])
-            )
-            if cant > 0:
-                p_u, u_norm = normalizar_unidad(eff_p / cant, u_tit)
-                o["unit_price"] = sanity_precio_unidad(eff_p, p_u, u_norm)
-                o["unit_measure"] = u_norm
+        if not ean.startswith("PRODUCE_"):
+            for o in offers:
+                # Solo aplicar descuento al precio unitario ($/l, $/kg, $/un) si la promo es abierta a todo público
+                eff_p = (
+                    float(o["precio"])
+                    if o.get("requires_club")
+                    else float(o.get("promo_unit_price") or o["precio"])
+                )
+                if cant > 0:
+                    p_u, u_norm = normalizar_unidad(eff_p / cant, u_tit)
+                    o["unit_price"] = sanity_precio_unidad(eff_p, p_u, u_norm)
+                    o["unit_measure"] = u_norm
 
         # Persistir en el catálogo en memoria de la sesión para el optimizador Smart Cart
         _LIVE_PRODUCTS_MEM[ean] = {
@@ -711,11 +930,14 @@ async def live_search_and_sync(
         shopify_names = list(SHOPIFY_DOMAINS.keys())
         for sh_st in shopify_names:
             tasks.append(fetch_shopify_live(client, sh_st, q_norm, limit=10))
+        tiendanube_names = list(TIENDANUBE_DOMAINS.keys())
+        for tn_st in tiendanube_names:
+            tasks.append(fetch_tiendanube_live(client, tn_st, q_norm, limit=10))
         tasks.append(fetch_mercadolibre_live(client, q_norm, limit=12))
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        all_names = vtex_names + ["Coto"] + shopify_names + ["MercadoLibre"]
+        all_names = vtex_names + ["Coto"] + shopify_names + tiendanube_names + ["MercadoLibre"]
         flat_products: list[dict] = []
         by_store: dict[str, int] = {}
         store_eans: dict[str, set[str]] = {st: set() for st in all_names}
