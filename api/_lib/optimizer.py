@@ -114,6 +114,7 @@ def _assign(
             regular_total += best_calc["regular_total"]
             assignment.setdefault(best["supermercado"], []).append({
                 **best,
+                "ean": ean,
                 "qty": qty,
                 "precio": best_calc["effective_unit"],
                 "precio_base": best["precio"],
@@ -331,7 +332,8 @@ async def optimize(
 ) -> dict:
     """items: [{ean, qty, nombre?}]. Devuelve el plan con carritos por súper, ahorro real y mejor día de compra."""
     eans = [it["ean"] for it in items]
-    offers_by_ean, names = await vtex_mcp.live_offers_for_eans(eans, cp=cp)
+    names_hint = {it["ean"]: it["nombre"] for it in items if it.get("nombre")}
+    offers_by_ean, names = await vtex_mcp.live_offers_for_eans(eans, cp=cp, names_hint=names_hint)
 
     missing_live = [it for it in items if it["ean"] not in offers_by_ean]
     if missing_live:

@@ -6,6 +6,7 @@ import ProfileScreen from './components/ProfileScreen'
 import AIScreen from './components/AIScreen'
 import { LocationModal } from './components/LocationModal'
 import { useCart } from './cart/CartContext'
+import ErrorBoundary from './components/ErrorBoundary'
 
 type Tab = 'buscar' | 'lista' | 'ia' | 'perfil'
 
@@ -46,11 +47,25 @@ function App() {
       <div className="max-w-xl mx-auto">
         {/* El buscador queda montado para conservar resultados y scroll al cambiar de pestaña */}
         <div className={tab === 'buscar' ? '' : 'hidden'}>
-          <SearchScreen />
+          <ErrorBoundary fallbackTitle="Error al cargar el buscador">
+            <SearchScreen />
+          </ErrorBoundary>
         </div>
-        {tab === 'lista' && <ListScreen onGoSearch={() => go('buscar')} onGoProfile={() => go('perfil')} />}
-        {tab === 'ia' && <AIScreen onGoCart={() => go('lista')} onGoSearch={() => go('buscar')} />}
-        {tab === 'perfil' && <ProfileScreen />}
+        {tab === 'lista' && (
+          <ErrorBoundary fallbackTitle="Error al cargar Mi Lista">
+            <ListScreen onGoSearch={() => go('buscar')} onGoProfile={() => go('perfil')} />
+          </ErrorBoundary>
+        )}
+        {tab === 'ia' && (
+          <ErrorBoundary fallbackTitle="Error en Asistente IA">
+            <AIScreen onGoCart={() => go('lista')} onGoSearch={() => go('buscar')} />
+          </ErrorBoundary>
+        )}
+        {tab === 'perfil' && (
+          <ErrorBoundary fallbackTitle="Error al cargar Perfil">
+            <ProfileScreen />
+          </ErrorBoundary>
+        )}
       </div>
 
       <LocationModal />

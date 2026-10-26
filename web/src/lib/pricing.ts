@@ -1,11 +1,13 @@
 import type { Offer } from '../types'
 
-export const formatPrice = (price: number) =>
-  new Intl.NumberFormat('es-AR', {
+export const formatPrice = (price?: number | null) => {
+  const num = typeof price === 'number' && !isNaN(price) && isFinite(price) ? price : 0
+  return new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
     maximumFractionDigits: 0,
-  }).format(price)
+  }).format(num)
+}
 
 /**
  * Precio efectivo por unidad para ESTE usuario:

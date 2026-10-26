@@ -106,8 +106,8 @@ const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
           </div>
         )}
 
-        {plan.free_shipping_threshold > 0 && (
-          plan.falta_envio_gratis > 0 ? (
+        {(plan.free_shipping_threshold || 0) > 0 && (
+          (plan.falta_envio_gratis || 0) > 0 ? (
             <div className="flex items-center gap-1.5 text-[12px] text-slate-500">
               <Truck size={14} /> Te faltan {formatPrice(plan.falta_envio_gratis)} para envío gratis
             </div>

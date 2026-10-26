@@ -1013,6 +1013,18 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
         for st, off in g["offers_by_store"].items():
             mem_offers[st] = {**off, "ean": ean, "nombre": g["nombre"]}
 
+        if ean.startswith(("MEAT_", "PRODUCE_")):
+            _LIVE_PRODUCTS_MEM[ean.lower()] = _LIVE_PRODUCTS_MEM[ean]
+            _LIVE_OFFERS_MEM[ean.lower()] = mem_offers
+            if "CHORIZO" in ean:
+                _LIVE_OFFERS_MEM["MEAT_CHORIZO"] = mem_offers
+                _LIVE_OFFERS_MEM["meat_chorizo"] = mem_offers
+                _LIVE_PRODUCTS_MEM["MEAT_CHORIZO"] = _LIVE_PRODUCTS_MEM[ean]
+                _LIVE_PRODUCTS_MEM["meat_chorizo"] = _LIVE_PRODUCTS_MEM[ean]
+            if "ASADO_TIRA" in ean:
+                _LIVE_OFFERS_MEM["MEAT_ASADO"] = mem_offers
+                _LIVE_OFFERS_MEM["meat_asado"] = mem_offers
+
         groups.append({
             "ean": ean,
             "nombre": g["nombre"],
@@ -1289,12 +1301,52 @@ async def search_live_grouped(
     return groups
 
 
-async def live_offers_for_eans(eans: list[str], cp: str | None = None):
+_MEAT_CANONICAL_ALIASES = {
+    "MEAT_CHORIZO": "MEAT_CHORIZO_PARRILLERO",
+    "MEAT_CHORIZO_CERDO": "MEAT_CHORIZO_PARRILLERO",
+    "MEAT_BIFE": "MEAT_BIFE_CHORIZO",
+    "MEAT_TAPA": "MEAT_TAPA_ASADO",
+    "MEAT_PATA": "MEAT_PATA_MUSLO",
+    "MEAT_POLLO": "MEAT_POLLO_ENTERO",
+    "MEAT_CARNE_PICADA": "MEAT_PICADA_COMUN",
+    "MEAT_PICADA": "MEAT_PICADA_COMUN",
+}
+
+
+def _clean_product_title_for_sync(nom: str) -> str:
+    t = re.sub(r"\(.*?\)", "", nom)
+    t = re.sub(r"\b(?:x\s*kg|kilo|litros?|lts?|cc\.?)\b", "", t, flags=re.I)
+    return " ".join(t.split()).strip()
+
+
+async def live_offers_for_eans(
+    eans: list[str],
+    cp: str | None = None,
+    names_hint: dict[str, str] | None = None,
+):
     """Obtiene en vivo las ofertas para los EANs de Mi Lista (Smart Cart), completando desde VTEX si falta alguno."""
     if not eans:
         return {}, {}
 
-    missing_eans = [e for e in eans if e not in _LIVE_OFFERS_MEM]
+    names_hint = names_hint or {}
+
+    def _resolve_mem(e: str):
+        if e in _LIVE_OFFERS_MEM:
+            return _LIVE_OFFERS_MEM[e]
+        eu = e.upper()
+        if eu in _LIVE_OFFERS_MEM:
+            return _LIVE_OFFERS_MEM[eu]
+        el = e.lower()
+        if el in _LIVE_OFFERS_MEM:
+            return _LIVE_OFFERS_MEM[el]
+        alias = _MEAT_CANONICAL_ALIASES.get(eu)
+        if alias and alias in _LIVE_OFFERS_MEM:
+            return _LIVE_OFFERS_MEM[alias]
+        if "CHORIZO" in eu and "MEAT_CHORIZO_PARRILLERO" in _LIVE_OFFERS_MEM:
+            return _LIVE_OFFERS_MEM["MEAT_CHORIZO_PARRILLERO"]
+        return None
+
+    missing_eans = [e for e in eans if not _resolve_mem(e)]
     digit_eans = [e for e in missing_eans if e.isdigit()]
     non_digit = [e for e in missing_eans if not e.isdigit()]
 
@@ -1303,31 +1355,54 @@ async def live_offers_for_eans(eans: list[str], cp: str | None = None):
         sync_tasks.append(live_lookup_eans(digit_eans, cp=cp))
 
     for e in non_digit:
+        eu = e.upper()
         term = ""
-        if e.startswith("PRODUCE_"):
-            term = e.replace("PRODUCE_", "").replace("_", " ")
-        elif e.startswith("MEAT_"):
-            term = e.replace("MEAT_", "").replace("_", " ")
+        if eu.startswith("PRODUCE_"):
+            term = eu.replace("PRODUCE_", "").replace("_", " ")
+        elif eu.startswith("MEAT_"):
+            alias = _MEAT_CANONICAL_ALIASES.get(eu, eu)
+            term = alias.replace("MEAT_", "").replace("_", " ")
         if term:
-            sync_tasks.append(live_search_and_sync(term, limit_per_store=4))
+            sync_tasks.append(live_search_and_sync(term, limit_per_store=4, cp=cp))
+
+    # Fallback sync con término limpio para productos que no están en memoria
+    for e in digit_eans:
+        if names_hint.get(e):
+            clean_term = _clean_product_title_for_sync(names_hint[e])
+            if clean_term:
+                sync_tasks.append(live_search_and_sync(clean_term, limit_per_store=3, cp=cp))
 
     if sync_tasks:
         try:
-            await asyncio.wait_for(asyncio.gather(*sync_tasks, return_exceptions=True), timeout=5.5)
+            await asyncio.wait_for(asyncio.gather(*sync_tasks, return_exceptions=True), timeout=9.0)
         except Exception:
             pass
+
+    # Post-proceso: mapear a digit eans si se encontraron ofertas por búsqueda de título
+    for e in eans:
+        if not _resolve_mem(e) and names_hint.get(e):
+            nom_words = [w for w in _norm_text(names_hint[e]).split() if len(w) >= 3][:3]
+            for mem_ean, offs in _LIVE_OFFERS_MEM.items():
+                if not offs:
+                    continue
+                s_nom = _norm_text(list(offs.values())[0].get("nombre") or "")
+                if all(w in s_nom for w in nom_words):
+                    _LIVE_OFFERS_MEM[e] = offs
+                    break
 
     out: dict[str, list[dict]] = {}
     names: dict[str, str] = {}
     for ean in eans:
-        prod_info = _LIVE_PRODUCTS_MEM.get(ean)
+        prod_info = _LIVE_PRODUCTS_MEM.get(ean) or _LIVE_PRODUCTS_MEM.get(ean.upper())
         if prod_info:
             names[ean] = prod_info["nombre"]
-        store_map = _LIVE_OFFERS_MEM.get(ean) or {}
+        store_map = _resolve_mem(ean)
         if store_map:
             out[ean] = list(store_map.values())
             if ean not in names and out[ean]:
                 names[ean] = out[ean][0].get("nombre") or ean
+        if ean not in names and names_hint.get(ean):
+            names[ean] = names_hint[ean]
     return out, names
 
 

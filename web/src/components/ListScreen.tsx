@@ -12,6 +12,7 @@ import {
   Truck,
   MapPin,
   Sparkles,
+  AlertCircle,
 } from 'lucide-react'
 import type { OptimizeMode, OptimizePlan } from '../types'
 import { useCart } from '../cart/CartContext'
@@ -478,9 +479,9 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
           )}
 
           {/* Items sin stock */}
-          {plan && plan.missing.length > 0 && (
+          {plan && Array.isArray(plan.missing) && plan.missing.length > 0 && (
             <p className="text-[12px] text-red-700 bg-red-50 rounded-xl p-2.5 border border-red-200/60">
-              Sin stock en súper con entrega: {plan.missing.map(m => m.nombre).join(', ')}
+              Sin stock en súper con entrega: {plan.missing.map(m => (typeof m === 'object' && m ? m.nombre || m.ean : String(m))).join(', ')}
             </p>
           )}
         </section>
