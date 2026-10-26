@@ -328,6 +328,8 @@ async def fetch_shopify_live(
     limit: int = 12,
 ) -> list[dict]:
     """Consulta en vivo el buscador predictivo de una tienda Shopify (`available == True`)."""
+    if query.strip().isdigit() and len(query.strip()) >= 5:
+        return []
     base = SHOPIFY_DOMAINS.get(store)
     if not base:
         return []
@@ -410,6 +412,8 @@ async def fetch_tiendanube_live(
     limit: int = 10,
 ) -> list[dict]:
     """Consulta en vivo el buscador de una tienda Tiendanube pública (extrayendo microdatos Schema.org JSON-LD)."""
+    if query.strip().isdigit() and len(query.strip()) >= 5:
+        return []
     base = TIENDANUBE_DOMAINS.get(store)
     if not base:
         return []
@@ -423,6 +427,7 @@ async def fetch_tiendanube_live(
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "es-419,es;q=0.9",
     }
+    q_words = [w for w in _norm_text(query).split() if len(w) >= 2]
     try:
         r = await client.get(url, headers=headers, timeout=4.0, follow_redirects=True)
         if r.status_code != 200:
@@ -444,6 +449,11 @@ async def fetch_tiendanube_live(
                     in_stock = "InStock" in str(offers.get("availability") or "")
                     if not name or price <= 0 or not in_stock:
                         continue
+                    # Si buscó texto, descartar recomendaciones de Tiendanube que no contengan ninguna palabra buscada
+                    if q_words:
+                        nom_norm = _norm_text(name)
+                        if not any(w in nom_norm for w in q_words):
+                            continue
                     cant, u_tit = extraer_unidad_titulo(name)
                     p_u, u_norm = normalizar_unidad(price / cant if cant > 0 else price, u_tit)
                     p_u = sanity_precio_unidad(price, p_u, u_norm)
@@ -496,6 +506,8 @@ async def fetch_woocommerce_live(
     limit: int = 10,
 ) -> list[dict]:
     """Consulta en vivo el catálogo Store API público de tiendas WooCommerce (como Arcor en Casa)."""
+    if query.strip().isdigit() and len(query.strip()) >= 5:
+        return []
     base = WOOCOMMERCE_DOMAINS.get(store)
     if not base:
         return []
@@ -1211,7 +1223,13 @@ async def search_live_grouped(
     _STOP = {"de", "del", "la", "el", "los", "las", "con", "sin", "en", "para", "por", "al", "y", "o", "x"}
     q_words = [w for w in _norm_text(q_clean).split() if w not in _STOP and len(w) >= 2]
 
-    if q_words and not q_clean.isdigit():
+    if q_clean.isdigit():
+        # Búsqueda estricta por código de barras: solo productos que coincidan con este EAN exacto
+        groups = [
+            g for g in raw_groups
+            if g["ean"] == q_clean or any(o.get("ean") == q_clean for o in g.get("offers", []))
+        ]
+    elif q_words:
         q_sings = [_singularize_token(_NUMBER_WORDS.get(w, w)) for w in q_words]
 
         def _matches_strict(g: dict) -> bool:

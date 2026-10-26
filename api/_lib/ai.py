@@ -27,13 +27,13 @@ PRESET_RECIPES: dict[str, dict[str, Any]] = {
         "titulo": "Asado completo para 6 personas",
         "porciones": 6,
         "items": [
-            {"query": "asado de tira", "qty": 2, "unit": "kg"},
-            {"query": "vacio", "qty": 1, "unit": "kg"},
-            {"query": "chorizo", "qty": 6, "unit": "un"},
-            {"query": "morcilla", "qty": 3, "unit": "un"},
-            {"query": "fernet branca 750", "qty": 1, "unit": "un"},
-            {"query": "coca cola 2.25", "qty": 2, "unit": "un"},
-            {"query": "carbon 4kg", "qty": 1, "unit": "un"},
+            {"query": "asado de tira", "qty": 2, "unit": "kg", "item_pedido": "Asado de tira (2 kg)"},
+            {"query": "vacio", "qty": 1, "unit": "kg", "item_pedido": "Vacío (1 kg)"},
+            {"query": "chorizo", "qty": 6, "unit": "un", "item_pedido": "6 chorizos (~1 kg)"},
+            {"query": "morcilla", "qty": 3, "unit": "un", "item_pedido": "3 morcillas (~1 kg)"},
+            {"query": "fernet branca 750", "qty": 1, "unit": "un", "item_pedido": "Fernet Branca 750ml (1 un)"},
+            {"query": "coca cola 2.25", "qty": 2, "unit": "un", "item_pedido": "Coca Cola 2.25L (2 un)"},
+            {"query": "carbon 4kg", "qty": 1, "unit": "un", "item_pedido": "Carbón 4kg (1 bolsa)"},
         ],
     },
     "saludable": {
@@ -309,10 +309,37 @@ async def generate_recipe_cart(prompt: str, cp: str | None = None) -> dict[str, 
         unit = it.get("unit", "un")
         prod = await _match_product_in_catalog(q, cp=cp)
         if prod:
-            subtotal = round(prod["precio"] * qty, 2)
+            # Conversión inteligente si el producto se vende por kg pero se pidieron unidades sueltas
+            p_nom = (prod.get("nombre") or "").lower()
+            p_ean = str(prod.get("ean") or "")
+            is_sold_by_kg = "(x kg)" in p_nom or "x kg" in p_nom or p_ean.startswith(("MEAT_", "PRODUCE_"))
+
+            target_qty = qty
+            item_label = it.get("item_pedido") or f"{qty} {unit}"
+
+            if is_sold_by_kg and unit.lower() in ("un", "unidad", "unidades", "u"):
+                q_lower = q.lower()
+                if "chorizo" in q_lower:
+                    target_qty = max(1, round(qty / 6.0))  # ~6 chorizos por kg
+                    item_label = f"{qty} chorizos (~{target_qty} kg)"
+                elif "morcilla" in q_lower:
+                    target_qty = max(1, round(qty / 5.0))  # ~5 morcillas por kg
+                    item_label = f"{qty} morcillas (~{target_qty} kg)"
+                elif any(w in q_lower for w in ("banana", "manzana", "naranja", "tomate", "papa", "cebolla", "pera", "limon")):
+                    target_qty = max(1, round(qty / 4.0))  # ~4 frutas/verduras por kg
+                    item_label = f"{qty} un (~{target_qty} kg)"
+                elif "pata y muslo" in q_lower or "muslo" in q_lower:
+                    target_qty = max(1, round(qty / 3.0))  # ~3 unidades por kg
+                    item_label = f"{qty} un (~{target_qty} kg)"
+                else:
+                    target_qty = max(1, round(qty * 0.25))
+                    item_label = f"{qty} un (~{target_qty} kg)"
+                unit = "kg"
+
+            subtotal = round(prod["precio"] * target_qty, 2)
             return {
-                "item_pedido": q,
-                "qty": qty,
+                "item_pedido": item_label,
+                "qty": target_qty,
                 "unit": unit,
                 "matched": True,
                 "subtotal": subtotal,
@@ -328,7 +355,7 @@ async def generate_recipe_cart(prompt: str, cp: str | None = None) -> dict[str, 
             }
         else:
             return {
-                "item_pedido": q,
+                "item_pedido": it.get("item_pedido") or q,
                 "qty": qty,
                 "unit": unit,
                 "matched": False,
