@@ -15,6 +15,9 @@ export const STORES: Record<string, { label: string; color: string }> = {
   LaBarraCCU: { label: 'La Barra', color: '#475569' },
   MercadoLibre: { label: 'Mercado Libre', color: '#eab308' },
   LaBarata: { label: 'La Barata', color: '#16a34a' },
+  TonelPrivado: { label: 'Tonel Privado', color: '#7c2d12' },
+  DePastura: { label: 'De Pastura', color: '#b91c1c' },
+  ArcorEnCasa: { label: 'Arcor en Casa', color: '#0284c7' },
 }
 
 export const storeLabel = (s: string) => STORES[s]?.label ?? s

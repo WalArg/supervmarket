@@ -50,6 +50,12 @@ SHOPIFY_DOMAINS: dict[str, str] = {
 
 TIENDANUBE_DOMAINS: dict[str, str] = {
     "LaBarata": "https://labarata.ar",
+    "TonelPrivado": "https://www.tonelprivado.com",
+    "DePastura": "https://tienda.depastura.com.ar",
+}
+
+WOOCOMMERCE_DOMAINS: dict[str, str] = {
+    "ArcorEnCasa": "https://arcorencasa.com",
 }
 
 SUPERMARKET_CHAINS = ("Jumbo", "Disco", "Vea", "Carrefour", "Dia", "Masonline")
@@ -388,6 +394,15 @@ async def fetch_shopify_live(
         return []
 
 
+_KNOWN_BEVERAGE_BRANDS = {
+    "branca", "gancia", "campari", "chandon", "catena zapata", "rutini", "trumpeter",
+    "luigi bosca", "patagonia", "quilmes", "stella artois", "heineken", "corona",
+    "brahma", "andes", "smirnoff", "absolut", "tanqueray", "bombay", "beefeater",
+    "johnnie walker", "chivas", "jack daniels", "jameson", "vittone", "1882", "sernova",
+    "skyy", "buhero negro", "aperol", "jagermeister",
+}
+
+
 async def fetch_tiendanube_live(
     client: httpx.AsyncClient,
     store: str,
@@ -433,10 +448,21 @@ async def fetch_tiendanube_live(
                     p_u, u_norm = normalizar_unidad(price / cant if cant > 0 else price, u_tit)
                     p_u = sanity_precio_unidad(price, p_u, u_norm)
                     slug = link.rstrip("/").split("/")[-1] if "/" in link else name[:12]
+                    cat = (
+                        "Bebidas" if store == "TonelPrivado"
+                        else ("Carnes" if store == "DePastura" else "Frutas y Verduras")
+                    )
+                    b_detected = store
+                    if store == "TonelPrivado":
+                        nom_lower = name.lower()
+                        for kb in _KNOWN_BEVERAGE_BRANDS:
+                            if kb in nom_lower:
+                                b_detected = kb.title()
+                                break
                     out.append({
                         "ean": f"TN_{store.upper()}_{slug}",
                         "nombre": name,
-                        "marca": store,
+                        "marca": b_detected,
                         "modelo": "",
                         "tipo": "",
                         "imagen": image,
@@ -451,13 +477,86 @@ async def fetch_tiendanube_live(
                         "requiere_club": False,
                         "precio_por_unidad": p_u,
                         "unidad_medida": u_norm,
-                        "categorias": "Frutas y Verduras",
+                        "categorias": cat,
                         "stock": 1,
                         "itemId": slug,
                         "link": link,
                     })
             except Exception:
                 continue
+        return out
+    except Exception:
+        return []
+
+
+async def fetch_woocommerce_live(
+    client: httpx.AsyncClient,
+    store: str,
+    query: str,
+    limit: int = 10,
+) -> list[dict]:
+    """Consulta en vivo el catálogo Store API público de tiendas WooCommerce (como Arcor en Casa)."""
+    base = WOOCOMMERCE_DOMAINS.get(store)
+    if not base:
+        return []
+    q_enc = urllib.parse.quote(query.strip())
+    url = f"{base}/wp-json/wc/store/v1/products?search={q_enc}&per_page={limit}"
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Accept": "application/json",
+    }
+    try:
+        r = await client.get(url, headers=headers, timeout=4.0)
+        if r.status_code != 200:
+            return []
+        items = r.json()
+        out = []
+        for p in items:
+            if not p.get("is_purchasable") or not p.get("is_in_stock"):
+                continue
+            prices = p.get("prices") or {}
+            raw_p = float(prices.get("price") or 0)
+            minor = int(prices.get("currency_minor_unit") or 2)
+            precio = round(raw_p / (10 ** minor), 2)
+            if precio <= 0:
+                continue
+            raw_reg = float(prices.get("regular_price") or raw_p)
+            p_lista = round(raw_reg / (10 ** minor), 2)
+            if p_lista < precio:
+                p_lista = precio
+            descuento = round((1.0 - precio / p_lista) * 100.0, 1) if p_lista > precio else 0.0
+            images = p.get("images") or []
+            img = images[0].get("src") if images else ""
+            nom = p.get("name") or ""
+            cant, u_tit = extraer_unidad_titulo(nom)
+            p_u, u_norm = normalizar_unidad(precio / cant if cant > 0 else precio, u_tit)
+            p_u = sanity_precio_unidad(precio, p_u, u_norm)
+            out.append({
+                "ean": f"WC_{store.upper()}_{p['id']}",
+                "nombre": nom,
+                "marca": "Arcor" if store == "ArcorEnCasa" else store,
+                "modelo": "",
+                "tipo": "",
+                "imagen": img,
+                "supermercado": store,
+                "precio_venta": precio,
+                "precio_lista": p_lista,
+                "descuento": descuento,
+                "promo_etiqueta": f"{int(round(descuento))}% OFF" if descuento >= 5 else None,
+                "promo_tipo": "DIRECT" if descuento >= 5 else None,
+                "promo_min_qty": 1,
+                "precio_promo_unit": precio,
+                "requiere_club": False,
+                "precio_por_unidad": p_u,
+                "unidad_medida": u_norm,
+                "categorias": "Almacén",
+                "stock": 1,
+                "itemId": str(p["id"]),
+                "link": p.get("permalink") or "",
+            })
         return out
     except Exception:
         return []
@@ -549,7 +648,7 @@ def _canonical_signature(nombre: str, marca: str):
         if unicodedata.category(c) != "Mn"
     )
     is_multipack = bool(
-        re.search(r"\b\d+\s*x\s*\d+|\bx\s*\d+\s*(?:un|u|l|ml|cc|g|gr)|\b(?:multipack|pack|sixpack)\b", s)
+        re.search(r"\b\d+\s*x\s*\d+|\bx\s*\d+\s*(?:un|u|uni|unid|unidades|latas?|botellas?)\b|\b(?:multipack|pack|sixpack)\b", s)
     )
 
     # Normalizar sinónimos exactos de la industria alimentaria argentina
@@ -718,8 +817,70 @@ def _match_produce(p: dict) -> tuple[str, str] | None:
     return None
 
 
+_MEAT_EXCLUDED_WORDS = {
+    "aromatizante", "repuesto", "glade", "repasador", "limpiador", "detergente", "jabon",
+    "shampoo", "acondicionador", "babaganush", "salsa", "sal", "pimienta", "especias",
+    "condimento", "carbon", "leña", "chips", "galletitas", "snack", "alfajor", "vino",
+    "cerveza", "jugo", "gaseosa", "queso", "provoleta", "brie", "gouda", "pategras",
+    "aceitunas", "pasta", "pepinillos", "pita", "bolsa para horno", "ajo", "especiado",
+}
+
+_MEAT_TAXONOMY = [
+    # VACUNO
+    ("tapa_asado", "Tapa de Asado (x kg)", [r"\btapa\s+de\s+asado\b"]),
+    ("asado_tira", "Asado de Tira (x kg)", [r"\basado\b.*\b(tira|centro|banderita|tablita|medio|ventana)\b", r"\basado\b(?!.*\b(tapa|americano|cerdo|locos|sal)\b)"]),
+    ("vacio", "Vacío (x kg)", [r"\b(vacio|vac[ií]o)\b"]),
+    ("bife_chorizo", "Bife de Chorizo (x kg)", [r"\bbife[s]?\s+de\s+chorizo\b"]),
+    ("ojo_bife", "Ojo de Bife (x kg)", [r"\bojo\s+de\s+bife\b"]),
+    ("entrana", "Entraña (x kg)", [r"\b(entrana|entraña)\b"]),
+    ("lomo", "Lomo Vacuno (x kg)", [r"\blomo\b(?!.*\b(cerdo|canadiense|bola|atun|atún|praga)\b)"]),
+    ("colita_cuadril_cerdo", "Colita de Cuadril de Cerdo (x kg)", [r"\bcolita\s+de\s+cuadril\b.*\bcerdo\b"]),
+    ("colita_cuadril", "Colita de Cuadril (x kg)", [r"\bcolita\s+de\s+cuadril\b"]),
+    ("cuadril", "Cuadril (x kg)", [r"\bcuadril\b(?!.*\b(colita|tapa)\b)"]),
+    ("matambre_cerdo", "Matambre de Cerdo (x kg)", [r"\bmatambre\b.*\bcerdo\b|\bmatambrito\b"]),
+    ("matambre_vacuno", "Matambre Vacuno (x kg)", [r"\bmatambre\b"]),
+    ("peceto", "Peceto (x kg)", [r"\bpeceto\b"]),
+    ("nalga", "Nalga para Milanesa (x kg)", [r"\bnalga\b(?!.*\bcerdo\b)"]),
+    ("bola_lomo", "Bola de Lomo (x kg)", [r"\bbola\s+de\s+lomo\b"]),
+    ("cuadrada", "Cuadrada para Milanesa (x kg)", [r"\bcuadrada\b"]),
+    ("picada_especial", "Carne Picada Especial (x kg)", [r"\b(carne\s+picada|picada)\b.*\b(especial|magra|seleccion|primera)\b"]),
+    ("picada_comun", "Carne Picada Común (x kg)", [r"\bcarne\s+picada\b"]),
+    ("bondiola", "Bondiola de Cerdo (x kg)", [r"\bbondiola\b"]),
+    ("pechito_cerdo", "Pechito de Cerdo (x kg)", [r"\bpechito\s+de\s+cerdo\b"]),
+    ("costillita_cerdo", "Costillitas de Cerdo (x kg)", [r"\b(costillita|costillitas|carre|carré)\s+de\s+cerdo\b"]),
+    ("solomillo_cerdo", "Solomillo de Cerdo (x kg)", [r"\bsolomillo\b"]),
+    ("pechuga_pollo", "Pechuga de Pollo / Suprema (x kg)", [r"\b(pechuga|suprema)\b.*\bpollo\b|\bpechuga\b|\bsuprema\b"]),
+    ("pata_muslo", "Pata y Muslo de Pollo (x kg)", [r"\bpata\s+y\s+muslo\b|\bcuarto\s+trasero\b"]),
+    ("pollo_entero", "Pollo Entero Fresco (x kg)", [r"\bpollo\s+entero\b|\bpollo\s+fresco\b"]),
+    ("chorizo_parrillero", "Chorizo Parrillero (x kg)", [r"\bchorizo\b(?!.*\b(bife|colorado|seco|espanol|español)\b)"]),
+    ("morcilla", "Morcilla (x kg)", [r"\bmorcilla\b"]),
+]
+
+
+def _match_meat(p: dict) -> tuple[str, str] | None:
+    nom = _norm_text(p.get("nombre") or "")
+    tokens = set(nom.split())
+    if tokens & _MEAT_EXCLUDED_WORDS:
+        return None
+    # Si indica gramos pequeños de paquete cerrado (ej: 60g, 150g) sin indicar kg, es producto de almacén
+    if re.search(r"\b\d+\s*g(?:r|rs|rm|rms)?\b", nom) and not ("kg" in nom or "kilo" in nom):
+        return None
+
+    # Normalizar descriptores de empaque "al vacio" para no confundir con el corte Vacío
+    clean_nom = re.sub(r"\b(?:envasad[ao]s?\s+)?al\s+vac[ií]o\b", " ", nom)
+    clean_nom = re.sub(r"\benv\s+al\s+vac[ií]o\b", " ", clean_nom)
+    clean_nom = " ".join(clean_nom.split())
+
+    for key, display_name, patterns in _MEAT_TAXONOMY:
+        for pat in patterns:
+            target = clean_nom if key == "vacio" else nom
+            if re.search(pat, target):
+                return key, display_name
+    return None
+
+
 def _store_in_memory(flat_products: list[dict]) -> list[dict]:
-    """Agrupa en memoria por EAN, unifica frutas/verduras a granel en identidades canónicas,
+    """Agrupa en memoria por EAN, unifica frutas/verduras y cortes de carnicería en identidades canónicas,
     fusiona EANs gemelos del mismo fabricante/variante/tamaño y guarda en RAM."""
     by_ean: dict[str, dict] = {}
     for d in flat_products:
@@ -727,20 +888,28 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             continue
 
         prod_match = _match_produce(d)
+        meat_match = _match_meat(d) if not prod_match else None
         if prod_match:
             canon_key, display_title = prod_match
             ean = f"PRODUCE_{canon_key.upper()}"
             d_nom = display_title
             d_marca = "Verdulería"
+        elif meat_match:
+            canon_key, display_title = meat_match
+            ean = f"MEAT_{canon_key.upper()}"
+            d_nom = display_title
+            d_marca = "Carnicería"
         else:
             ean = str(d["ean"])
             d_nom = (d.get("nombre") or "").strip()
             d_marca = (d.get("marca") or "").strip()
 
+        is_canonical_fresh = bool(prod_match or meat_match)
+
         g = by_ean.setdefault(ean, {
             "ean": ean,
-            "nombre": d_nom if prod_match else (d.get("nombre") or ""),
-            "marca": "Verdulería" if prod_match else (d_marca if _is_valid_brand(d_marca) else "Genérico"),
+            "nombre": d_nom if is_canonical_fresh else (d.get("nombre") or ""),
+            "marca": d_marca if is_canonical_fresh else (d_marca if _is_valid_brand(d_marca) else "Genérico"),
             "imagen": d.get("imagen") or "",
             "offers_by_store": {},
             "all_names": set(),
@@ -749,7 +918,7 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
         orig_nom = (d.get("nombre") or "").strip()
         if orig_nom:
             g["all_names"].add(orig_nom)
-            if not prod_match and ("24.7" in orig_nom or "24 7" in orig_nom) and not ("24.7" in g["nombre"] or "24 7" in g["nombre"]):
+            if not is_canonical_fresh and ("24.7" in orig_nom or "24 7" in orig_nom) and not ("24.7" in g["nombre"] or "24 7" in g["nombre"]):
                 g["nombre"] = orig_nom
         if not g["imagen"] and d.get("imagen"):
             g["imagen"] = d["imagen"]
@@ -757,7 +926,7 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             g["marca"] = d_marca
 
         offer = _to_offer_dict(d)
-        if prod_match and d["supermercado"] in g["offers_by_store"]:
+        if is_canonical_fresh and d["supermercado"] in g["offers_by_store"]:
             existing = g["offers_by_store"][d["supermercado"]]
             p_exist = existing.get("unit_price") or existing.get("precio") or float("inf")
             p_new = offer.get("unit_price") or offer.get("precio") or float("inf")
@@ -776,7 +945,7 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
     merged_away: set[str] = set()
 
     for ean in ean_list:
-        if ean.startswith("PRODUCE_"):
+        if ean.startswith(("PRODUCE_", "MEAT_")):
             continue
         g = by_ean[ean]
         sig = _canonical_signature(g["nombre"], g["marca"])
@@ -820,7 +989,7 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             continue
         cant, u_tit = extraer_unidad_titulo(g["nombre"])
         offers = list(g["offers_by_store"].values())
-        if not ean.startswith("PRODUCE_"):
+        if not ean.startswith(("PRODUCE_", "MEAT_")):
             for o in offers:
                 # Solo aplicar descuento al precio unitario ($/l, $/kg, $/un) si la promo es abierta a todo público
                 eff_p = (
@@ -933,11 +1102,14 @@ async def live_search_and_sync(
         tiendanube_names = list(TIENDANUBE_DOMAINS.keys())
         for tn_st in tiendanube_names:
             tasks.append(fetch_tiendanube_live(client, tn_st, q_norm, limit=10))
+        woocommerce_names = list(WOOCOMMERCE_DOMAINS.keys())
+        for wc_st in woocommerce_names:
+            tasks.append(fetch_woocommerce_live(client, wc_st, q_norm, limit=10))
         tasks.append(fetch_mercadolibre_live(client, q_norm, limit=12))
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        all_names = vtex_names + ["Coto"] + shopify_names + tiendanube_names + ["MercadoLibre"]
+        all_names = vtex_names + ["Coto"] + shopify_names + tiendanube_names + woocommerce_names + ["MercadoLibre"]
         flat_products: list[dict] = []
         by_store: dict[str, int] = {}
         store_eans: dict[str, set[str]] = {st: set() for st in all_names}

@@ -49,6 +49,9 @@ FREE_SHIPPING = {
     "TheFoodMarket": 28000,
     "LaBarraCCU": 25000,
     "LaBarata": 35000,
+    "TonelPrivado": 40000,
+    "DePastura": 45000,
+    "ArcorEnCasa": 35000,
 }
 
 # Costo estimado de envío a domicilio (ARS) cuando no se alcanza el umbral de envío gratis.
@@ -68,6 +71,9 @@ SHIPPING_COST = {
     "TheFoodMarket": 4500,
     "LaBarraCCU": 4500,
     "LaBarata": 4500,
+    "TonelPrivado": 4900,
+    "DePastura": 5200,
+    "ArcorEnCasa": 4500,
 }
 
 
