@@ -111,7 +111,24 @@ const ProductCard: React.FC<{ group: ProductGroup }> = ({ group }) => {
             <span className="truncate">
               {rows.length > 1 ? 'Mejor en ' : 'En '}
               <b className="text-slate-700">{storeLabel(best.o.supermercado)}</b>
+              {best.o.seller_name && (
+                <span className="text-slate-500 font-normal"> · {best.o.seller_name}</span>
+              )}
             </span>
+            {best.o.seller_reputation && (
+              <span
+                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                  best.o.seller_reputation === '5_green'
+                    ? 'bg-emerald-500'
+                    : best.o.seller_reputation === '4_light_green'
+                    ? 'bg-lime-500'
+                    : best.o.seller_reputation === '3_yellow'
+                    ? 'bg-amber-400'
+                    : 'bg-red-500'
+                }`}
+                title={`Reputación: ${best.o.seller_reputation}`}
+              />
+            )}
           </span>
           <span className="flex items-baseline gap-1">
             <span className="text-[20px] font-extrabold tracking-tight text-slate-900 leading-tight">{formatPrice(best.eff)}</span>

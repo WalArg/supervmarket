@@ -20,11 +20,11 @@ MELI_CLIENT_SECRET = os.getenv("MELI_CLIENT_SECRET", "g6qrGOxdw6iIatBY6osc35Jq6w
 
 _CACHED_TOKEN: str | None = None
 _TOKEN_EXPIRES_AT: float = 0.0
-_SELLER_REP_CACHE: dict[int, tuple[str | None, str | None]] = {}
+_SELLER_REP_CACHE: dict[int, dict] = {}
 
 
 async def _ensure_seller_reputations(client: httpx.AsyncClient, token: str, seller_ids: list[int]):
-    """Consulta en batch y cachea la reputación oficial de los vendedores de MeLi."""
+    """Consulta en batch y cachea la reputación y datos comerciales oficiales de los vendedores de MeLi."""
     missing = [sid for sid in seller_ids if sid and sid not in _SELLER_REP_CACHE]
     if not missing:
         return
@@ -39,7 +39,12 @@ async def _ensure_seller_reputations(client: httpx.AsyncClient, token: str, sell
                     sid = b.get("id")
                     if sid:
                         rep = b.get("seller_reputation", {})
-                        _SELLER_REP_CACHE[sid] = (rep.get("level_id"), rep.get("power_seller_status"))
+                        _SELLER_REP_CACHE[sid] = {
+                            "level_id": rep.get("level_id"),
+                            "power_seller_status": rep.get("power_seller_status"),
+                            "nickname": b.get("nickname") or "",
+                            "user_type": b.get("user_type") or "",
+                        }
         except Exception:
             pass
 
@@ -69,7 +74,7 @@ async def get_meli_token(client: httpx.AsyncClient) -> str | None:
     return None
 
 
-def parse_meli_product(prod: dict, item: dict) -> dict | None:
+def parse_meli_product(prod: dict, item: dict, seller_meta: dict | None = None) -> dict | None:
     """Convierte un producto y su mejor oferta en el formato unificado de SuperVmarket."""
     try:
         price = float(item.get("price") or 0)
@@ -152,19 +157,20 @@ def parse_meli_product(prod: dict, item: dict) -> dict | None:
                 unit_p = round(raw_u, 2)
 
         prod_id = prod.get("id")
-        if prod_id and str(prod_id).startswith("MLA"):
-            permalink = f"https://www.mercadolibre.com.ar/p/{prod_id}"
-        elif item_id:
+        # Enlace directo al vendedor/publicación real para respetar el precio más bajo exacto
+        if item_id:
             clean_item_id = (
                 f"MLA-{item_id[3:]}"
                 if (item_id.startswith("MLA") and not item_id.startswith("MLA-"))
                 else item_id
             )
             permalink = f"https://articulo.mercadolibre.com.ar/{clean_item_id}"
+        elif prod_id and str(prod_id).startswith("MLA"):
+            permalink = f"https://www.mercadolibre.com.ar/p/{prod_id}"
         else:
             permalink = "https://www.mercadolibre.com.ar/supermercado"
 
-        return {
+        result = {
             "supermercado": "MercadoLibre",
             "ean": ean or f"MELI_{item_id}",
             "sku": item_id,
@@ -185,6 +191,11 @@ def parse_meli_product(prod: dict, item: dict) -> dict | None:
             "requires_club": False,
             "is_full": is_full,
         }
+        if seller_meta:
+            result.update(seller_meta)
+        return result
+    except Exception:
+        return None
     except Exception:
         return None
 
@@ -236,30 +247,91 @@ async def fetch_mercadolibre_live(
                         sids = [it.get("seller_id") for it in items if it.get("seller_id")]
                         await _ensure_seller_reputations(client, token, sids)
 
-                        # Priorizar ofertas de Supermercado Libre y Full de vendedores Platinum / Verde (5_green),
-                        # que son los únicos que ganan la Buy Box oficial mostrada en la web de Mercado Libre.
-                        def _item_rank(it: dict):
-                            price = float(it.get("price") or 999999)
-                            tags = it.get("tags") or []
-                            is_super = 0 if "supermarket_eligible" in tags else 1
-                            shipping = it.get("shipping") or {}
-                            is_full = 0 if shipping.get("logistic_type") == "fulfillment" else 1
+                        # Filtrar ofertas elegibles para compra normal en supermercado/fulfillment
+                        candidates = [
+                            it for it in items
+                            if float(it.get("price") or 0) > 0 and (
+                                "supermarket_eligible" in (it.get("tags") or [])
+                                or (it.get("shipping") or {}).get("logistic_type") == "fulfillment"
+                                or it.get("official_store_id")
+                            )
+                        ]
+                        if not candidates:
+                            candidates = [it for it in items if float(it.get("price") or 0) > 0]
 
+                        # Ordenamos estrictamente por menor precio para que el comparador muestre el más barato real
+                        candidates.sort(key=lambda x: float(x.get("price") or 999999))
+                        best_item = candidates[0]
+
+                        # Armamos las mejores opciones distintas por vendedor para que el usuario elija
+                        seen_sellers = set()
+                        meli_options = []
+                        for it in candidates:
                             sid = it.get("seller_id")
-                            lvl, pwr = _SELLER_REP_CACHE.get(sid, (None, None))
-                            if lvl == "5_green" or pwr in ("platinum", "gold"):
-                                rep = 0
-                            elif lvl == "4_light_green" or pwr == "silver":
-                                rep = 1
+                            if sid in seen_sellers:
+                                continue
+                            seen_sellers.add(sid)
+
+                            u_info = _SELLER_REP_CACHE.get(sid, {})
+                            lvl = u_info.get("level_id") or "unrated"
+                            pwr = u_info.get("power_seller_status")
+                            nick = u_info.get("nickname") or "Vendedor MeLi"
+
+                            # Nombres amigables para tiendas reconocidas
+                            if sid == 252932888:
+                                seller_display = "Branca Store (LMG SRL)"
+                            elif it.get("official_store_id") or u_info.get("user_type") == "brand":
+                                seller_display = f"{nick} (Oficial)"
                             else:
-                                rep = 2
+                                seller_display = nick
 
-                            is_official = 0 if it.get("official_store_id") else 1
-                            has_deal = 0 if it.get("original_price") else 1
-                            return (is_super, is_full, rep, is_official, has_deal, price)
+                            it_id = it.get("item_id", "")
+                            clean_id = (
+                                f"MLA-{it_id[3:]}"
+                                if (it_id.startswith("MLA") and not it_id.startswith("MLA-"))
+                                else it_id
+                            )
+                            direct_link = f"https://articulo.mercadolibre.com.ar/{clean_id}" if it_id else ""
+                            ship = it.get("shipping") or {}
+                            is_full = ship.get("logistic_type") == "fulfillment"
 
-                        best_item = min(items, key=_item_rank)
-                        return parse_meli_product(prod, best_item)
+                            meli_options.append({
+                                "item_id": it_id,
+                                "price": float(it.get("price")),
+                                "seller_name": seller_display,
+                                "reputation": lvl,
+                                "power_status": pwr,
+                                "is_full": is_full,
+                                "free_shipping": ship.get("free_shipping") is True,
+                                "shipping_cost": float(ship.get("cost") or 0.0),
+                                "link": direct_link,
+                            })
+                            if len(meli_options) >= 3:
+                                break
+
+                        # Metadata del mejor vendedor para la oferta principal
+                        best_sid = best_item.get("seller_id")
+                        best_u = _SELLER_REP_CACHE.get(best_sid, {})
+                        best_ship = best_item.get("shipping") or {}
+                        best_nick = best_u.get("nickname") or "Vendedor MeLi"
+
+                        if best_sid == 252932888:
+                            primary_seller = "Branca Store (LMG SRL)"
+                        elif best_item.get("official_store_id") or best_u.get("user_type") == "brand":
+                            primary_seller = f"{best_nick} (Oficial)"
+                        else:
+                            primary_seller = best_nick
+
+                        seller_meta = {
+                            "seller_name": primary_seller,
+                            "seller_reputation": best_u.get("level_id") or "unrated",
+                            "power_seller_status": best_u.get("power_seller_status"),
+                            "free_shipping_threshold": 33000,
+                            "shipping_cost": float(best_ship.get("cost") or 0.0),
+                            "meli_options": meli_options,
+                        }
+
+                        return parse_meli_product(prod, best_item, seller_meta=seller_meta)
             except Exception:
                 pass
             return None
