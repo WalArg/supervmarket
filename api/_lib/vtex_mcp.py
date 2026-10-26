@@ -599,6 +599,7 @@ def _to_offer_dict(d: dict) -> dict:
         "promo_unit_price": promo_unit,
         "requires_club": bool(d.get("requiere_club")),
         "supports_cart": supports_cart(d["supermercado"]),
+        "unit_multiplier": float(d.get("unit_multiplier") or 1.0),
         "nombre": d.get("nombre") or "",
     }
 

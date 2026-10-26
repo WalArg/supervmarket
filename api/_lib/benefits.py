@@ -39,6 +39,8 @@ OFFICIAL_PROMO_LINKS = {
     "Dia": "https://diaonline.supermercadosdia.com.ar/promociones",
     "Masonline": "https://www.masonline.com.ar/promociones-bancarias",
     "Farmacity": "https://www.farmacity.com/descuentos",
+    "MercadoLibre": "https://www.mercadolibre.com.ar/supermercado",
+    "MercadoPago": "https://www.mercadopago.com.ar/promociones",
 }
 
 PAYMENT_OPTIONS = [
@@ -546,7 +548,10 @@ def get_benefits_catalog() -> dict:
         "daily_promos": [
             {
                 **p,
-                "official_url": OFFICIAL_PROMO_LINKS.get(p["supermercado"], ""),
+                "official_url": (
+                    OFFICIAL_PROMO_LINKS.get(p["supermercado"])
+                    or (OFFICIAL_PROMO_LINKS.get("MercadoPago", "") if "mercadopago" in p["payment_id"] else "")
+                ),
             }
             for p in DAILY_PROMOS
         ],

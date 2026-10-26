@@ -33,9 +33,11 @@ def _calc_offer_line(
     promo_unit = float(offer.get("promo_unit_price") or base_unit)
     req_club = bool(offer.get("requires_club"))
     promo_label = offer.get("promo_label")
+    unit_multiplier = float(offer.get("unit_multiplier") or 1.0)
+    effective_qty = round(qty * unit_multiplier, 3)
 
-    regular_total = round(max(list_unit, base_unit) * qty, 2)
-    base_total = round(base_unit * qty, 2)
+    regular_total = round(max(list_unit, base_unit) * effective_qty, 2)
+    base_total = round(base_unit * effective_qty, 2)
 
     has_club = benefits.user_has_store_club(
         offer["supermercado"], selected_cards or set(), include_clubs_legacy=include_clubs
@@ -48,28 +50,31 @@ def _calc_offer_line(
             "effective_unit": round(base_unit, 2),
             "regular_total": regular_total,
             "applied_promo": None,
+            "unit_multiplier": unit_multiplier,
         }
 
     # Promoción por escalón de cantidad (ej: 2x1, 3x2, 2do al 70%)
     if min_qty > 1 and qty >= min_qty and promo_unit < base_unit:
         bundles = qty // min_qty
         rem = qty % min_qty
-        line_total = round((bundles * min_qty * promo_unit) + (rem * base_unit), 2)
+        line_total = round((bundles * min_qty * promo_unit * unit_multiplier) + (rem * base_unit * unit_multiplier), 2)
         return {
             "line_total": line_total,
             "effective_unit": round(line_total / qty, 2),
             "regular_total": regular_total,
             "applied_promo": promo_label,
+            "unit_multiplier": unit_multiplier,
         }
 
     # Promoción en 1 unidad (directa o de club con include_clubs=True)
     if min_qty <= 1 and promo_unit <= base_unit and promo_label:
-        line_total = round(promo_unit * qty, 2)
+        line_total = round(promo_unit * effective_qty, 2)
         return {
             "line_total": line_total,
             "effective_unit": round(promo_unit, 2),
             "regular_total": regular_total,
             "applied_promo": promo_label,
+            "unit_multiplier": unit_multiplier,
         }
 
     return {
@@ -77,6 +82,7 @@ def _calc_offer_line(
         "effective_unit": round(base_unit, 2),
         "regular_total": regular_total,
         "applied_promo": None,
+        "unit_multiplier": unit_multiplier,
     }
 
 
@@ -121,6 +127,7 @@ def _assign(
                 "line_total": best_calc["line_total"],
                 "regular_total": best_calc["regular_total"],
                 "applied_promo": best_calc["applied_promo"],
+                "unit_multiplier": best_calc.get("unit_multiplier", 1.0),
             })
 
     return assignment, round(merch_total, 2), round(regular_total, 2), covered
@@ -215,6 +222,12 @@ def _build_carts(
                 for i in items if i.get("sku_id")
             ]
             checkout = f"{VTEX_DOMAINS[store]}/checkout/cart/add?{'&'.join(parts)}"
+        elif len(items) == 1 and items[0].get("link"):
+            checkout = items[0].get("link")
+        elif store == "Coto":
+            checkout = "https://www.cotodigital3.com.ar/sitios/cdigi/"
+        elif store == "MercadoLibre":
+            checkout = items[0].get("link") if (items and len(items) == 1 and items[0].get("link")) else "https://www.mercadolibre.com.ar/supermercado"
         elif items and items[0].get("link"):
             checkout = items[0].get("link")
 
@@ -236,9 +249,10 @@ def _build_carts(
                 "precio": i["precio"],
                 "precio_base": i["precio_base"],
                 "line_total": i["line_total"],
+                "unit_multiplier": i.get("unit_multiplier", 1.0),
                 "applied_promo": i.get("applied_promo"),
                 "qty": i["qty"],
-                "link": i.get("link"),
+                "link": i.get("link") or "",
             } for i in items],
         })
     carts.sort(key=lambda c: -c["subtotal"])

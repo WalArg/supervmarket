@@ -105,14 +105,16 @@ const OffersSheet: React.FC<{
                         {formatPrice(r.eff)}
                         {r.minQty > 1 && <span className="text-[11px] font-bold text-slate-400"> c/u</span>}
                       </div>
-                      <a
-                        href={r.o.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 inline-flex items-center gap-1 h-8 px-3 rounded-full bg-blue-600 text-white text-[12px] font-bold active:bg-blue-700"
-                      >
-                        Ver <ExternalLink size={12} />
-                      </a>
+                      {r.o.link && r.o.link.startsWith('http') && (
+                        <a
+                          href={r.o.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 inline-flex items-center gap-1 h-8 px-3 rounded-full bg-blue-600 text-white text-[12px] font-bold active:bg-blue-700"
+                        >
+                          Ver <ExternalLink size={12} />
+                        </a>
+                      )}
                     </div>
                   </li>
                 )

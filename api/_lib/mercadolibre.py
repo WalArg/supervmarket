@@ -147,6 +147,7 @@ def parse_meli_product(prod: dict, item: dict) -> dict | None:
             "discount": round((1 - price / orig_price_f) * 100) if orig_price_f > price else 0,
             "stock": 100,
             "url": permalink,
+            "link": permalink,
             "imagen": image_url,
             "requires_club": False,
             "is_full": is_full,

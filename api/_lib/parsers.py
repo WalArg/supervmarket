@@ -409,6 +409,7 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
         "categorias": normalizar_categoria(cats_str),
         "stock": int(comm.get("AvailableQuantity") or 0),
         "itemId": str(sku.get("itemId") or ""),
+        "unit_multiplier": float(sku.get("unitMultiplier") or 1.0),
         "link": link,
         "fecha": datetime.now(timezone.utc).isoformat(),
     }

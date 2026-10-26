@@ -35,6 +35,7 @@ export interface CartLineItem {
   line_total?: number
   applied_promo?: string | null
   qty: number
+  unit_multiplier?: number
   link: string | null
 }
 

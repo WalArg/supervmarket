@@ -70,11 +70,37 @@ const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
 
       <ul className="px-4 divide-y divide-slate-100">
         {plan.items.map(i => (
-          <li key={i.ean} className="py-2 flex items-start justify-between gap-3">
+          <li key={i.ean} className="py-2.5 flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-[13px] text-slate-800 leading-snug line-clamp-2">
-                <span className="font-bold">{i.qty}×</span> {i.nombre}
-              </p>
+              {i.link && i.link.startsWith('http') ? (
+                <a
+                  href={i.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[13px] text-slate-800 leading-snug line-clamp-2 hover:text-blue-600 transition-colors inline-flex items-center gap-1 group"
+                >
+                  <span>
+                    <span className="font-bold">
+                      {i.qty}×
+                      {i.unit_multiplier && i.unit_multiplier !== 1
+                        ? ` (~${Math.round(i.qty * i.unit_multiplier * 10) / 10} kg)`
+                        : ''}
+                    </span>{' '}
+                    {i.nombre}
+                  </span>
+                  <ExternalLink size={12} className="opacity-40 group-hover:opacity-100 text-blue-500 shrink-0 transition-opacity" />
+                </a>
+              ) : (
+                <p className="text-[13px] text-slate-800 leading-snug line-clamp-2">
+                  <span className="font-bold">
+                    {i.qty}×
+                    {i.unit_multiplier && i.unit_multiplier !== 1
+                      ? ` (~${Math.round(i.qty * i.unit_multiplier * 10) / 10} kg)`
+                      : ''}
+                  </span>{' '}
+                  {i.nombre}
+                </p>
+              )}
               {i.applied_promo && (
                 <span className="inline-flex items-center gap-1 mt-0.5 text-[11px] font-semibold text-orange-700">
                   <Flame size={11} /> {i.applied_promo}
@@ -82,7 +108,7 @@ const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
               )}
             </div>
             <span className="text-[13px] font-bold text-slate-900 whitespace-nowrap">
-              {formatPrice(i.line_total ?? i.precio * i.qty)}
+              {formatPrice(i.line_total ?? i.precio * i.qty * (i.unit_multiplier || 1))}
             </span>
           </li>
         ))}
@@ -118,14 +144,29 @@ const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
           )
         )}
 
-        {checkout ? (
+        {/* Guía para tiendas que no permiten changuito multi-producto automatizado por URL (como Coto) */}
+        {!plan.supports_cart && plan.items.length > 1 && (
+          <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-2.5 text-[11px] text-amber-900 flex items-start gap-2">
+            <AlertTriangle size={15} className="text-amber-600 shrink-0 mt-0.5" />
+            <span>
+              <strong>{storeLabel(plan.supermercado)}:</strong> Tocá cada producto de la lista arriba para abrirlo y agregarlo en su web.
+            </span>
+          </div>
+        )}
+
+        {checkout && checkout.startsWith('http') ? (
           <a
             href={checkout}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-12 w-full rounded-xl bg-slate-900 text-white font-extrabold text-[14px] flex items-center justify-center gap-2 active:bg-slate-800"
+            className="h-12 w-full rounded-xl bg-slate-900 text-white font-extrabold text-[14px] flex items-center justify-center gap-2 active:bg-slate-800 transition-colors shadow-xs"
           >
-            Comprar en {storeLabel(plan.supermercado)} <ExternalLink size={16} />
+            {plan.supports_cart
+              ? `Comprar en ${storeLabel(plan.supermercado)}`
+              : plan.items.length === 1
+                ? `Comprar en ${storeLabel(plan.supermercado)}`
+                : `Abrir web de ${storeLabel(plan.supermercado)}`}
+            <ExternalLink size={16} />
           </a>
         ) : (
           <p className="text-[12px] text-slate-500 bg-slate-50 rounded-xl p-2.5">

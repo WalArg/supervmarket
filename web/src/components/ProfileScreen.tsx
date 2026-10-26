@@ -187,31 +187,47 @@ const ProfileScreen: React.FC = () => {
           <ul className="space-y-2">
             {[...mine, ...others].map((p, idx) => {
               const isMine = selectedCards.includes(p.payment_id)
+              const hasUrl = Boolean(p.official_url && p.official_url.startsWith('http'))
+              const content = (
+                <>
+                  <span className="w-10 h-10 rounded-xl bg-slate-900 text-white text-[13px] font-extrabold flex items-center justify-center shrink-0">
+                    {p.pct}%
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-bold text-slate-900 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full" style={{ background: storeColor(p.supermercado) }} />
+                      {storeLabel(p.supermercado)}
+                    </p>
+                    <p className="text-[12px] text-slate-600 truncate">{p.label}</p>
+                    <p className="text-[11px] text-slate-400">
+                      {p.cap ? `Tope ${formatPrice(p.cap)}` : 'Sin tope'} · {p.kind === 'en_caja' ? 'en caja' : 'reintegro'}
+                    </p>
+                  </div>
+                  {hasUrl && <ExternalLink size={14} className="text-slate-300 shrink-0" />}
+                </>
+              )
               return (
                 <li key={`${p.supermercado}-${p.payment_id}-${idx}`}>
-                  <a
-                    href={p.official_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`flex items-center gap-3 p-2.5 rounded-xl border ${
-                      isMine ? 'border-emerald-300 bg-emerald-50/70' : 'border-slate-100 bg-slate-50/60'
-                    }`}
-                  >
-                    <span className="w-10 h-10 rounded-xl bg-slate-900 text-white text-[13px] font-extrabold flex items-center justify-center shrink-0">
-                      {p.pct}%
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-bold text-slate-900 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full" style={{ background: storeColor(p.supermercado) }} />
-                        {storeLabel(p.supermercado)}
-                      </p>
-                      <p className="text-[12px] text-slate-600 truncate">{p.label}</p>
-                      <p className="text-[11px] text-slate-400">
-                        {p.cap ? `Tope ${formatPrice(p.cap)}` : 'Sin tope'} · {p.kind === 'en_caja' ? 'en caja' : 'reintegro'}
-                      </p>
+                  {hasUrl ? (
+                    <a
+                      href={p.official_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex items-center gap-3 p-2.5 rounded-xl border ${
+                        isMine ? 'border-emerald-300 bg-emerald-50/70' : 'border-slate-100 bg-slate-50/60'
+                      }`}
+                    >
+                      {content}
+                    </a>
+                  ) : (
+                    <div
+                      className={`flex items-center gap-3 p-2.5 rounded-xl border ${
+                        isMine ? 'border-emerald-300 bg-emerald-50/70' : 'border-slate-100 bg-slate-50/60'
+                      }`}
+                    >
+                      {content}
                     </div>
-                    <ExternalLink size={14} className="text-slate-300 shrink-0" />
-                  </a>
+                  )}
                 </li>
               )
             })}
