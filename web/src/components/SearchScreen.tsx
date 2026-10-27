@@ -276,46 +276,6 @@ const SearchScreen: React.FC = () => {
               </div>
             </section>
 
-            {/* SECCIÓN PATROCINADA EXCLUSIVA: MERCADO LIBRE */}
-            <section className="bg-amber-50/60 rounded-3xl border border-amber-200/80 p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-amber-200/90 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md">
-                    PATROCINADO
-                  </span>
-                  <h2 className="text-[13.5px] font-extrabold text-amber-950">
-                    Mercado Libre Supermercado
-                  </h2>
-                </div>
-                <span className="text-[10.5px] font-bold text-amber-800">Tienda Oficial</span>
-              </div>
-
-              <div className="bg-white rounded-2xl p-3.5 border border-amber-200/60 flex items-center justify-between gap-3 shadow-2xs">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-800 flex-wrap">
-                    <span className="text-emerald-700">⚡ Envíos FULL en 24hs</span>
-                    <span className="text-slate-300">·</span>
-                    <span className="text-slate-600">Compra protegida</span>
-                  </div>
-                  <p className="text-[12px] text-slate-600 mt-0.5 leading-snug">
-                    Comprá productos de supermercado en Mercado Libre con entrega rápida y envío gratis acumulable.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => runSearch('MercadoLibre')}
-                  className="min-h-[44px] px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[12px] font-bold active:scale-95 transition-all shrink-0 flex items-center justify-center shadow-xs"
-                >
-                  Ver ofertas
-                </button>
-              </div>
-
-              {/* Firewall Ético Disclaimer */}
-              <p className="text-[10.5px] text-amber-900/80 leading-relaxed pt-0.5">
-                ⚖️ <strong>Firewall Ético SuperVmarket</strong>: Mercado Libre participa en la comparación orgánica de precios. El recuadro patrocinado es un espacio destacado que no altera el orden de los resultados más baratos (Ley 24.240).
-              </p>
-            </section>
-
             <button
               type="button"
               onClick={() => setScanning(true)}

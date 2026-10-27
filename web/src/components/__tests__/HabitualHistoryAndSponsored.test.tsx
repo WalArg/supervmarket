@@ -6,8 +6,10 @@ import ProductCard from '../ProductCard'
 import SponsoredProductBox from '../SponsoredProductBox'
 import HabitualListManager from '../HabitualListManager'
 import ListScreen from '../ListScreen'
+import SavedScreen from '../SavedScreen'
 import { CartProvider } from '../../cart/CartContext'
 import { HabitualListProvider } from '../../cart/HabitualListContext'
+import { SavedProvider } from '../../saved/SavedContext'
 import { LocationProvider } from '../../location/LocationContext'
 import { BenefitsProvider } from '../../benefits/BenefitsContext'
 import type { ProductGroup } from '../../types'
@@ -37,24 +39,20 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
     vi.restoreAllMocks()
   })
 
-  it('1. SearchScreen renders the Mercado Libre [PATROCINADO] section on home', () => {
+  it('1. SearchScreen does NOT render sponsored section on initial home search page', () => {
     render(
       <LocationProvider>
         <SearchScreen />
       </LocationProvider>,
     )
 
-    // Verify Sponsored header & badge
-    expect(screen.getByText('PATROCINADO')).toBeTruthy()
-    expect(screen.getByText('Mercado Libre Supermercado')).toBeTruthy()
+    // User requirement: No sponsored section on the initial search page
+    expect(screen.queryByText('PATROCINADO')).toBeNull()
+    expect(screen.queryByText('Mercado Libre Supermercado')).toBeNull()
 
-    // Verify Mercado Libre highlights
-    expect(screen.getByText(/Envíos FULL en 24hs/i)).toBeTruthy()
-    expect(screen.getByText(/Compra protegida/i)).toBeTruthy()
-
-    // Verify Ethical Firewall disclaimer
-    expect(screen.getByText(/Firewall Ético SuperVmarket/i)).toBeTruthy()
-    expect(screen.getByText(/Ley 24\.240/i)).toBeTruthy()
+    // Clean home components should still be visible
+    expect(screen.getByText(/Lo más buscado/i)).toBeTruthy()
+    expect(screen.getByText(/¿Estás en el súper\?/i)).toBeTruthy()
   })
 
   it('2. ProductCard renders price discount tag and SponsoredProductBox displays Mercado Libre prominently', () => {
@@ -230,5 +228,79 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
     expect(screen.getByText(/FULL SÚPER/i)).toBeTruthy()
     expect(screen.getByText('01MERCADO.COM.AR')).toBeTruthy()
     expect(screen.getByText('Gaseosa Coca Cola 1.75 Lt')).toBeTruthy()
+  })
+
+  it('6. Guardados tab: allows saving products, viewing them, adding to cart, and removing', () => {
+    const testProduct: ProductGroup = {
+      ean: '7791234567890',
+      nombre: 'Leche Descremada La Serenísima 1L',
+      marca: 'La Serenísima',
+      imagen: 'https://example.com/leche.jpg',
+      offers: [
+        {
+          supermercado: 'Coto',
+          precio: 1450,
+          precio_lista: 1600,
+          stock: 10,
+          link: 'https://coto.com.ar/leche',
+        },
+      ],
+    }
+
+    // Render SavedScreen initially empty
+    const { unmount } = render(
+      <SavedProvider>
+        <CartProvider>
+          <SavedScreen onGoSearch={vi.fn()} onGoCart={vi.fn()} />
+        </CartProvider>
+      </SavedProvider>,
+    )
+
+    expect(screen.getByText('No tenés productos guardados')).toBeTruthy()
+    unmount()
+
+    // Now render with a saved product in localStorage
+    localStorage.setItem(
+      'sv_saved_products_v1',
+      JSON.stringify([
+        {
+          id: '7791234567890',
+          ean: '7791234567890',
+          nombre: testProduct.nombre,
+          marca: testProduct.marca,
+          imagen: testProduct.imagen,
+          minPrice: 1450,
+          bestStore: 'Coto',
+          group: testProduct,
+          savedAt: Date.now(),
+        },
+      ]),
+    )
+
+    render(
+      <SavedProvider>
+        <CartProvider>
+          <SavedScreen onGoSearch={vi.fn()} onGoCart={vi.fn()} />
+        </CartProvider>
+      </SavedProvider>,
+    )
+
+    expect(screen.getByText('Leche Descremada La Serenísima 1L')).toBeTruthy()
+    expect(screen.getByText('1 producto para tener a mano')).toBeTruthy()
+
+    // Add to cart from SavedScreen
+    const addToCartBtn = screen.getByRole('button', { name: /^al carrito$/i })
+    expect(addToCartBtn).toBeTruthy()
+    fireEvent.click(addToCartBtn)
+
+    const cart = JSON.parse(localStorage.getItem('sv_cart_v2') || '[]')
+    expect(cart.length).toBe(1)
+    expect(cart[0].ean).toBe('7791234567890')
+
+    // Remove from saved
+    const removeBtn = screen.getByRole('button', { name: /sacar de guardados/i })
+    fireEvent.click(removeBtn)
+
+    expect(screen.getByText('No tenés productos guardados')).toBeTruthy()
   })
 })

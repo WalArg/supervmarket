@@ -190,7 +190,7 @@ describe('ListScreen — Adversarial Stress Testing', () => {
 
   it('1. Empty Cart State: displays friendly empty message when 0 items', () => {
     renderListScreen()
-    expect(screen.getByText('Tu lista está vacía')).toBeTruthy()
+    expect(screen.getByText(/Tu (carrito|lista) está vací[ao]/i)).toBeTruthy()
     expect(screen.getByRole('button', { name: /explorar productos/i })).toBeTruthy()
   })
 

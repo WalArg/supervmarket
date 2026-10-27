@@ -220,7 +220,7 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
         <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
           <ShoppingBasket size={32} />
         </div>
-        <h2 className="mt-4 text-[19px] font-extrabold text-slate-900">Tu lista está vacía</h2>
+        <h2 className="mt-4 text-[19px] font-extrabold text-slate-900">Tu carrito está vacío</h2>
         <p className="mt-1.5 text-[14px] text-slate-500 max-w-xs leading-relaxed">
           Agregá productos desde el buscador y te calculamos la combinación más barata entre todos los supermercados.
         </p>
@@ -283,7 +283,7 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
       <header className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md pt-safe border-b border-slate-100/80">
         <div className="px-4 pt-3 pb-2.5 flex items-center justify-between">
           <div className="min-w-0 flex-1 mr-2">
-            <h1 className="text-[20px] font-extrabold tracking-tight text-slate-900">Mi lista</h1>
+            <h1 className="text-[20px] font-extrabold tracking-tight text-slate-900">Carrito</h1>
             <p className="text-[12px] text-slate-500 font-medium truncate">
               {items.length} producto{items.length === 1 ? '' : 's'} · {totalUnits} unidad{totalUnits === 1 ? '' : 'es'}
             </p>

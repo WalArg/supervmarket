@@ -6,6 +6,7 @@ import { LocationProvider } from './location/LocationContext.tsx'
 import { CartProvider } from './cart/CartContext.tsx'
 import { BenefitsProvider } from './benefits/BenefitsContext.tsx'
 import { HabitualListProvider } from './cart/HabitualListContext.tsx'
+import { SavedProvider } from './saved/SavedContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -13,7 +14,9 @@ createRoot(document.getElementById('root')!).render(
       <BenefitsProvider>
         <CartProvider>
           <HabitualListProvider>
-            <App />
+            <SavedProvider>
+              <App />
+            </SavedProvider>
           </HabitualListProvider>
         </CartProvider>
       </BenefitsProvider>

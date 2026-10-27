@@ -256,6 +256,6 @@ describe('Adversarial Stress Test Suite: Extreme Edge Cases & Race Conditions', 
     fireEvent.click(trashBtn)
 
     // Should now show empty cart screen
-    expect(screen.getByText('Tu lista está vacía')).toBeTruthy()
+    expect(screen.getByText(/Tu (carrito|lista) está vací[ao]/i)).toBeTruthy()
   })
 })

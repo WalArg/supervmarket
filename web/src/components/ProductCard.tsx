@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react'
-import { ChevronUp, CreditCard, Flame } from 'lucide-react'
+import { ChevronUp, CreditCard, Flame, Bookmark } from 'lucide-react'
 import type { Offer, ProductGroup } from '../types'
 import { useBenefits } from '../benefits/BenefitsContext'
 import { useLocation } from '../location/LocationContext'
+import { useSaved, getCanonicalProductId } from '../saved/SavedContext'
 import { storeColor, storeLabel } from '../lib/stores'
 import { effPrice, unitPriceFor, clubPriceHint, promoText, formatPrice } from '../lib/pricing'
 import OffersSheet from './OffersSheet'
@@ -25,7 +26,11 @@ export interface OfferRow {
 const ProductCard: React.FC<{ group: ProductGroup; isSponsored?: boolean }> = ({ group, isSponsored }) => {
   const { hasStoreClub, selectedCards } = useBenefits()
   const { cp, coverage } = useLocation()
+  const { isSaved, toggleSave } = useSaved()
   const [sheet, setSheet] = useState(false)
+
+  const prodId = getCanonicalProductId(group)
+  const saved = isSaved(prodId)
 
   const rows: OfferRow[] = useMemo(() => {
     return group.offers
@@ -95,8 +100,28 @@ const ProductCard: React.FC<{ group: ProductGroup; isSponsored?: boolean }> = ({
 
         {/* Info del producto */}
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 truncate">{group.marca}</p>
-          <h3 className="text-[13.5px] leading-snug font-semibold text-slate-900 line-clamp-2">{group.nombre}</h3>
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 truncate">{group.marca}</p>
+              <h3 className="text-[13.5px] leading-snug font-semibold text-slate-900 line-clamp-2">{group.nombre}</h3>
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleSave(group)
+              }}
+              className={`w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg flex items-center justify-center transition-all shrink-0 active:scale-90 ${
+                saved
+                  ? 'text-amber-500 bg-amber-50 hover:bg-amber-100'
+                  : 'text-slate-300 hover:text-amber-500 hover:bg-slate-50'
+              }`}
+              title={saved ? 'Quitar de guardados' : 'Guardar producto'}
+              aria-label={saved ? 'Quitar de guardados' : 'Guardar producto'}
+            >
+              <Bookmark size={16} className={saved ? 'fill-amber-500' : ''} />
+            </button>
+          </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-1">
             {best.unit && (
               <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">
