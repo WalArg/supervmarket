@@ -317,21 +317,20 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
     const searchInput = screen.getByPlaceholderText(/Buscá o escaneá el producto que querés buscar\.\.\./i)
     expect(searchInput).toBeTruthy()
 
-    // Check category pills
-    expect(screen.getByText('🔥 Ofertas del día')).toBeTruthy()
-    expect(screen.getByText('🥛 Lácteos')).toBeTruthy()
-
     // Check Góndola headers
     expect(screen.getByText('Ofertas destacadas del día')).toBeTruthy()
     expect(screen.getByText('Lácteos y Frescos')).toBeTruthy()
     expect(screen.getByText('Almacén y Canasta Básica')).toBeTruthy()
+
+    // No search-triggering "Ver todo" buttons on gondolas
+    expect(screen.queryByRole('button', { name: /ver todo/i })).toBeNull()
 
     // Check products inside gondolas
     expect(screen.getByText('Fideos Lucchetti Tirabuzón 500 G')).toBeTruthy()
     expect(screen.getByText('Leche La Serenísima Clásica Entera 1 L')).toBeTruthy()
   })
 
-  it('8. Store filter: allows filtering search results by supermarket', async () => {
+  it('8. Store filter: allows filtering search results via dropdown menu', async () => {
     const multiStoreProducts: ProductGroup[] = [
       {
         ean: '779001',
@@ -372,20 +371,31 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
       expect(screen.getByText('Galletitas Carrefour Exclusive')).toBeTruthy()
     })
 
-    // Store filter chips must appear
-    const cotoChip = screen.getByRole('button', { name: /^coto\s*\(\d+\)$/i })
-    expect(cotoChip).toBeTruthy()
+    // Store filter dropdown button must appear
+    const dropdownBtn = screen.getByRole('button', { name: /Comercio:\s*Todos/i })
+    expect(dropdownBtn).toBeTruthy()
+
+    // Open dropdown
+    fireEvent.click(dropdownBtn)
+
+    // Option Coto should be visible
+    const cotoOption = screen.getByRole('option', { name: /Coto/i })
+    expect(cotoOption).toBeTruthy()
 
     // Filter by Coto
-    fireEvent.click(cotoChip)
+    fireEvent.click(cotoOption)
 
     // Only Coto product should remain
     expect(screen.getByText('Galletitas Coto Exclusive')).toBeTruthy()
     expect(screen.queryByText('Galletitas Carrefour Exclusive')).toBeNull()
 
-    // Reset back to Todos
-    const todosBtn = screen.getByRole('button', { name: /^todos\s*\(\d+\)$/i })
-    fireEvent.click(todosBtn)
+    // Open dropdown again and reset to Todos
+    const cotoDropdownBtn = document.getElementById('store-filter-dropdown')!
+    expect(cotoDropdownBtn).toBeTruthy()
+    fireEvent.click(cotoDropdownBtn)
+
+    const todosOption = screen.getByRole('option', { name: /Todos los comercios/i })
+    fireEvent.click(todosOption)
 
     expect(screen.getByText('Galletitas Coto Exclusive')).toBeTruthy()
     expect(screen.getByText('Galletitas Carrefour Exclusive')).toBeTruthy()

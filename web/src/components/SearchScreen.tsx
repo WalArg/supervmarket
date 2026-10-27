@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, Clock, TrendingUp, SearchX, MapPin, ChevronDown } from 'lucide-react'
+import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, Clock, TrendingUp, SearchX, MapPin, ChevronDown, Store } from 'lucide-react'
 import ProductCard from './ProductCard'
 import BarcodeScanner from './BarcodeScanner'
 import SponsoredProductBox from './SponsoredProductBox'
@@ -47,6 +47,7 @@ const SearchScreen: React.FC = () => {
   const [onlyBulk, setOnlyBulk] = useState(false)
   const [onlyMulti, setOnlyMulti] = useState(false)
   const [selectedStore, setSelectedStore] = useState<string | null>(null)
+  const [storeDropdownOpen, setStoreDropdownOpen] = useState(false)
   const [scanning, setScanning] = useState(false)
   const [recent, setRecent] = useState<string[]>(loadRecent)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -152,6 +153,7 @@ const SearchScreen: React.FC = () => {
 
   const runSearch = (q: string) => {
     setSelectedStore(null)
+    setStoreDropdownOpen(false)
     setQuery(q)
     setDebounced(q)
     inputRef.current?.blur()
@@ -161,6 +163,7 @@ const SearchScreen: React.FC = () => {
   const onScan = useCallback((ean: string) => {
     setScanning(false)
     setSelectedStore(null)
+    setStoreDropdownOpen(false)
     setQuery(ean)
     setDebounced(ean)
   }, [])
@@ -233,9 +236,130 @@ const SearchScreen: React.FC = () => {
           </form>
         </div>
 
-        {/* Filtros generales de ordenamiento y promociones */}
+        {/* Filtros generales y Desplegable de Comercios */}
         {hasQuery && (
-          <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar">
+          <div className="px-4 pb-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+            {/* Desplegable de Comercios */}
+            {availableStores.length > 0 && (
+              <div className="relative shrink-0">
+                <button
+                  type="button"
+                  id="store-filter-dropdown"
+                  aria-haspopup="listbox"
+                  aria-expanded={storeDropdownOpen}
+                  onClick={() => setStoreDropdownOpen(v => !v)}
+                  className={`h-8 px-3 rounded-full text-[13px] font-semibold flex items-center gap-1.5 border transition-all ${
+                    selectedStore
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs font-bold'
+                      : 'bg-white text-slate-700 border-slate-200 active:bg-slate-100'
+                  }`}
+                >
+                  {selectedStore ? (
+                    <>
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ background: '#ffffff' }}
+                      />
+                      <span>{storeLabel(selectedStore)}</span>
+                      <ChevronDown
+                        size={13}
+                        className={`transition-transform duration-200 ${
+                          storeDropdownOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <Store size={14} className="text-slate-500" />
+                      <span>Comercio: Todos</span>
+                      <ChevronDown
+                        size={13}
+                        className={`transition-transform duration-200 ${
+                          storeDropdownOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </>
+                  )}
+                </button>
+
+                {/* Menú desplegable */}
+                {storeDropdownOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setStoreDropdownOpen(false)}
+                    />
+                    <div
+                      role="listbox"
+                      aria-labelledby="store-filter-dropdown"
+                      className="absolute left-0 top-full mt-1.5 z-50 w-60 bg-white rounded-2xl border border-slate-200 shadow-xl py-1.5 max-h-72 overflow-y-auto"
+                    >
+                      <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                        Filtrar por comercio
+                      </div>
+
+                      {/* Opción Todos */}
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={selectedStore === null}
+                        onClick={() => {
+                          setSelectedStore(null)
+                          setStoreDropdownOpen(false)
+                        }}
+                        className={`w-full px-3 py-2 text-left text-[13px] font-semibold flex items-center justify-between transition-colors ${
+                          selectedStore === null
+                            ? 'bg-blue-50 text-blue-700 font-bold'
+                            : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-slate-400" />
+                          <span>Todos los comercios</span>
+                        </div>
+                        <span className="text-[11px] text-slate-400 font-normal">
+                          ({results.length})
+                        </span>
+                      </button>
+
+                      {/* Comercios disponibles */}
+                      {availableStores.map(({ store, count }) => {
+                        const isSel = selectedStore === store
+                        return (
+                          <button
+                            key={store}
+                            type="button"
+                            role="option"
+                            aria-selected={isSel}
+                            onClick={() => {
+                              setSelectedStore(store)
+                              setStoreDropdownOpen(false)
+                            }}
+                            className={`w-full px-3 py-2 text-left text-[13px] font-semibold flex items-center justify-between transition-colors ${
+                              isSel
+                                ? 'bg-blue-50 text-blue-700 font-bold'
+                                : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                style={{ background: storeColor(store) }}
+                              />
+                              <span className="truncate">{storeLabel(store)}</span>
+                            </div>
+                            <span className="text-[11px] text-slate-400 font-normal shrink-0 pl-1">
+                              ({count})
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             <Chip active={false} onClick={() => setSort(s => (s === 'unit_price_asc' ? 'price_asc' : 'unit_price_asc'))}>
               <ArrowUpDown size={14} />
               {sort === 'unit_price_asc' ? 'Precio por kg/l' : 'Precio final'}
@@ -251,77 +375,12 @@ const SearchScreen: React.FC = () => {
             </Chip>
           </div>
         )}
-
-        {/* Filtro por comercio / supermercado */}
-        {hasQuery && availableStores.length > 0 && (
-          <div className="px-4 pb-2.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-            <span className="text-[11px] font-bold text-slate-400 shrink-0 uppercase tracking-wider mr-0.5">
-              Comercio:
-            </span>
-            <button
-              type="button"
-              onClick={() => setSelectedStore(null)}
-              className={`shrink-0 h-7 px-2.5 rounded-full text-[12px] font-semibold border transition-all ${
-                selectedStore === null
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                  : 'bg-white text-slate-600 border-slate-200 active:bg-slate-100'
-              }`}
-            >
-              Todos ({results.length})
-            </button>
-            {availableStores.map(({ store, count }) => {
-              const isSel = selectedStore === store
-              return (
-                <button
-                  key={store}
-                  type="button"
-                  onClick={() => setSelectedStore(isSel ? null : store)}
-                  className={`shrink-0 h-7 px-2.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 border transition-all ${
-                    isSel
-                      ? 'bg-blue-600 text-white border-blue-600 font-bold shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 active:bg-slate-100'
-                  }`}
-                >
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ background: isSel ? '#ffffff' : storeColor(store) }}
-                  />
-                  <span>{storeLabel(store)}</span>
-                  <span className={`text-[10px] ${isSel ? 'text-blue-100' : 'text-slate-400'}`}>
-                    ({count})
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        )}
       </header>
 
       <main className="px-4 pt-1 pb-28 space-y-4">
         {/* Inicio: Góndolas y ofertas */}
         {!hasQuery && (
           <div className="space-y-6 pt-1">
-            {/* Píldoras de categorías rápidas */}
-            <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5 -mx-1 px-1">
-              {[
-                { label: '🔥 Ofertas del día', term: 'ofertas' },
-                { label: '🥛 Lácteos', term: 'leche' },
-                { label: '🥫 Almacén', term: 'yerba' },
-                { label: '🧼 Limpieza', term: 'limpieza' },
-                { label: '☕ Bebidas', term: 'coca cola' },
-              ].map(cat => (
-                <button
-                  key={cat.term}
-                  type="button"
-                  onClick={() => runSearch(cat.term)}
-                  className="shrink-0 h-8 px-3 rounded-full bg-white border border-slate-200/90 text-slate-700 font-bold text-[12px] hover:bg-slate-50 active:scale-95 transition-all shadow-2xs"
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Búsquedas recientes */}
             {recent.length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-2">
@@ -360,7 +419,6 @@ const SearchScreen: React.FC = () => {
                 <GondolaSection
                   key={gondola.id}
                   gondola={gondola}
-                  onSelectCategory={runSearch}
                 />
               ))}
             </div>
