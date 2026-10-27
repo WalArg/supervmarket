@@ -173,7 +173,7 @@ const SearchScreen: React.FC = () => {
   return (
     <div>
       {/* Header fijo con buscador */}
-      <header className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md pt-safe">
+      <header className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md pt-safe relative">
         <div className="px-4 pt-3 pb-2">
           <div className="flex items-center justify-between mb-2.5">
             <h1 className="text-[20px] font-extrabold tracking-tight">
@@ -298,39 +298,37 @@ const SearchScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Modal / Bottom Sheet Desplegable de Comercios (Fuera del contenedor overflow para que nunca se corte) */}
+        {/* Desplegable de Comercios: Se abre hacia ABAJO directamente debajo del botón */}
         {storeDropdownOpen && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-            {/* Backdrop oscuro */}
+          <>
+            {/* Backdrop transparente para cerrar al tocar en cualquier parte de la pantalla */}
             <div
-              className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
+              className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-[1px]"
               onClick={() => setStoreDropdownOpen(false)}
+              aria-hidden="true"
             />
 
-            {/* Hoja / Diálogo Flotante */}
+            {/* Menú desplegable flotante hacia ABAJO */}
             <div
               role="listbox"
               aria-labelledby="store-filter-dropdown"
-              className="relative z-10 w-full sm:max-w-sm bg-white rounded-t-3xl sm:rounded-2xl p-4 shadow-2xl border border-slate-100 max-h-[80vh] flex flex-col"
+              className="absolute left-4 top-full mt-1.5 z-50 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 px-1 flex flex-col max-h-[60vh] animate-in fade-in slide-in-from-top-2 duration-150"
             >
-              <div className="w-10 h-1 rounded-full bg-slate-200 mx-auto mb-3 sm:hidden" />
-
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div>
-                  <h3 className="text-[16px] font-extrabold text-slate-900">Filtrar por comercio</h3>
-                  <p className="text-[12px] text-slate-500">Seleccioná la cadena para ver solo sus productos</p>
-                </div>
+              <div className="flex items-center justify-between px-3 py-1.5 pb-2 border-b border-slate-100">
+                <span className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">
+                  Filtrar por comercio
+                </span>
                 <button
                   type="button"
                   onClick={() => setStoreDropdownOpen(false)}
-                  className="p-1.5 -mr-1.5 rounded-full text-slate-400 hover:text-slate-600 active:bg-slate-100"
+                  className="p-1 -mr-1 rounded-full text-slate-400 hover:text-slate-600 active:bg-slate-100"
                   aria-label="Cerrar"
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               </div>
 
-              <div className="overflow-y-auto divide-y divide-slate-100 py-2 overscroll-contain">
+              <div className="overflow-y-auto divide-y divide-slate-50 py-1 overscroll-contain">
                 {/* Opción Todos */}
                 <button
                   type="button"
@@ -340,18 +338,18 @@ const SearchScreen: React.FC = () => {
                     setSelectedStore(null)
                     setStoreDropdownOpen(false)
                   }}
-                  className={`w-full py-3 px-3 rounded-xl text-left flex items-center justify-between transition-colors min-h-[44px] ${
+                  className={`w-full py-2.5 px-2.5 rounded-xl text-left flex items-center justify-between transition-colors min-h-[40px] ${
                     selectedStore === null
                       ? 'bg-blue-50 text-blue-700 font-bold'
                       : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-slate-400" />
-                    <span className="text-[14px]">Todos los comercios</span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0" />
+                    <span className="text-[13px]">Todos los comercios</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[12px] font-normal text-slate-400">({results.length})</span>
+                    <span className="text-[11px] font-normal text-slate-400">({results.length})</span>
                     {selectedStore === null && <Check size={16} strokeWidth={2.5} className="text-blue-600" />}
                   </div>
                 </button>
@@ -369,21 +367,21 @@ const SearchScreen: React.FC = () => {
                         setSelectedStore(store)
                         setStoreDropdownOpen(false)
                       }}
-                      className={`w-full py-3 px-3 rounded-xl text-left flex items-center justify-between transition-colors min-h-[44px] ${
+                      className={`w-full py-2.5 px-2.5 rounded-xl text-left flex items-center justify-between transition-colors min-h-[40px] ${
                         isSel
                           ? 'bg-blue-50 text-blue-700 font-bold'
                           : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
                         <span
                           className="w-2.5 h-2.5 rounded-full shrink-0"
                           style={{ background: storeColor(store) }}
                         />
-                        <span className="text-[14px] truncate">{storeLabel(store)}</span>
+                        <span className="text-[13px] truncate">{storeLabel(store)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[12px] font-normal text-slate-400">({count})</span>
+                        <span className="text-[11px] font-normal text-slate-400">({count})</span>
                         {isSel && <Check size={16} strokeWidth={2.5} className="text-blue-600" />}
                       </div>
                     </button>
@@ -391,7 +389,7 @@ const SearchScreen: React.FC = () => {
                 })}
               </div>
             </div>
-          </div>
+          </>
         )}
       </header>
 
