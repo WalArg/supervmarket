@@ -9,6 +9,7 @@ import {
   Copy,
   Check,
   Sparkles,
+  Zap,
 } from 'lucide-react'
 import type { StorePlan } from '../types'
 import { validateCart } from '../api'
@@ -16,6 +17,7 @@ import { useLocation } from '../location/LocationContext'
 import { storeColor, storeLabel } from '../lib/stores'
 import { formatPrice } from '../lib/pricing'
 import { decorateOutboundUrl, trackOutboundAffiliateClick } from '../lib/affiliate'
+import MeliCartAssistantModal from './MeliCartAssistantModal'
 
 interface Validation {
   status?: string
@@ -78,6 +80,49 @@ export const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
   const rawCheckout = plan.affiliate_checkout_url || validation?.checkout_url || plan.checkout_url
   const checkout = rawCheckout ? decorateOutboundUrl(rawCheckout, plan.supermercado, 'checkout') : null
   const isCoto = plan.supermercado === 'Coto'
+  const isMeli =
+    plan.supermercado === 'MercadoLibre' ||
+    plan.supermercado === 'Mercado Libre' ||
+    plan.supermercado.toLowerCase().includes('mercadolibre')
+
+  const meliStorageKey = `sv_meli_loaded_${plan.items.map(i => i.ean).sort().join('_')}`
+  const [isMeliAssistantOpen, setIsMeliAssistantOpen] = useState(false)
+  const [meliLoadedEans, setMeliLoadedEans] = useState<Record<string, boolean>>(() => {
+    if (typeof window === 'undefined') return {}
+    try {
+      const stored = localStorage.getItem(meliStorageKey)
+      return stored ? JSON.parse(stored) : {}
+    } catch {
+      return {}
+    }
+  })
+
+  const handleToggleMeliItem = (ean: string) => {
+    setMeliLoadedEans(prev => {
+      const updated = { ...prev, [ean]: !prev[ean] }
+      try {
+        localStorage.setItem(meliStorageKey, JSON.stringify(updated))
+      } catch {}
+      return updated
+    })
+  }
+
+  const handleMarkMeliItemLoaded = (ean: string) => {
+    setMeliLoadedEans(prev => {
+      const updated = { ...prev, [ean]: true }
+      try {
+        localStorage.setItem(meliStorageKey, JSON.stringify(updated))
+      } catch {}
+      return updated
+    })
+  }
+
+  const handleResetMeliProgress = () => {
+    setMeliLoadedEans({})
+    try {
+      localStorage.removeItem(meliStorageKey)
+    } catch {}
+  }
 
   // Free shipping progress percentage
   const shippingProgressPct =
@@ -157,6 +202,7 @@ export const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
                     onClick={() => {
                       const itemUrl = decorateOutboundUrl(i.link, plan.supermercado, 'item')
                       trackOutboundAffiliateClick(plan.supermercado, 'item', itemUrl, lineTotal)
+                      if (isMeli) handleMarkMeliItemLoaded(i.ean)
                     }}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -204,6 +250,11 @@ export const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
                   {(i.ahorro_linea ?? 0) > 0 && (
                     <span className="text-[11px] font-semibold text-emerald-700">
                       ahorrás {formatPrice(i.ahorro_linea!)}
+                    </span>
+                  )}
+                  {isMeli && meliLoadedEans[i.ean] && (
+                    <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-md">
+                      <Check size={11} className="text-emerald-600" /> Cargado en MeLi
                     </span>
                   )}
                 </div>
@@ -375,8 +426,65 @@ export const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
           </div>
         ) : null}
 
+        {/* Mercado Libre: Asistente 1-Toque de Changuito */}
+        {isMeli ? (
+          <div className="bg-yellow-50/70 border border-yellow-300/80 rounded-2xl p-3.5 space-y-3 text-[12px]">
+            <div className="flex items-start gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-slate-900 text-yellow-400 flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
+                ⚡
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-1">
+                  <h4 className="text-[13.5px] font-extrabold text-slate-900 leading-tight truncate">
+                    Asistente de Carrito Mercado Libre
+                  </h4>
+                  <span className="text-[11px] font-bold text-slate-800 bg-yellow-300/80 px-2 py-0.5 rounded-md shrink-0">
+                    {Object.values(meliLoadedEans).filter(Boolean).length} de {plan.items.length} listos
+                  </span>
+                </div>
+                <p className="text-[11.5px] text-slate-600 mt-1 leading-snug">
+                  Cargá tus productos en 1 toque por ítem en tu cuenta de Mercado Libre sin perder ninguna oferta.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setIsMeliAssistantOpen(true)}
+                className="min-h-[48px] h-12 w-full rounded-xl bg-yellow-400 hover:bg-yellow-300 active:bg-yellow-500 text-slate-900 font-extrabold text-[13.5px] flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98]"
+              >
+                <Zap size={16} className="fill-slate-900" />
+                <span>Abrir Asistente ({plan.items.length} un.)</span>
+              </button>
+
+              <a
+                href={decorateOutboundUrl(
+                  plan.affiliate_checkout_url || plan.checkout_url || 'https://www.mercadolibre.com.ar/gz/cart',
+                  'MercadoLibre',
+                  'checkout',
+                )}
+                onClick={() => {
+                  const cartUrl = decorateOutboundUrl(
+                    plan.affiliate_checkout_url || plan.checkout_url || 'https://www.mercadolibre.com.ar/gz/cart',
+                    'MercadoLibre',
+                    'checkout',
+                  )
+                  trackOutboundAffiliateClick('MercadoLibre', 'checkout', cartUrl, finalTotal)
+                }}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[48px] h-12 w-full rounded-xl bg-slate-900 hover:bg-slate-800 active:bg-black text-white font-extrabold text-[13.5px] flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98]"
+              >
+                <span>Ir al Changuito MeLi</span>
+                <ExternalLink size={15} />
+              </a>
+            </div>
+          </div>
+        ) : null}
+
         {/* VTEX / Official Retailer Checkout Button (touch target >= 44px: h-12 = 48px) */}
-        {checkout && checkout.startsWith('http') && !isCoto ? (
+        {checkout && checkout.startsWith('http') && !isCoto && !isMeli ? (
           <a
             href={checkout}
             onClick={() => {
@@ -393,12 +501,25 @@ export const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
             </span>
             <ExternalLink size={16} />
           </a>
-        ) : !isCoto ? (
+        ) : !isCoto && !isMeli ? (
           <p className="text-[12px] text-slate-500 bg-slate-50 rounded-xl p-2.5 text-center">
             {storeLabel(plan.supermercado)}: Tocá cada producto arriba para abrirlo en su web oficial.
           </p>
         ) : null}
       </div>
+
+      {/* Mercado Libre Assistant Modal */}
+      {isMeli && (
+        <MeliCartAssistantModal
+          isOpen={isMeliAssistantOpen}
+          onClose={() => setIsMeliAssistantOpen(false)}
+          plan={plan}
+          loadedEans={meliLoadedEans}
+          onToggleItem={handleToggleMeliItem}
+          onMarkItemLoaded={handleMarkMeliItemLoaded}
+          onResetProgress={handleResetMeliProgress}
+        />
+      )}
     </div>
   )
 }

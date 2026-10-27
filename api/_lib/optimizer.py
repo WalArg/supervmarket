@@ -361,7 +361,7 @@ def _build_carts(
         elif store == "Coto":
             checkout = "https://www.cotodigital3.com.ar/sitios/cdigi/"
         elif store == "MercadoLibre":
-            checkout = items[0].get("link") if (items and len(items) == 1 and items[0].get("link")) else "https://www.mercadolibre.com.ar/supermercado"
+            checkout = items[0].get("link") if (items and len(items) == 1 and items[0].get("link")) else "https://www.mercadolibre.com.ar/gz/cart"
         elif items and items[0].get("link"):
             checkout = items[0].get("link")
 
