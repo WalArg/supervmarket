@@ -845,35 +845,51 @@ _MEAT_EXCLUDED_WORDS = {
     "condimento", "carbon", "leña", "chips", "galletitas", "snack", "alfajor", "vino",
     "cerveza", "jugo", "gaseosa", "queso", "provoleta", "brie", "gouda", "pategras",
     "aceitunas", "pasta", "pepinillos", "pita", "bolsa para horno", "ajo", "especiado",
+    "spiedo", "rotiseria", "rotisera", "sandwich", "sandwiches", "empanada", "empanadas", "tarta", "tartas",
 }
 
 _MEAT_TAXONOMY = [
-    # VACUNO
-    ("tapa_asado", "Tapa de Asado (x kg)", [r"\btapa\s+de\s+asado\b"]),
-    ("asado_tira", "Asado de Tira (x kg)", [r"\basado\b.*\b(tira|centro|banderita|tablita|medio|ventana)\b", r"\basado\b(?!.*\b(tapa|americano|cerdo|locos|sal)\b)"]),
-    ("vacio", "Vacío (x kg)", [r"\b(vacio|vac[ií]o)\b"]),
-    ("bife_chorizo", "Bife de Chorizo (x kg)", [r"\bbife[s]?\s+de\s+chorizo\b"]),
-    ("ojo_bife", "Ojo de Bife (x kg)", [r"\bojo\s+de\s+bife\b"]),
-    ("entrana", "Entraña (x kg)", [r"\b(entrana|entraña)\b"]),
-    ("lomo", "Lomo Vacuno (x kg)", [r"\blomo\b(?!.*\b(cerdo|canadiense|bola|atun|atún|praga)\b)"]),
-    ("colita_cuadril_cerdo", "Colita de Cuadril de Cerdo (x kg)", [r"\bcolita\s+de\s+cuadril\b.*\bcerdo\b"]),
-    ("colita_cuadril", "Colita de Cuadril (x kg)", [r"\bcolita\s+de\s+cuadril\b"]),
-    ("cuadril", "Cuadril (x kg)", [r"\bcuadril\b(?!.*\b(colita|tapa)\b)"]),
-    ("matambre_cerdo", "Matambre de Cerdo (x kg)", [r"\bmatambre\b.*\bcerdo\b|\bmatambrito\b"]),
-    ("matambre_vacuno", "Matambre Vacuno (x kg)", [r"\bmatambre\b"]),
-    ("peceto", "Peceto (x kg)", [r"\bpeceto\b"]),
-    ("nalga", "Nalga para Milanesa (x kg)", [r"\bnalga\b(?!.*\bcerdo\b)"]),
-    ("bola_lomo", "Bola de Lomo (x kg)", [r"\bbola\s+de\s+lomo\b"]),
-    ("cuadrada", "Cuadrada para Milanesa (x kg)", [r"\bcuadrada\b"]),
-    ("picada_especial", "Carne Picada Especial (x kg)", [r"\b(carne\s+picada|picada)\b.*\b(especial|magra|seleccion|primera)\b"]),
-    ("picada_comun", "Carne Picada Común (x kg)", [r"\bcarne\s+picada\b"]),
+    # CERDO ESPECÍFICOS (evaluados antes o con discriminación estricta para no mezclarse con vacuno)
+    ("vacio_cerdo", "Vacío de Cerdo (x kg)", [r"\b(vacio|vac[ií]o)\b.*\bcerdo\b|\bcerdo\b.*\b(vacio|vac[ií]o)\b"]),
+    ("entrana_cerdo", "Entraña de Cerdo (x kg)", [r"\b(entrana|entraña)\b.*\bcerdo\b|\bcerdo\b.*\b(entrana|entraña)\b"]),
+    ("tapa_asado_cerdo", "Tapa de Asado de Cerdo (x kg)", [r"\btapa\s+de\s+asado\b.*\bcerdo\b|\bcerdo\b.*\btapa\s+de\s+asado\b"]),
+    ("colita_cuadril_cerdo", "Colita de Cuadril de Cerdo (x kg)", [r"\bcolita\s+de\s+cuadril\b.*\bcerdo\b|\bcerdo\b.*\bcolita\s+de\s+cuadril\b"]),
+    ("matambre_cerdo", "Matambre de Cerdo (x kg)", [r"\bmatambre\b.*\bcerdo\b|\bmatambrito\b|\bcerdo\b.*\bmatambre\b"]),
+    ("picada_cerdo", "Carne Picada de Cerdo (x kg)", [r"\b(carne\s+picada|picada)\b.*\bcerdo\b|\bcerdo\b.*\b(carne\s+picada|picada)\b"]),
+    ("solomillo_cerdo", "Solomillo de Cerdo (x kg)", [r"\bsolomillo\b|\blomo\b.*\bcerdo\b|\bcerdo\b.*\blomo\b"]),
     ("bondiola", "Bondiola de Cerdo (x kg)", [r"\bbondiola\b"]),
-    ("pechito_cerdo", "Pechito de Cerdo (x kg)", [r"\bpechito\s+de\s+cerdo\b"]),
-    ("costillita_cerdo", "Costillitas de Cerdo (x kg)", [r"\b(costillita|costillitas|carre|carré)\s+de\s+cerdo\b"]),
-    ("solomillo_cerdo", "Solomillo de Cerdo (x kg)", [r"\bsolomillo\b"]),
+    ("pechito_cerdo", "Pechito de Cerdo (x kg)", [r"\bpechito\s+de\s+cerdo\b|\bpechito\b.*\bcerdo\b|\bpechito\b|\bribs\b.*\bcerdo\b"]),
+    ("costillita_cerdo", "Costillitas de Cerdo (x kg)", [r"\b(costillita|costillitas|carre|carré)\s+de\s+cerdo\b|\b(carre|carré)\b.*\bcerdo\b|\bcostillitas?\b.*\bcerdo\b"]),
+    ("churrasquito_cerdo", "Churrasquito de Cerdo (x kg)", [r"\bchurrasquito[s]?\b"]),
+
+    # POLLO ESPECÍFICOS
     ("pechuga_pollo", "Pechuga de Pollo / Suprema (x kg)", [r"\b(pechuga|suprema)\b.*\bpollo\b|\bpechuga\b|\bsuprema\b"]),
     ("pata_muslo", "Pata y Muslo de Pollo (x kg)", [r"\bpata\s+y\s+muslo\b|\bcuarto\s+trasero\b"]),
     ("pollo_entero", "Pollo Entero Fresco (x kg)", [r"\bpollo\s+entero\b|\bpollo\s+fresco\b"]),
+    ("matambre_pollo", "Matambre de Pollo (x kg)", [r"\bmatambre\b.*\bpollo\b|\bpollo\b.*\bmatambre\b"]),
+    ("picada_pollo", "Carne Picada de Pollo (x kg)", [r"\b(carne\s+picada|picada)\b.*\bpollo\b|\bpollo\b.*\b(carne\s+picada|picada)\b"]),
+
+    # VACUNO
+    ("vacio_vacuno", "Vacío Vacuno (x kg)", [r"\b(vacio|vac[ií]o)\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("entrana_vacuna", "Entraña Vacuna (x kg)", [r"\b(entrana|entraña)\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("tapa_asado", "Tapa de Asado (x kg)", [r"\btapa\s+de\s+asado\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("asado_tira", "Asado de Tira (x kg)", [r"\basado\b.*\b(tira|centro|banderita|tablita|medio|ventana)\b(?!.*\b(cerdo|pollo)\b)", r"\basado\b(?!.*\b(tapa|americano|cerdo|pollo|locos|sal)\b)"]),
+    ("bife_chorizo", "Bife de Chorizo (x kg)", [r"\bbife[s]?\s+de\s+chorizo\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("bife_ancho", "Bife Ancho (x kg)", [r"\bbife[s]?\s+ancho[s]?\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("bife_angosto", "Bife Angosto (x kg)", [r"\bbife[s]?\s+angosto[s]?\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("ojo_bife", "Ojo de Bife (x kg)", [r"\bojo\s+de\s+bife\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("lomo", "Lomo Vacuno (x kg)", [r"\blomo\b(?!.*\b(cerdo|pollo|canadiense|bola|atun|atún|praga)\b)"]),
+    ("colita_cuadril", "Colita de Cuadril (x kg)", [r"\bcolita\s+de\s+cuadril\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("cuadril", "Cuadril (x kg)", [r"\bcuadril\b(?!.*\b(colita|tapa|cerdo|pollo)\b)"]),
+    ("matambre_vacuno", "Matambre Vacuno (x kg)", [r"\bmatambre\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("peceto", "Peceto (x kg)", [r"\bpeceto\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("nalga", "Nalga para Milanesa (x kg)", [r"\bnalga\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("bola_lomo", "Bola de Lomo (x kg)", [r"\bbola\s+de\s+lomo\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("cuadrada", "Cuadrada para Milanesa (x kg)", [r"\bcuadrada\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("picada_especial", "Carne Picada Especial (x kg)", [r"\b(carne\s+picada|picada)\b.*\b(especial|magra|seleccion|primera)\b(?!.*\b(cerdo|pollo)\b)"]),
+    ("picada_comun", "Carne Picada Común (x kg)", [r"\bcarne\s+picada\b(?!.*\b(cerdo|pollo)\b)"]),
+
+    # EMBUTIDOS / ACHURAS
     ("chorizo_parrillero", "Chorizo Parrillero (x kg)", [r"\bchorizo\b(?!.*\b(bife|colorado|seco|espanol|español)\b)"]),
     ("morcilla", "Morcilla (x kg)", [r"\bmorcilla\b"]),
 ]
@@ -890,12 +906,13 @@ def _match_meat(p: dict) -> tuple[str, str] | None:
 
     # Normalizar descriptores de empaque "al vacio" para no confundir con el corte Vacío
     clean_nom = re.sub(r"\b(?:envasad[ao]s?\s+)?al\s+vac[ií]o\b", " ", nom)
-    clean_nom = re.sub(r"\benv\s+al\s+vac[ií]o\b", " ", clean_nom)
+    clean_nom = re.sub(r"\benv(?:asado)?\s+al\s+vac[ií]o\b", " ", clean_nom)
+    clean_nom = re.sub(r"\benv\s+vac[ií]o\b", " ", clean_nom)
     clean_nom = " ".join(clean_nom.split())
 
     for key, display_name, patterns in _MEAT_TAXONOMY:
         for pat in patterns:
-            target = clean_nom if key == "vacio" else nom
+            target = clean_nom if key.startswith("vacio") else nom
             if re.search(pat, target):
                 return key, display_name
     return None
@@ -1046,6 +1063,21 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             if "ASADO_TIRA" in ean:
                 _LIVE_OFFERS_MEM["MEAT_ASADO"] = mem_offers
                 _LIVE_OFFERS_MEM["meat_asado"] = mem_offers
+            if "VACIO_VACUNO" in ean:
+                _LIVE_OFFERS_MEM["MEAT_VACIO"] = mem_offers
+                _LIVE_OFFERS_MEM["meat_vacio"] = mem_offers
+                _LIVE_PRODUCTS_MEM["MEAT_VACIO"] = _LIVE_PRODUCTS_MEM[ean]
+                _LIVE_PRODUCTS_MEM["meat_vacio"] = _LIVE_PRODUCTS_MEM[ean]
+            if "ENTRANA_VACUNA" in ean:
+                _LIVE_OFFERS_MEM["MEAT_ENTRANA"] = mem_offers
+                _LIVE_OFFERS_MEM["meat_entrana"] = mem_offers
+                _LIVE_PRODUCTS_MEM["MEAT_ENTRANA"] = _LIVE_PRODUCTS_MEM[ean]
+                _LIVE_PRODUCTS_MEM["meat_entrana"] = _LIVE_PRODUCTS_MEM[ean]
+            if "MATAMBRE_VACUNO" in ean:
+                _LIVE_OFFERS_MEM["MEAT_MATAMBRE"] = mem_offers
+                _LIVE_OFFERS_MEM["meat_matambre"] = mem_offers
+                _LIVE_PRODUCTS_MEM["MEAT_MATAMBRE"] = _LIVE_PRODUCTS_MEM[ean]
+                _LIVE_PRODUCTS_MEM["meat_matambre"] = _LIVE_PRODUCTS_MEM[ean]
 
         groups.append({
             "ean": ean,
@@ -1338,6 +1370,9 @@ _MEAT_CANONICAL_ALIASES = {
     "MEAT_POLLO": "MEAT_POLLO_ENTERO",
     "MEAT_CARNE_PICADA": "MEAT_PICADA_COMUN",
     "MEAT_PICADA": "MEAT_PICADA_COMUN",
+    "MEAT_VACIO": "MEAT_VACIO_VACUNO",
+    "MEAT_ENTRANA": "MEAT_ENTRANA_VACUNA",
+    "MEAT_MATAMBRE": "MEAT_MATAMBRE_VACUNO",
 }
 
 
