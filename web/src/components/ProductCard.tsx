@@ -22,7 +22,7 @@ export interface OfferRow {
  * Tarjeta compacta: muestra SOLO la mejor oferta (precio, súper, precio por kg/l/un y promo)
  * y un botón "Ver N ofertas" que abre la hoja con todas las opciones (patrón Turismocity).
  */
-const ProductCard: React.FC<{ group: ProductGroup }> = ({ group }) => {
+const ProductCard: React.FC<{ group: ProductGroup; isSponsored?: boolean }> = ({ group, isSponsored }) => {
   const { hasStoreClub, selectedCards } = useBenefits()
   const { cp, coverage } = useLocation()
   const [sheet, setSheet] = useState(false)
@@ -53,7 +53,22 @@ const ProductCard: React.FC<{ group: ProductGroup }> = ({ group }) => {
   const savePct = rows.length > 1 && maxEff > best.eff ? Math.round(((maxEff - best.eff) / maxEff) * 100) : 0
 
   return (
-    <article className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+    <article
+      className={`rounded-2xl border shadow-[0_1px_2px_rgba(15,23,42,0.04)] ${
+        isSponsored
+          ? 'bg-amber-50/25 border-amber-200/90'
+          : 'bg-white border-slate-200/80'
+      }`}
+    >
+      {isSponsored && (
+        <div className="px-3 pt-2.5 -mb-1 flex items-center justify-between">
+          <span className="inline-block text-[10px] font-black tracking-wider uppercase text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full">
+            PATROCINADO
+          </span>
+          <span className="text-[10px] text-amber-800/80 font-medium">Oferta destacada de marca</span>
+        </div>
+      )}
+
       {rows.length > 1 && savePct >= 5 && (
         <div className="px-3 pt-2.5 -mb-1">
           <span className="inline-block text-[10px] font-extrabold tracking-wide uppercase text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-full">
@@ -88,6 +103,24 @@ const ProductCard: React.FC<{ group: ProductGroup }> = ({ group }) => {
                 {formatPrice(best.unit)}/{best.o.unit_measure}
               </span>
             )}
+
+            {/* Indicador de Histórico de Precios */}
+            {best.eff < best.o.precio || best.o.discount >= 5 ? (
+              <span
+                className="inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded-md"
+                title="Mejor precio reciente vs precio regular"
+              >
+                📉 Mínimo reciente (-{best.o.discount || Math.round(((best.o.precio - best.eff) / best.o.precio) * 100)}%)
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center gap-0.5 text-[11px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md"
+                title="Historial de precios activo"
+              >
+                📊 Histórico: mejor precio
+              </span>
+            )}
+
             {best.promo && (
               <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-orange-800 bg-orange-50 px-1.5 py-0.5 rounded-md">
                 <Flame size={10} /> {best.promo}

@@ -29,6 +29,7 @@ import SmartCartHero from './SmartCartHero'
 import MissingItemsBreakdown from './MissingItemsBreakdown'
 import HabitualListManager from './HabitualListManager'
 import { generateShareUrl, formatShareMessage, executeShare } from '../cart/portableList'
+import { SAMPLE_HABITUAL_BASKET } from '../cart/sampleBasket'
 
 const DAY_LABEL: Record<string, string> = {
   lunes: 'Lunes',
@@ -44,7 +45,7 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
   onGoSearch,
   onGoProfile,
 }) => {
-  const { items, remove, setQty, clear, totalUnits } = useCart()
+  const { items, remove, setQty, clear, totalUnits, replaceItems } = useCart()
   const { cp, locationLabel, exactAddress, setExactAddress, openModal } = useLocation()
   const { selectedCards, selectedDay, setSelectedDay } = useBenefits()
   const {
@@ -215,7 +216,7 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
     }
 
     return (
-      <div className="pt-safe px-6 min-h-[75dvh] flex flex-col items-center justify-center text-center">
+      <div className="pt-safe px-4 py-8 min-h-[75dvh] flex flex-col items-center justify-center text-center max-w-md mx-auto">
         <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
           <ShoppingBasket size={32} />
         </div>
@@ -223,10 +224,48 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
         <p className="mt-1.5 text-[14px] text-slate-500 max-w-xs leading-relaxed">
           Agregá productos desde el buscador y te calculamos la combinación más barata entre todos los supermercados.
         </p>
+
+        {/* DESCUBRIMIENTO PROTAGÓNICO DE MI LISTA HABITUAL & HISTÓRICO */}
+        <div className="mt-6 w-full bg-gradient-to-br from-blue-50/90 via-white to-indigo-50/80 rounded-3xl border border-blue-200/90 p-5 text-left shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm">
+                ⭐
+              </div>
+              <div>
+                <h3 className="text-[15px] font-extrabold text-slate-900 leading-tight">
+                  Mi Lista Habitual
+                </h3>
+                <span className="text-[11px] text-blue-700 font-semibold">
+                  El verdadero valor de SuperVmarket
+                </span>
+              </div>
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
+              Sin suscripción
+            </span>
+          </div>
+
+          <p className="text-[12px] text-slate-600 leading-relaxed">
+            Guardá tu compra recurrente mensual o semanal. SuperVmarket monitorea el <strong>histórico de precios</strong> de tu changuito, te avisa si subió o bajó y te dice en 1 toque dónde comprarla más barata hoy.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => replaceItems(SAMPLE_HABITUAL_BASKET)}
+            className="w-full min-h-[48px] h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold text-[13px] transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
+          >
+            <span>🛒 Cargar canasta mensual de ejemplo (6 básicos)</span>
+          </button>
+          <p className="text-[10.5px] text-slate-400 text-center">
+            Incluye leche, yerba, fideos, aceite, arroz y jabón para probar la comparación en vivo.
+          </p>
+        </div>
+
         <button
           type="button"
           onClick={onGoSearch}
-          className="mt-6 min-h-[48px] h-12 px-6 rounded-2xl bg-blue-600 text-white font-bold active:scale-95 transition-all shadow-md shadow-blue-500/20"
+          className="mt-4 min-h-[44px] h-11 px-6 rounded-2xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-bold active:scale-95 transition-all"
         >
           Explorar productos
         </button>
@@ -450,6 +489,30 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
         {plan?.carts.map(c => (
           <StoreCart key={c.supermercado} plan={c} />
         ))}
+
+        {/* 6.5. OPORTUNIDAD PATROCINADA (FIREWALL ÉTICO · MONETIZACIÓN ZERO-SUBSCRIPTION) */}
+        <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between gap-3 shadow-2xs">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-200 text-amber-900 border border-amber-300 shrink-0">
+                PATROCINADO
+              </span>
+              <span className="text-[12px] font-extrabold text-amber-950 truncate">
+                Cupón Unilever Trade Direct
+              </span>
+            </div>
+            <p className="text-[11px] text-amber-900 leading-snug">
+              15% OFF en aderezos con código <strong className="font-black text-amber-950">AHORRO15</strong> (canje directo de fábrica).
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onGoSearch}
+            className="min-h-[44px] px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] active:scale-95 transition-all shrink-0 flex items-center justify-center shadow-xs"
+          >
+            Ver cupón
+          </button>
+        </div>
 
         {/* 7. CAJÓN COLAPSABLE DE PRODUCTOS (Expandible para editar cantidades y no tapar las tiendas) */}
         <section className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">

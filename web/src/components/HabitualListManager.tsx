@@ -145,13 +145,18 @@ export const HabitualListManager: React.FC = () => {
             <PiggyBank size={18} />
           </div>
           <div>
-            <h2 className="text-[13px] font-extrabold text-slate-900 leading-tight">
-              Termómetro de Ahorro
-            </h2>
-            <p className="text-[11px] text-slate-500 font-medium leading-tight">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h2 className="text-[13px] font-extrabold text-slate-900 leading-tight">
+                Mi Lista Habitual & Histórico de Precios
+              </h2>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800">
+                Termómetro de Ahorro
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5">
               {stats.total_snapshots > 0
                 ? `${stats.total_snapshots} cotizaciones registradas`
-                : 'Sin suscripción ni cuenta'}
+                : 'Monitoreo de inflación sin suscripción ni cuenta'}
             </p>
           </div>
         </div>
@@ -170,6 +175,32 @@ export const HabitualListManager: React.FC = () => {
           />
         </button>
       </div>
+
+      {/* 1-Tap Direct Habitual Controls (Visible sin necesidad de expandir) */}
+      {items.length > 0 && !isCartSavedAsHabitual && (
+        <div className="pt-0.5">
+          <button
+            type="button"
+            onClick={handleSave}
+            className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-[12px] flex items-center justify-center gap-2 active:scale-98 transition-all shadow-xs"
+          >
+            <Bookmark size={15} />
+            <span>⭐ Guardar changuito como Mi Lista Habitual</span>
+          </button>
+        </div>
+      )}
+
+      {isCartSavedAsHabitual && (
+        <div className="pt-0.5">
+          <div className="min-h-[40px] px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200/80 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Check size={15} className="text-emerald-600" />
+              <span>Changuito sincronizado con tu Lista Habitual</span>
+            </div>
+            <span className="text-[10px] font-semibold text-emerald-600">Recurrencia activa</span>
+          </div>
+        </div>
+      )}
 
       {/* Métricas Principales */}
       <div className="grid grid-cols-2 gap-2">

@@ -244,6 +244,100 @@ const SearchScreen: React.FC = () => {
               </div>
             </section>
 
+            {/* SECCIÓN MONETIZACIÓN ZERO-SUBSCRIPTION: OFERTAS PATROCINADAS & CUPONES DE MARCA */}
+            <section className="bg-amber-50/50 rounded-3xl border border-amber-200/70 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-amber-200/80 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md">
+                    PATROCINADO
+                  </span>
+                  <h2 className="text-[13.5px] font-extrabold text-amber-950">
+                    Ofertas Destacadas y Cupones de Marca
+                  </h2>
+                </div>
+                <span className="text-[10.5px] font-semibold text-amber-800">Sin suscripción</span>
+              </div>
+
+              <div className="space-y-2">
+                {/* Oferta 1: Unilever / Hellmann's */}
+                <div className="bg-white rounded-2xl p-3 border border-amber-200/60 flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase">
+                      <span>Unilever</span>
+                      <span>·</span>
+                      <span>Aderezos</span>
+                    </div>
+                    <p className="text-[13px] font-extrabold text-slate-900 truncate">
+                      Hellmann's Doypack 15% OFF
+                    </p>
+                    <p className="text-[11px] text-emerald-700 font-bold">
+                      Cupón activo: AHORRO15 (canje directo)
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => runSearch('Hellmanns')}
+                    className="min-h-[44px] px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[12px] font-bold active:scale-95 transition-all shrink-0 flex items-center justify-center shadow-xs"
+                  >
+                    Ver oferta
+                  </button>
+                </div>
+
+                {/* Oferta 2: Arcor */}
+                <div className="bg-white rounded-2xl p-3 border border-amber-200/60 flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase">
+                      <span>Arcor</span>
+                      <span>·</span>
+                      <span>Desayuno & Merienda</span>
+                    </div>
+                    <p className="text-[13px] font-extrabold text-slate-900 truncate">
+                      Mermeladas La Campagnola 2×1
+                    </p>
+                    <p className="text-[11px] text-amber-800 font-medium">
+                      Precio promocional en cadenas adheridas
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => runSearch('La Campagnola')}
+                    className="min-h-[44px] px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[12px] font-bold active:scale-95 transition-all shrink-0 flex items-center justify-center shadow-xs"
+                  >
+                    Ver oferta
+                  </button>
+                </div>
+
+                {/* Oferta 3: Quilmes */}
+                <div className="bg-white rounded-2xl p-3 border border-amber-200/60 flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase">
+                      <span>Cervecería Quilmes</span>
+                      <span>·</span>
+                      <span>Bebidas</span>
+                    </div>
+                    <p className="text-[13px] font-extrabold text-slate-900 truncate">
+                      Pack Quilmes Clásica Lata
+                    </p>
+                    <p className="text-[11px] text-emerald-700 font-bold">
+                      Ahorro directo de fábrica
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => runSearch('Quilmes')}
+                    className="min-h-[44px] px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[12px] font-bold active:scale-95 transition-all shrink-0 flex items-center justify-center shadow-xs"
+                  >
+                    Ver oferta
+                  </button>
+                </div>
+              </div>
+
+              {/* Firewall Ético Disclaimer */}
+              <p className="text-[10.5px] text-amber-900/80 leading-relaxed pt-0.5">
+                ⚖️ <strong>Firewall Ético SuperVmarket</strong>: Los acuerdos comerciales de marcas y supermercados permiten mantener la plataforma 100% gratuita para vos. Nunca alteran el cálculo del producto más barato orgánico (Ley 24.240).
+              </p>
+            </section>
+
             <button
               type="button"
               onClick={() => setScanning(true)}
@@ -287,12 +381,36 @@ const SearchScreen: React.FC = () => {
 
         {hasQuery && visible.length > 0 && (
           <div className={`space-y-3 transition-opacity ${loading ? 'opacity-50' : ''}`}>
+            {/* Top slot banner si la búsqueda coincide con marcas patrocinadas */}
+            {(debounced.toLowerCase().includes('hellmann') ||
+              debounced.toLowerCase().includes('arcor') ||
+              debounced.toLowerCase().includes('quilmes') ||
+              debounced.toLowerCase().includes('mayonesa') ||
+              debounced.toLowerCase().includes('mermelada') ||
+              debounced.toLowerCase().includes('cerveza')) && (
+              <div className="bg-amber-50/80 rounded-2xl border border-amber-200/90 p-3 flex items-center justify-between gap-2 shadow-2xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-900 border border-amber-300 shrink-0">
+                    PATROCINADO
+                  </span>
+                  <p className="text-[11.5px] text-amber-950 font-medium truncate">
+                    Oferta de marca destacada · Los resultados orgánicos más baratos figuran abajo
+                  </p>
+                </div>
+              </div>
+            )}
+
             <p className="text-[12px] font-semibold text-slate-400 px-1">
               {visible.length} productos · ordenados por {sort === 'unit_price_asc' ? 'precio por kg/l/unidad' : 'precio final'}
             </p>
-            {visible.map(g => (
-              <ProductCard key={g.ean} group={g} />
-            ))}
+            {visible.map((g, idx) => {
+              const isSponsoredMatch =
+                idx === 0 &&
+                (debounced.toLowerCase().includes('hellmann') ||
+                  debounced.toLowerCase().includes('arcor') ||
+                  debounced.toLowerCase().includes('quilmes'))
+              return <ProductCard key={g.ean} group={g} isSponsored={isSponsoredMatch} />
+            })}
           </div>
         )}
       </main>
