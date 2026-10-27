@@ -119,35 +119,31 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
     expect(screen.getByText(/FULL/i)).toBeTruthy()
   })
 
-  it('3. ListScreen renders Mi Lista Habitual discovery card and 1-tap sample basket loader', () => {
+  it('3. ListScreen renders clean empty Carrito state and allows navigating to search', () => {
+    const onGoSearch = vi.fn()
     render(
       <LocationProvider>
         <BenefitsProvider>
           <CartProvider>
             <HabitualListProvider>
-              <ListScreen onGoSearch={vi.fn()} onGoProfile={vi.fn()} />
+              <ListScreen onGoSearch={onGoSearch} onGoProfile={vi.fn()} />
             </HabitualListProvider>
           </CartProvider>
         </BenefitsProvider>
       </LocationProvider>,
     )
 
-    // Empty state should display Mi Lista Habitual discovery
-    expect(screen.getByText('Mi Lista Habitual')).toBeTruthy()
-    expect(screen.getByText(/El verdadero valor de SuperVmarket/i)).toBeTruthy()
+    // Empty state should display clean Carrito state
+    expect(screen.getByText(/Tu (carrito|lista) está vací[ao]/i)).toBeTruthy()
+    expect(screen.getByText(/Agregá productos desde el buscador o desde la pestaña Guardados/i)).toBeTruthy()
 
-    // 1-Tap button to load sample basket
-    const loadSampleBtn = screen.getByRole('button', {
-      name: /cargar canasta mensual de ejemplo/i,
+    // 1-Tap button to explore products
+    const exploreBtn = screen.getByRole('button', {
+      name: /explorar productos/i,
     })
-    expect(loadSampleBtn).toBeTruthy()
-
-    // Click to load sample basket
-    fireEvent.click(loadSampleBtn)
-
-    // Should load items into cart
-    const cartItems = JSON.parse(localStorage.getItem('sv_cart_v2') || '[]')
-    expect(cartItems.length).toBe(6)
+    expect(exploreBtn).toBeTruthy()
+    fireEvent.click(exploreBtn)
+    expect(onGoSearch).toHaveBeenCalledTimes(1)
   })
 
   it('4. HabitualListManager displays direct 1-tap save button when items are in cart', () => {

@@ -40,14 +40,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items])
 
-  const add = (g: ProductGroup, addQty: number = 1) =>
+  const add = (g: ProductGroup, addQty: number = 1) => {
+    const ean = g.ean || g.offers?.[0]?.ean || (g as any).id || g.nombre
     setItems(prev =>
-      prev.some(i => i.ean === g.ean)
-        ? prev.map(i => (i.ean === g.ean ? { ...i, qty: i.qty + addQty } : i))
-        : [...prev, { ean: g.ean, nombre: g.nombre, imagen: g.imagen, qty: Math.max(1, addQty) }],
+      prev.some(i => i.ean === ean)
+        ? prev.map(i => (i.ean === ean ? { ...i, qty: i.qty + addQty } : i))
+        : [...prev, { ean, nombre: g.nombre, imagen: g.imagen, qty: Math.max(1, addQty) }],
     )
+  }
 
-  const remove = (ean: string) => setItems(prev => prev.filter(i => i.ean !== ean))
+  const remove = (ean: string) =>
+    setItems(prev => prev.filter(i => i.ean !== ean && (i as any).id !== ean))
 
   const setQty = (ean: string, qty: number) => {
     if (qty <= 0) {
@@ -55,11 +58,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return
     }
     setItems(prev =>
-      prev.map(i => (i.ean === ean ? { ...i, qty: Math.max(1, qty) } : i)),
+      prev.map(i => (i.ean === ean || (i as any).id === ean ? { ...i, qty: Math.max(1, qty) } : i)),
     )
   }
 
-  const clear = () => setItems([])
+  const clear = () => {
+    setItems([])
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch {}
+  }
   const has = (ean: string) => items.some(i => i.ean === ean)
   const qtyOf = (ean: string) => items.find(i => i.ean === ean)?.qty || 0
 

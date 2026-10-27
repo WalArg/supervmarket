@@ -11,10 +11,7 @@ import {
   MapPin,
   ChevronDown,
   AlertCircle,
-  Bookmark,
-  BookmarkCheck,
   Check,
-  RotateCcw,
 } from 'lucide-react'
 import type { OptimizeMode, OptimizePlan } from '../types'
 import { useCart } from '../cart/CartContext'
@@ -27,9 +24,7 @@ import { storeLabel } from '../lib/stores'
 import StoreCart from './StoreCart'
 import SmartCartHero from './SmartCartHero'
 import MissingItemsBreakdown from './MissingItemsBreakdown'
-import HabitualListManager from './HabitualListManager'
 import { generateShareUrl, formatShareMessage, executeShare } from '../cart/portableList'
-import { SAMPLE_HABITUAL_BASKET } from '../cart/sampleBasket'
 
 const DAY_LABEL: Record<string, string> = {
   lunes: 'Lunes',
@@ -45,26 +40,16 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
   onGoSearch,
   onGoProfile,
 }) => {
-  const { items, remove, setQty, clear, totalUnits, replaceItems } = useCart()
+  const { items, remove, setQty, clear, totalUnits } = useCart()
   const { cp, locationLabel, exactAddress, setExactAddress, openModal } = useLocation()
   const { selectedCards, selectedDay, setSelectedDay } = useBenefits()
-  const {
-    habitualList,
-    hasHabitualList,
-    itemsCount: habitualCount,
-    totalUnits: habitualUnits,
-    isCartSavedAsHabitual,
-    saveCartAsHabitual,
-    loadHabitualIntoCart,
-    recordSnapshot,
-  } = useHabitualList()
+  const { recordSnapshot } = useHabitualList()
   const [mode, setMode] = useState<OptimizeMode>('ahorro')
   const [includeShipping, setIncludeShipping] = useState(false)
   const [plan, setPlan] = useState<OptimizePlan | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [showSaveToast, setShowSaveToast] = useState(false)
   const [showCopyToast, setShowCopyToast] = useState(false)
 
   const itemsKey = items.map(i => `${i.ean}:${i.qty}`).join(',')
@@ -154,67 +139,6 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
   }
 
   if (!items.length) {
-    if (hasHabitualList && habitualList && habitualList.items.length > 0) {
-      return (
-        <div className="pt-safe px-4 min-h-[75dvh] flex flex-col justify-center items-center">
-          <div className="w-full max-w-md bg-white rounded-3xl border border-blue-100 p-6 shadow-sm text-center">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <BookmarkCheck size={28} />
-            </div>
-            <h2 className="mt-4 text-[18px] font-extrabold text-slate-900">
-              {habitualList.name || 'Tu Lista Habitual'}
-            </h2>
-            <p className="mt-1 text-[13px] text-slate-500">
-              Tenés {habitualCount} productos guardados ({habitualUnits} unidades).
-            </p>
-
-            {/* Mini miniaturas de productos */}
-            <div className="mt-4 flex items-center justify-center -space-x-2">
-              {habitualList.items.slice(0, 4).map(item =>
-                item.imagen ? (
-                  <img
-                    key={item.ean}
-                    src={item.imagen}
-                    alt={item.nombre}
-                    className="w-10 h-10 rounded-full border-2 border-white object-contain bg-slate-50 p-0.5 shadow-2xs"
-                  />
-                ) : (
-                  <div
-                    key={item.ean}
-                    className="w-10 h-10 rounded-full border-2 border-white bg-slate-100 text-slate-500 text-[10px] font-bold flex items-center justify-center shadow-2xs"
-                  >
-                    {item.nombre.slice(0, 2).toUpperCase()}
-                  </div>
-                ),
-              )}
-              {habitualList.items.length > 4 && (
-                <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-100 text-slate-600 text-[11px] font-bold flex items-center justify-center shadow-2xs">
-                  +{habitualList.items.length - 4}
-                </div>
-              )}
-            </div>
-
-            {/* 1-Tap CTA */}
-            <button
-              type="button"
-              onClick={() => loadHabitualIntoCart('replace')}
-              className="mt-6 w-full min-h-[48px] h-12 rounded-2xl bg-blue-600 text-white font-bold active:scale-98 transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
-            >
-              <RotateCcw size={17} /> Cargar Lista y Comparar Precios
-            </button>
-
-            <button
-              type="button"
-              onClick={onGoSearch}
-              className="mt-2.5 w-full min-h-[44px] h-11 rounded-xl text-slate-500 hover:text-slate-800 text-[13px] font-semibold active:scale-98 transition-all flex items-center justify-center"
-            >
-              Explorar otros productos
-            </button>
-          </div>
-        </div>
-      )
-    }
-
     return (
       <div className="pt-safe px-4 py-8 min-h-[75dvh] flex flex-col items-center justify-center text-center max-w-md mx-auto">
         <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
@@ -222,50 +146,13 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
         </div>
         <h2 className="mt-4 text-[19px] font-extrabold text-slate-900">Tu carrito está vacío</h2>
         <p className="mt-1.5 text-[14px] text-slate-500 max-w-xs leading-relaxed">
-          Agregá productos desde el buscador y te calculamos la combinación más barata entre todos los supermercados.
+          Agregá productos desde el buscador o desde la pestaña Guardados para comparar precios y optimizar tu compra.
         </p>
-
-        {/* DESCUBRIMIENTO PROTAGÓNICO DE MI LISTA HABITUAL & HISTÓRICO */}
-        <div className="mt-6 w-full bg-gradient-to-br from-blue-50/90 via-white to-indigo-50/80 rounded-3xl border border-blue-200/90 p-5 text-left shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm">
-                ⭐
-              </div>
-              <div>
-                <h3 className="text-[15px] font-extrabold text-slate-900 leading-tight">
-                  Mi Lista Habitual
-                </h3>
-                <span className="text-[11px] text-blue-700 font-semibold">
-                  El verdadero valor de SuperVmarket
-                </span>
-              </div>
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
-              Sin suscripción
-            </span>
-          </div>
-
-          <p className="text-[12px] text-slate-600 leading-relaxed">
-            Guardá tu compra recurrente mensual o semanal. SuperVmarket monitorea el <strong>histórico de precios</strong> de tu changuito, te avisa si subió o bajó y te dice en 1 toque dónde comprarla más barata hoy.
-          </p>
-
-          <button
-            type="button"
-            onClick={() => replaceItems(SAMPLE_HABITUAL_BASKET)}
-            className="w-full min-h-[48px] h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold text-[13px] transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
-          >
-            <span>🛒 Cargar canasta mensual de ejemplo (6 básicos)</span>
-          </button>
-          <p className="text-[10.5px] text-slate-400 text-center">
-            Incluye leche, yerba, fideos, aceite, arroz y jabón para probar la comparación en vivo.
-          </p>
-        </div>
 
         <button
           type="button"
           onClick={onGoSearch}
-          className="mt-4 min-h-[44px] h-11 px-6 rounded-2xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-bold active:scale-95 transition-all"
+          className="mt-6 min-h-[44px] h-11 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold transition-all shadow-md shadow-blue-500/20"
         >
           Explorar productos
         </button>
@@ -289,41 +176,10 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
             </p>
           </div>
           <div className="flex items-center gap-1.5">
-            {/* 1-Tap Save habitual / Status Indicator */}
-            {isCartSavedAsHabitual ? (
-              <div
-                title="Tu changuito actual coincide con tu lista habitual"
-                className="min-h-[44px] px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-[11px] font-bold border border-emerald-200/60 flex items-center gap-1 shrink-0"
-              >
-                <Check size={14} className="text-emerald-600" />
-                <span>Guardada</span>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  const res = saveCartAsHabitual()
-                  if (res.success) {
-                    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-                      navigator.vibrate(40)
-                    }
-                    setShowSaveToast(true)
-                    setTimeout(() => setShowSaveToast(false), 3000)
-                  }
-                }}
-                className="min-h-[44px] px-2.5 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 text-[11px] font-bold border border-blue-200/60 flex items-center gap-1 active:scale-95 transition-all shrink-0"
-                title="Guardar como lista habitual para cotizar siempre en 1 toque"
-                aria-label="Guardar como lista habitual"
-              >
-                <Bookmark size={14} className="text-blue-600" />
-                <span>Guardar habitual</span>
-              </button>
-            )}
-
             <button
               type="button"
               onClick={share}
-              aria-label="Compartir lista"
+              aria-label="Compartir lista o carrito"
               className="w-11 h-11 flex items-center justify-center rounded-xl text-slate-600 hover:bg-slate-200/60 active:scale-95 transition-all"
             >
               <Share2 size={19} />
@@ -339,16 +195,10 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
         </div>
 
         {/* Toasts Feedback */}
-        {showSaveToast && (
-          <div className="mx-4 mb-2 p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold flex items-center gap-2 animate-[fade-in_0.2s_ease-out]">
-            <Check size={14} className="text-emerald-600 shrink-0" />
-            <span>¡Guardada en Mi Lista Habitual para cotizar en 1 toque!</span>
-          </div>
-        )}
         {showCopyToast && (
           <div className="mx-4 mb-2 p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-bold flex items-center gap-2 animate-[fade-in_0.2s_ease-out]">
             <Check size={14} className="text-blue-600 shrink-0" />
-            <span>¡Enlace de lista copiado al portapapeles!</span>
+            <span>¡Enlace copiado al portapapeles!</span>
           </div>
         )}
       </header>
@@ -361,9 +211,6 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
           plan={plan}
           loading={loading}
         />
-
-        {/* 1.5. TERMÓMETRO DE AHORRO Y MONITOR DE INFLACIÓN */}
-        <HabitualListManager />
 
         {/* 2. BARRA CONTEXTUAL COMPACTA (44px de altura, consolida CP, Tarjetas y Flete) */}
         <div className="bg-white rounded-2xl border border-slate-200/80 p-1.5 flex items-center gap-1.5 shadow-2xs">

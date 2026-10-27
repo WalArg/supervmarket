@@ -159,19 +159,8 @@ describe('Recurrence Components & Import UI', () => {
     })
   })
 
-  describe('ListScreen with Habitual Empty State', () => {
-    it('4. displays rich habitual reload card when cart is empty and habitual list exists', () => {
-      const habitual: HabitualList = {
-        version: '1.0',
-        updated_at: '2026-10-26T12:00:00Z',
-        name: 'Mi Compra Mensual',
-        items: [
-          { ean: '7791234567890', nombre: 'Leche 1L', imagen: '', qty: 2, added_at: '2026-10-26T12:00:00Z' },
-          { ean: '7799876543210', nombre: 'Galletitas Oreo', imagen: '', qty: 3, added_at: '2026-10-26T12:00:00Z' },
-        ],
-      }
-      localStorage.setItem('sv_habitual_v1', JSON.stringify(habitual))
-
+  describe('ListScreen Empty Cart State', () => {
+    it('4. displays clean empty cart screen without resurrecting deleted items', () => {
       render(
         <LocationProvider>
           <BenefitsProvider>
@@ -184,19 +173,8 @@ describe('Recurrence Components & Import UI', () => {
         </LocationProvider>,
       )
 
-      expect(screen.getByText('Mi Compra Mensual')).toBeTruthy()
-      expect(screen.getByText(/Tenés 2 productos guardados \(5 unidades\)/i)).toBeTruthy()
-
-      // 1-Tap CTA button to reload
-      const reloadBtn = screen.getByRole('button', { name: /cargar lista y comparar precios/i })
-      expect(reloadBtn.className).toContain('min-h-[48px]')
-      expect(reloadBtn.className).toContain('h-12')
-
-      // Clicking it loads items into cart
-      fireEvent.click(reloadBtn)
-
-      // Verify that after clicking, cart now has the items and is no longer showing the empty screen
-      expect(screen.queryByText(/Tu lista está vacía/i)).toBeNull()
+      expect(screen.getByText('Tu carrito está vacío')).toBeTruthy()
+      expect(screen.getByRole('button', { name: /explorar productos/i })).toBeTruthy()
     })
   })
 })

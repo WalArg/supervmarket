@@ -415,10 +415,7 @@ describe('CHALLENGER M4.2: Adversarial Stress Test Suite', () => {
       )
 
       // Header actions
-      const saveBtn = screen.getByRole('button', { name: /guardar como lista habitual/i })
-      expect(saveBtn.className).toContain('min-h-[44px]')
-
-      const shareBtn = screen.getByRole('button', { name: /compartir lista/i })
+      const shareBtn = screen.getByRole('button', { name: /compartir (lista|carrito)/i })
       expect(shareBtn.className).toMatch(/w-11\s+h-11/) // 44x44px
 
       const clearBtn = screen.getByRole('button', { name: /vaciar/i })
