@@ -3,9 +3,12 @@ import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, Clock, TrendingUp, 
 import ProductCard from './ProductCard'
 import BarcodeScanner from './BarcodeScanner'
 import SponsoredProductBox from './SponsoredProductBox'
+import GondolaSection from './GondolaSection'
 import { searchProducts } from '../api'
 import { useLocation } from '../location/LocationContext'
 import { SPONSORED_CONFIG } from '../lib/sponsoredConfig'
+import { storeColor, storeLabel } from '../lib/stores'
+import { GONDOLAS } from '../data/gondolasData'
 import type { ProductGroup } from '../types'
 
 const POPULAR = ['Leche', 'Coca Cola', 'Yerba', 'Aceite', 'Fideos', 'Café', 'Pañales', 'Arroz', 'Cerveza', 'Detergente', 'Papel higiénico', 'Azúcar']
@@ -43,6 +46,7 @@ const SearchScreen: React.FC = () => {
   const [onlyOffers, setOnlyOffers] = useState(false)
   const [onlyBulk, setOnlyBulk] = useState(false)
   const [onlyMulti, setOnlyMulti] = useState(false)
+  const [selectedStore, setSelectedStore] = useState<string | null>(null)
   const [scanning, setScanning] = useState(false)
   const [recent, setRecent] = useState<string[]>(loadRecent)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -65,6 +69,7 @@ const SearchScreen: React.FC = () => {
     if (debounced.length < 2) {
       setResults([])
       setLoading(false)
+      setSelectedStore(null)
       return
     }
     let alive = true
@@ -82,15 +87,37 @@ const SearchScreen: React.FC = () => {
     }
   }, [debounced, sort, onlyOffers, cp, pushRecent])
 
+  // Lista de comercios presentes en los resultados de búsqueda para filtrado
+  const availableStores = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const g of results) {
+      const storesInProd = new Set(g.offers.map(o => o.supermercado))
+      for (const s of storesInProd) {
+        counts[s] = (counts[s] || 0) + 1
+      }
+    }
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([store, count]) => ({ store, count }))
+  }, [results])
+
+  // Deseleccionar comercio si deja de existir en los nuevos resultados
+  useEffect(() => {
+    if (selectedStore && !availableStores.some(s => s.store === selectedStore)) {
+      setSelectedStore(null)
+    }
+  }, [availableStores, selectedStore])
+
   const visible = useMemo(
     () =>
       results.filter(g => {
+        if (selectedStore && !g.offers.some(o => o.supermercado === selectedStore)) return false
         if (onlyOffers && !g.offers.some(o => (o.discount >= 5) || (o.promo_label && !o.requires_club))) return false
         if (onlyMulti && g.offers.length < 2) return false
         if (onlyBulk && !g.offers.some(o => (o.promo_min_qty || 1) > 1 && !o.requires_club)) return false
         return true
       }),
-    [results, onlyOffers, onlyMulti, onlyBulk],
+    [results, selectedStore, onlyOffers, onlyMulti, onlyBulk],
   )
 
   // Detecta el producto para el recuadro patrocinado (Mercado Libre)
@@ -124,6 +151,7 @@ const SearchScreen: React.FC = () => {
   }, [visible, debounced])
 
   const runSearch = (q: string) => {
+    setSelectedStore(null)
     setQuery(q)
     setDebounced(q)
     inputRef.current?.blur()
@@ -132,6 +160,7 @@ const SearchScreen: React.FC = () => {
 
   const onScan = useCallback((ean: string) => {
     setScanning(false)
+    setSelectedStore(null)
     setQuery(ean)
     setDebounced(ean)
   }, [])
@@ -174,7 +203,7 @@ const SearchScreen: React.FC = () => {
                 autoComplete="off"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="¿Qué querés comprar?"
+                placeholder="Buscá o escaneá el producto que querés buscar..."
                 className="w-full h-12 pl-11 pr-10 rounded-2xl bg-white border border-slate-200 text-base font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               />
               {query && (
@@ -184,6 +213,7 @@ const SearchScreen: React.FC = () => {
                   onClick={() => {
                     setQuery('')
                     setDebounced('')
+                    setSelectedStore(null)
                     inputRef.current?.focus()
                   }}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-slate-400 active:bg-slate-100"
@@ -203,8 +233,9 @@ const SearchScreen: React.FC = () => {
           </form>
         </div>
 
+        {/* Filtros generales de ordenamiento y promociones */}
         {hasQuery && (
-          <div className="px-4 pb-2.5 flex gap-2 overflow-x-auto no-scrollbar">
+          <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar">
             <Chip active={false} onClick={() => setSort(s => (s === 'unit_price_asc' ? 'price_asc' : 'unit_price_asc'))}>
               <ArrowUpDown size={14} />
               {sort === 'unit_price_asc' ? 'Precio por kg/l' : 'Precio final'}
@@ -220,12 +251,77 @@ const SearchScreen: React.FC = () => {
             </Chip>
           </div>
         )}
+
+        {/* Filtro por comercio / supermercado */}
+        {hasQuery && availableStores.length > 0 && (
+          <div className="px-4 pb-2.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <span className="text-[11px] font-bold text-slate-400 shrink-0 uppercase tracking-wider mr-0.5">
+              Comercio:
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedStore(null)}
+              className={`shrink-0 h-7 px-2.5 rounded-full text-[12px] font-semibold border transition-all ${
+                selectedStore === null
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-600 border-slate-200 active:bg-slate-100'
+              }`}
+            >
+              Todos ({results.length})
+            </button>
+            {availableStores.map(({ store, count }) => {
+              const isSel = selectedStore === store
+              return (
+                <button
+                  key={store}
+                  type="button"
+                  onClick={() => setSelectedStore(isSel ? null : store)}
+                  className={`shrink-0 h-7 px-2.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 border transition-all ${
+                    isSel
+                      ? 'bg-blue-600 text-white border-blue-600 font-bold shadow-xs'
+                      : 'bg-white text-slate-700 border-slate-200 active:bg-slate-100'
+                  }`}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ background: isSel ? '#ffffff' : storeColor(store) }}
+                  />
+                  <span>{storeLabel(store)}</span>
+                  <span className={`text-[10px] ${isSel ? 'text-blue-100' : 'text-slate-400'}`}>
+                    ({count})
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </header>
 
-      <main className="px-4 pt-1 pb-28 space-y-3">
-        {/* Inicio sin búsqueda */}
+      <main className="px-4 pt-1 pb-28 space-y-4">
+        {/* Inicio: Góndolas y ofertas */}
         {!hasQuery && (
-          <div className="space-y-6 pt-2">
+          <div className="space-y-6 pt-1">
+            {/* Píldoras de categorías rápidas */}
+            <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5 -mx-1 px-1">
+              {[
+                { label: '🔥 Ofertas del día', term: 'ofertas' },
+                { label: '🥛 Lácteos', term: 'leche' },
+                { label: '🥫 Almacén', term: 'yerba' },
+                { label: '🧼 Limpieza', term: 'limpieza' },
+                { label: '☕ Bebidas', term: 'coca cola' },
+              ].map(cat => (
+                <button
+                  key={cat.term}
+                  type="button"
+                  onClick={() => runSearch(cat.term)}
+                  className="shrink-0 h-8 px-3 rounded-full bg-white border border-slate-200/90 text-slate-700 font-bold text-[12px] hover:bg-slate-50 active:scale-95 transition-all shadow-2xs"
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Búsquedas recientes */}
             {recent.length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-2">
@@ -258,7 +354,19 @@ const SearchScreen: React.FC = () => {
               </section>
             )}
 
-            <section>
+            {/* Góndolas de supermercado con ofertas reales */}
+            <div className="space-y-6">
+              {GONDOLAS.map(gondola => (
+                <GondolaSection
+                  key={gondola.id}
+                  gondola={gondola}
+                  onSelectCategory={runSearch}
+                />
+              ))}
+            </div>
+
+            {/* Lo más buscado */}
+            <section className="pt-2 border-t border-slate-200/60">
               <h2 className="text-[13px] font-bold text-slate-500 flex items-center gap-1.5 mb-2">
                 <TrendingUp size={14} /> Lo más buscado
               </h2>
@@ -276,22 +384,25 @@ const SearchScreen: React.FC = () => {
               </div>
             </section>
 
+            {/* Banner escáner */}
             <button
               type="button"
               onClick={() => setScanning(true)}
-              className="w-full rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-4 flex items-center gap-3 text-left active:opacity-90"
+              className="w-full rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-4 flex items-center gap-3 text-left active:opacity-90 shadow-sm"
             >
               <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
                 <ScanBarcode size={24} />
               </div>
               <div>
                 <div className="font-extrabold text-[15px]">¿Estás en el súper?</div>
-                <div className="text-[13px] text-blue-100">Escaneá un producto y fijate si en otro lado está más barato.</div>
+                <div className="text-[13px] text-blue-100">
+                  Escaneá el código de barras y fijate si en otro lado está más barato.
+                </div>
               </div>
             </button>
 
-            <p className="text-[12px] text-slate-400 text-center px-6">
-              Comparamos en vivo Carrefour, Coto, Día, Jumbo, Disco, Vea, Más Online, Farmacity y más.
+            <p className="text-[12px] text-slate-400 text-center px-6 leading-relaxed">
+              Comparamos en vivo Carrefour, Coto, Día, Jumbo, Disco, Vea, Más Online, Farmacity, Mercado Libre y más.
             </p>
           </div>
         )}
@@ -309,18 +420,37 @@ const SearchScreen: React.FC = () => {
             </div>
           ))}
 
+        {/* Sin resultados con o sin filtro de comercio */}
         {hasQuery && !loading && visible.length === 0 && (
           <div className="text-center py-14 px-6">
             <SearchX size={40} className="mx-auto text-slate-300" />
-            <p className="mt-3 font-bold text-slate-700">No encontramos "{debounced}" con stock</p>
-            <p className="text-[13px] text-slate-500 mt-1">Probá con otra palabra o sacá los filtros.</p>
+            <p className="mt-3 font-bold text-slate-700">
+              {selectedStore
+                ? `No encontramos productos en ${storeLabel(selectedStore)} para "${debounced}"`
+                : `No encontramos "${debounced}" con stock`}
+            </p>
+            <p className="text-[13px] text-slate-500 mt-1">
+              {selectedStore
+                ? 'Probá seleccionando "Todos" para ver los precios de otras cadenas.'
+                : 'Probá con otra palabra o sacá los filtros.'}
+            </p>
+            {selectedStore && (
+              <button
+                type="button"
+                onClick={() => setSelectedStore(null)}
+                className="mt-4 px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[13px] transition-colors"
+              >
+                Ver todos los comercios ({results.length})
+              </button>
+            )}
           </div>
         )}
 
+        {/* Resultados de búsqueda */}
         {hasQuery && visible.length > 0 && (
           <div className={`space-y-3 transition-opacity ${loading ? 'opacity-50' : ''}`}>
-            {/* RECUADRO DE PATROCINADO EXCLUSIVO: MERCADO LIBRE */}
-            {sponsoredCandidate && (
+            {/* RECUADRO DE PATROCINADO EXCLUSIVO: MERCADO LIBRE (solo si no hay filtro de otro súper) */}
+            {sponsoredCandidate && (!selectedStore || selectedStore === 'MercadoLibre') && (
               <SponsoredProductBox
                 product={sponsoredCandidate.product}
                 offer={sponsoredCandidate.offer}
@@ -328,10 +458,16 @@ const SearchScreen: React.FC = () => {
             )}
 
             <p className="text-[12px] font-semibold text-slate-400 px-1">
-              {visible.length} productos · ordenados por {sort === 'unit_price_asc' ? 'precio por kg/l/unidad' : 'precio final'}
+              {visible.length} producto{visible.length === 1 ? '' : 's'}
+              {selectedStore ? ` en ${storeLabel(selectedStore)}` : ''} · ordenados por{' '}
+              {sort === 'unit_price_asc' ? 'precio por kg/l/unidad' : 'precio final'}
             </p>
             {visible.map(g => (
-              <ProductCard key={g.ean} group={g} />
+              <ProductCard
+                key={g.ean}
+                group={g}
+                selectedStore={selectedStore}
+              />
             ))}
           </div>
         )}

@@ -145,8 +145,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 
+const DEFAULT_CART_VALUE: CartCtx = {
+  items: [],
+  add: () => {},
+  remove: () => {},
+  setQty: () => {},
+  clear: () => {},
+  has: () => false,
+  qtyOf: () => 0,
+  count: 0,
+  totalUnits: 0,
+  replaceItems: () => {},
+  mergeItems: () => {},
+  importItems: () => {},
+}
+
 export function useCart() {
   const ctx = useContext(Ctx)
-  if (!ctx) throw new Error('useCart debe usarse dentro de <CartProvider>')
-  return ctx
+  return ctx || DEFAULT_CART_VALUE
 }

@@ -7,11 +7,13 @@ import SponsoredProductBox from '../SponsoredProductBox'
 import HabitualListManager from '../HabitualListManager'
 import ListScreen from '../ListScreen'
 import SavedScreen from '../SavedScreen'
+import OffersSheet from '../OffersSheet'
 import { CartProvider } from '../../cart/CartContext'
 import { HabitualListProvider } from '../../cart/HabitualListContext'
 import { SavedProvider } from '../../saved/SavedContext'
 import { LocationProvider } from '../../location/LocationContext'
 import { BenefitsProvider } from '../../benefits/BenefitsContext'
+import * as api from '../../api'
 import type { ProductGroup } from '../../types'
 
 vi.mock('../../api', async () => {
@@ -298,5 +300,165 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
     fireEvent.click(removeBtn)
 
     expect(screen.getByText('No tenés productos guardados')).toBeTruthy()
+  })
+
+  it('7. Inicio renders Góndolas temáticas with real products and search input with scan placeholder', () => {
+    render(
+      <LocationProvider>
+        <CartProvider>
+          <SavedProvider>
+            <SearchScreen />
+          </SavedProvider>
+        </CartProvider>
+      </LocationProvider>,
+    )
+
+    // Check placeholder
+    const searchInput = screen.getByPlaceholderText(/Buscá o escaneá el producto que querés buscar\.\.\./i)
+    expect(searchInput).toBeTruthy()
+
+    // Check category pills
+    expect(screen.getByText('🔥 Ofertas del día')).toBeTruthy()
+    expect(screen.getByText('🥛 Lácteos')).toBeTruthy()
+
+    // Check Góndola headers
+    expect(screen.getByText('Ofertas destacadas del día')).toBeTruthy()
+    expect(screen.getByText('Lácteos y Frescos')).toBeTruthy()
+    expect(screen.getByText('Almacén y Canasta Básica')).toBeTruthy()
+
+    // Check products inside gondolas
+    expect(screen.getByText('Fideos Lucchetti Tirabuzón 500 G')).toBeTruthy()
+    expect(screen.getByText('Leche La Serenísima Clásica Entera 1 L')).toBeTruthy()
+  })
+
+  it('8. Store filter: allows filtering search results by supermarket', async () => {
+    const multiStoreProducts: ProductGroup[] = [
+      {
+        ean: '779001',
+        nombre: 'Galletitas Coto Exclusive',
+        marca: 'Coto',
+        offers: [
+          { supermercado: 'Coto', precio: 1000, precio_lista: 1200, stock: 10, link: '' },
+        ],
+      },
+      {
+        ean: '779002',
+        nombre: 'Galletitas Carrefour Exclusive',
+        marca: 'Carrefour',
+        offers: [
+          { supermercado: 'Carrefour', precio: 1100, precio_lista: 1300, stock: 10, link: '' },
+        ],
+      },
+    ]
+
+    vi.mocked(api.searchProducts).mockResolvedValueOnce(multiStoreProducts)
+
+    render(
+      <LocationProvider>
+        <CartProvider>
+          <SavedProvider>
+            <SearchScreen />
+          </SavedProvider>
+        </CartProvider>
+      </LocationProvider>,
+    )
+
+    const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
+    fireEvent.change(input, { target: { value: 'galletitas' } })
+
+    // Wait for search
+    await waitFor(() => {
+      expect(screen.getByText('Galletitas Coto Exclusive')).toBeTruthy()
+      expect(screen.getByText('Galletitas Carrefour Exclusive')).toBeTruthy()
+    })
+
+    // Store filter chips must appear
+    const cotoChip = screen.getByRole('button', { name: /^coto\s*\(\d+\)$/i })
+    expect(cotoChip).toBeTruthy()
+
+    // Filter by Coto
+    fireEvent.click(cotoChip)
+
+    // Only Coto product should remain
+    expect(screen.getByText('Galletitas Coto Exclusive')).toBeTruthy()
+    expect(screen.queryByText('Galletitas Carrefour Exclusive')).toBeNull()
+
+    // Reset back to Todos
+    const todosBtn = screen.getByRole('button', { name: /^todos\s*\(\d+\)$/i })
+    fireEvent.click(todosBtn)
+
+    expect(screen.getByText('Galletitas Coto Exclusive')).toBeTruthy()
+    expect(screen.getByText('Galletitas Carrefour Exclusive')).toBeTruthy()
+  })
+
+  it('9. OffersSheet: allows adding items to cart directly from each store row without external redirect', () => {
+    const group: ProductGroup = {
+      ean: '7799998881112',
+      nombre: 'Arroz Largo Fino 1kg',
+      marca: 'Ala',
+      offers: [
+        {
+          supermercado: 'Coto',
+          precio: 1500,
+          precio_lista: 1800,
+          stock: 20,
+          link: 'https://coto.com.ar/arroz',
+        },
+        {
+          supermercado: 'Carrefour',
+          precio: 1600,
+          precio_lista: 1800,
+          stock: 15,
+          link: 'https://carrefour.com.ar/arroz',
+        },
+      ],
+    }
+
+    const rows = [
+      {
+        o: group.offers[0],
+        eff: 1500,
+        unit: 1500,
+        club: null,
+        promo: null,
+        minQty: 1,
+        noDelivery: false,
+      },
+      {
+        o: group.offers[1],
+        eff: 1600,
+        unit: 1600,
+        club: null,
+        promo: null,
+        minQty: 1,
+        noDelivery: false,
+      },
+    ]
+
+    render(
+      <CartProvider>
+        <OffersSheet
+          open={true}
+          onClose={vi.fn()}
+          group={group}
+          rows={rows}
+        />
+      </CartProvider>,
+    )
+
+    // Check store rows rendered
+    expect(screen.getByText('Coto')).toBeTruthy()
+    expect(screen.getByText('Carrefour')).toBeTruthy()
+
+    // Add buttons should be available on each store row
+    const addButtons = screen.getAllByRole('button', { name: /agregar/i })
+    expect(addButtons.length).toBeGreaterThanOrEqual(2)
+
+    // Click to add from Coto
+    fireEvent.click(addButtons[0])
+
+    const cart = JSON.parse(localStorage.getItem('sv_cart_v2') || '[]')
+    expect(cart.length).toBe(1)
+    expect(cart[0].ean).toBe('7799998881112')
   })
 })

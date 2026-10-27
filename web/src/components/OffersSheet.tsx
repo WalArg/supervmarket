@@ -1,19 +1,35 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X, ExternalLink, Flame, CreditCard, MapPinOff } from 'lucide-react'
+import { X, ExternalLink, Flame, CreditCard, MapPinOff, Plus, Check } from 'lucide-react'
 import type { ProductGroup } from '../types'
 import { storeColor, storeLabel } from '../lib/stores'
 import { formatPrice } from '../lib/pricing'
+import { useCart } from '../cart/CartContext'
 import type { OfferRow } from './ProductCard'
 import QtyControl from './QtyControl'
 
-/** Hoja inferior con todas las opciones de compra (estilo "Ver oferta" de Turismocity). */
+/** Hoja inferior con todas las opciones de compra y agregado directo al changuito. */
 const OffersSheet: React.FC<{
   open: boolean
   onClose: () => void
   group: ProductGroup
   rows: OfferRow[]
 }> = ({ open, onClose, group, rows }) => {
+  const { add, qtyOf } = useCart()
+  const [justAddedKey, setJustAddedKey] = useState<string | null>(null)
+
+  const ean = group.ean || group.offers?.[0]?.ean || (group as any).id || group.nombre
+  const totalInCart = qtyOf(ean)
+
+  const handleAddOffer = (key: string, qty: number = 1) => {
+    add(group, qty)
+    setJustAddedKey(key)
+    navigator.vibrate?.(10)
+    setTimeout(() => {
+      setJustAddedKey(prev => (prev === key ? null : prev))
+    }, 1800)
+  }
+
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -164,19 +180,52 @@ const OffersSheet: React.FC<{
                           {diff > 0 ? ` · +${diff}% que el mejor` : ''}
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
+                      <div className="text-right shrink-0 flex flex-col items-end">
                         <div className={`text-[16px] font-extrabold ${idx === 0 ? 'text-emerald-700' : 'text-slate-900'}`}>
                           {formatPrice(r.eff)}
                           {r.minQty > 1 && <span className="text-[11px] font-bold text-slate-400"> c/u</span>}
                         </div>
+                        {/* Botón principal: AGREGAR AL CARRITO (sin salir de la app) */}
+                        {(() => {
+                          const rowKey = `${r.o.supermercado}-${r.o.sku_id || idx}`
+                          const isJustAdded = justAddedKey === rowKey
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => handleAddOffer(rowKey, r.minQty || 1)}
+                              className={`mt-1 min-h-[34px] h-[34px] px-3 rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 transition-all active:scale-95 shadow-2xs ${
+                                isJustAdded
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                              }`}
+                              title={`Agregar oferta de ${storeLabel(r.o.supermercado)} al carrito`}
+                            >
+                              {isJustAdded ? (
+                                <>
+                                  <Check size={13} strokeWidth={3} />
+                                  <span>Agregado</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Plus size={14} strokeWidth={3} />
+                                  <span>{r.minQty > 1 ? `Sumar (${r.minQty})` : 'Agregar'}</span>
+                                </>
+                              )}
+                            </button>
+                          )
+                        })()}
+
+                        {/* Enlace secundario opcional y discreto hacia la web oficial */}
                         {r.o.link && r.o.link.startsWith('http') && (
                           <a
                             href={r.o.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-1 inline-flex items-center gap-1 h-8 px-3 rounded-full bg-blue-600 text-white text-[12px] font-bold active:bg-blue-700"
+                            className="mt-1 text-[11px] text-slate-400 hover:text-blue-600 flex items-center gap-0.5"
+                            title={`Abrir página oficial de ${storeLabel(r.o.supermercado)}`}
                           >
-                            Ver <ExternalLink size={12} />
+                            <span>Ver web</span>
+                            <ExternalLink size={10} />
                           </a>
                         )}
                       </div>
@@ -230,14 +279,42 @@ const OffersSheet: React.FC<{
                                 <span className="font-extrabold text-slate-900 text-[13px]">
                                   {formatPrice(opt.price)}
                                 </span>
+                                {(() => {
+                                  const optKey = opt.item_id || `opt-${oIdx}`
+                                  const isJustAdded = justAddedKey === optKey
+                                  return (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAddOffer(optKey, 1)}
+                                      className={`h-7 px-2.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 ${
+                                        isJustAdded
+                                          ? 'bg-emerald-600 text-white'
+                                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                      }`}
+                                    >
+                                      {isJustAdded ? (
+                                        <>
+                                          <Check size={12} strokeWidth={3} />
+                                          <span>Listo</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Plus size={12} strokeWidth={3} />
+                                          <span>Agregar</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  )
+                                })()}
                                 {opt.link && (
                                   <a
                                     href={opt.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg bg-blue-600 text-white text-[11px] font-bold active:bg-blue-700 transition-colors"
+                                    className="p-1 text-slate-400 hover:text-blue-600"
+                                    title="Ver en Mercado Libre"
                                   >
-                                    Ver <ExternalLink size={10} />
+                                    <ExternalLink size={11} />
                                   </a>
                                 )}
                               </div>

@@ -23,7 +23,11 @@ export interface OfferRow {
  * Tarjeta compacta: muestra SOLO la mejor oferta (precio, súper, precio por kg/l/un y promo)
  * y un botón "Ver N ofertas" que abre la hoja con todas las opciones (patrón Turismocity).
  */
-const ProductCard: React.FC<{ group: ProductGroup; isSponsored?: boolean }> = ({ group, isSponsored }) => {
+const ProductCard: React.FC<{
+  group: ProductGroup
+  isSponsored?: boolean
+  selectedStore?: string | null
+}> = ({ group, isSponsored, selectedStore }) => {
   const { hasStoreClub, selectedCards } = useBenefits()
   const { cp, coverage } = useLocation()
   const { isSaved, toggleSave } = useSaved()
@@ -48,9 +52,16 @@ const ProductCard: React.FC<{ group: ProductGroup; isSponsored?: boolean }> = ({
           noDelivery: Boolean(cp && cov && cov.delivers === false),
         }
       })
-      .sort((a, b) => Number(a.noDelivery) - Number(b.noDelivery) || a.eff - b.eff)
+      .sort((a, b) => {
+        if (selectedStore) {
+          const aMatch = a.o.supermercado === selectedStore ? 0 : 1
+          const bMatch = b.o.supermercado === selectedStore ? 0 : 1
+          if (aMatch !== bMatch) return aMatch - bMatch
+        }
+        return Number(a.noDelivery) - Number(b.noDelivery) || a.eff - b.eff
+      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [group.offers, selectedCards, cp, coverage])
+  }, [group.offers, selectedCards, cp, coverage, selectedStore])
 
   if (!rows.length) return null
   const best = rows[0]

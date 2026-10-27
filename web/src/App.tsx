@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, ShoppingCart, Bookmark, User, Sparkles } from 'lucide-react'
+import { Home, ShoppingCart, Bookmark, User, Sparkles } from 'lucide-react'
 import SearchScreen from './components/SearchScreen'
 import ListScreen from './components/ListScreen'
 import SavedScreen from './components/SavedScreen'
@@ -87,7 +87,7 @@ function App() {
   }
 
   const NAV: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'buscar', label: 'Buscar', icon: <Search size={21} /> },
+    { id: 'buscar', label: 'Inicio', icon: <Home size={21} /> },
     { id: 'carrito', label: 'Carrito', icon: <ShoppingCart size={21} /> },
     { id: 'guardados', label: 'Guardados', icon: <Bookmark size={21} /> },
     { id: 'ia', label: 'Asistente IA', icon: <Sparkles size={21} /> },
