@@ -93,18 +93,35 @@ const SearchScreen: React.FC = () => {
     [results, onlyOffers, onlyMulti, onlyBulk],
   )
 
-  // Detecta el primer producto en resultados que tenga oferta de la tienda patrocinada (MercadoLibre)
+  // Detecta el producto para el recuadro patrocinado (Mercado Libre)
+  // Requisitos estrictos de producto:
+  // 1. Debe pertenecer a la tienda patrocinada configurada (MercadoLibre)
+  // 2. Debe ser estrictamente de FULL SÚPER (o.is_full === true)
+  // 3. Debe guardar concordancia con la búsqueda del usuario (no productos desalineados)
   const sponsoredCandidate = useMemo(() => {
+    const qTokens = debounced
+      .toLowerCase()
+      .split(/\s+/)
+      .map(t => t.trim())
+      .filter(t => t.length >= 3)
+
     for (const group of visible) {
-      const meliOffer = group.offers.find(o =>
-        SPONSORED_CONFIG.isStoreSponsored(o.supermercado),
+      const meliOffer = group.offers.find(
+        o => SPONSORED_CONFIG.isStoreSponsored(o.supermercado) && o.is_full === true,
       )
-      if (meliOffer) {
-        return { product: group, offer: meliOffer }
+      if (!meliOffer) continue
+
+      // Validar concordancia temática con la búsqueda activa si el usuario ingresó un término
+      if (qTokens.length > 0) {
+        const prodText = `${group.nombre} ${group.marca}`.toLowerCase()
+        const matchesQuery = qTokens.some(tok => prodText.includes(tok))
+        if (!matchesQuery) continue
       }
+
+      return { product: group, offer: meliOffer }
     }
     return null
-  }, [visible])
+  }, [visible, debounced])
 
   const runSearch = (q: string) => {
     setQuery(q)

@@ -182,4 +182,53 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
     expect(habitual.items.length).toBe(1)
     expect(habitual.items[0].ean).toBe('7790742333605')
   })
+
+  it('5. Sponsored placement strictly requires Full Super (is_full: true) and query relevance', () => {
+    // 1. Non-full Mercado Libre offer must NOT be sponsored
+    const nonFullOffer: Offer = {
+      supermercado: 'MercadoLibre',
+      sku: 'MELI-AIR-123',
+      precio: 10000,
+      precio_lista: 10000,
+      stock: 10,
+      link: 'https://articulo.mercadolibre.com.ar/MLA-123',
+      is_full: false,
+    }
+    const airFreshenerGroup: ProductGroup = {
+      id: 'grp-air',
+      nombre: 'Aromatizante Coca Cola Auto',
+      marca: 'Airpure',
+      offers: [nonFullOffer],
+    }
+
+    // 2. Full Super offer must be accepted
+    const fullOffer: Offer = {
+      supermercado: 'MercadoLibre',
+      sku: 'MELI-COCA-999',
+      precio: 6995,
+      precio_lista: 6995,
+      stock: 100,
+      link: 'https://articulo.mercadolibre.com.ar/MLA-999',
+      seller_name: '01MERCADO.COM.AR',
+      is_full: true,
+      free_shipping: true,
+    }
+    const realCocaColaGroup: ProductGroup = {
+      id: 'grp-coca',
+      nombre: 'Gaseosa Coca Cola 1.75 Lt',
+      marca: 'Coca-Cola',
+      offers: [fullOffer],
+    }
+
+    render(
+      <SponsoredProductBox
+        product={realCocaColaGroup}
+        offer={fullOffer}
+      />,
+    )
+
+    expect(screen.getByText(/FULL SÚPER/i)).toBeTruthy()
+    expect(screen.getByText('01MERCADO.COM.AR')).toBeTruthy()
+    expect(screen.getByText('Gaseosa Coca Cola 1.75 Lt')).toBeTruthy()
+  })
 })

@@ -74,8 +74,8 @@ export const SponsoredProductBox: React.FC<SponsoredProductBoxProps> = ({ produc
               </span>
             )}
             {offer.is_full && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded font-extrabold text-[10px] bg-emerald-100 text-emerald-800">
-                <Zap size={10} className="fill-emerald-800" /> FULL
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded font-black text-[10.5px] bg-emerald-600 text-white shadow-2xs tracking-wide">
+                <Zap size={10} className="fill-white" /> FULL SÚPER
               </span>
             )}
             {offer.free_shipping && (

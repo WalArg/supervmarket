@@ -23,6 +23,55 @@ _CACHED_TOKEN: str | None = None
 _TOKEN_EXPIRES_AT: float = 0.0
 _SELLER_REP_CACHE: dict[int, dict] = {}
 
+# Dominios o prefijos de dominios en Mercado Libre ajenos a supermercado / consumo masivo
+NON_SUPERMARKET_DOMAIN_PREFIXES = (
+    "MLA-VEHICLE_",
+    "MLA-AUTO_",
+    "MLA-MOTORCYCLE_",
+    "MLA-CAR_",
+    "MLA-KITCHEN_",
+    "MLA-POUFS",
+    "MLA-PILLOWS",
+    "MLA-CUSHIONS",
+    "MLA-SOAP_HOLDERS",
+    "MLA-MANUAL_SOAP_",
+    "MLA-MANUAL_BEER_",
+    "MLA-BEER_FAUCETS",
+    "MLA-DISHES_",
+    "MLA-DRINKING_GLASSES",
+    "MLA-OIL_AND_VINEGAR_",
+    "MLA-BOOKS",
+    "MLA-CLOTHING",
+    "MLA-CELLPHONES",
+    "MLA-TOOLS",
+    "MLA-TOYS",
+    "MLA-NAIL_POLISH",
+    "MLA-TOILETRY_BAGS",
+    "MLA-HEADPHONES",
+    "MLA-AUDIO_",
+    "MLA-COMPUTER_",
+    "MLA-FOOTWEAR",
+)
+
+
+def _is_supermarket_domain(domain_id: str | None) -> bool:
+    """Descarta dominios que pertenecen a rubros ajenos a supermercado (automotor, bazar, accesorios)."""
+    if not domain_id:
+        return True
+    dom = domain_id.upper()
+    for prefix in NON_SUPERMARKET_DOMAIN_PREFIXES:
+        if dom.startswith(prefix):
+            return False
+    bad_tokens = (
+        "AIR_FRESHENER", "VEHICLE", "AUTO_", "MOTORCYCLE", "FILTER", "RADIATOR",
+        "DISPENSER", "HOLDER", "SLICER", "GRATER", "CUSHION", "PILLOW", "POUF",
+        "POLISH", "TOILETRY", "HEADPHONE", "DRINKING_GLASS",
+    )
+    for tok in bad_tokens:
+        if tok in dom:
+            return False
+    return True
+
 
 async def _ensure_seller_reputations(client: httpx.AsyncClient, token: str, seller_ids: list[int]):
     """Consulta en batch y cachea la reputación y datos comerciales oficiales de los vendedores de MeLi."""
@@ -216,11 +265,6 @@ async def fetch_mercadolibre_live(
 
     q_clean = query.strip()
     is_ean = q_clean.isdigit() and 8 <= len(q_clean) <= 14
-    if is_ean:
-        url = f"https://api.mercadolibre.com/products/search?status=active&site_id=MLA&product_identifier={q_clean}"
-    else:
-        q_enc = urllib.parse.quote(q_clean)
-        url = f"https://api.mercadolibre.com/products/search?status=active&site_id=MLA&q={q_enc}"
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -229,18 +273,58 @@ async def fetch_mercadolibre_live(
     }
 
     try:
-        r = await client.get(url, headers=headers, timeout=4.5)
-        if r.status_code != 200:
-            return []
-        data = r.json()
-        products = data.get("results", [])
+        products = []
+        seen_pids = set()
+
+        if is_ean:
+            url = f"https://api.mercadolibre.com/products/search?status=active&site_id=MLA&product_identifier={q_clean}"
+            r = await client.get(url, headers=headers, timeout=4.5)
+            if r.status_code == 200:
+                for p in r.json().get("results", []):
+                    pid = p.get("id")
+                    if pid and pid not in seen_pids and _is_supermarket_domain(p.get("domain_id")):
+                        seen_pids.add(pid)
+                        products.append(p)
+        else:
+            # Lista de consultas a realizar: original + desambiguación para términos de supermercado
+            # que en el catálogo global de MeLi se confunden con bazar/automotor (ej: 'coca cola', 'aceite')
+            queries_to_try = [q_clean]
+            q_lower = q_clean.lower()
+            beverage_brands = (
+                "coca cola", "coca-cola", "pepsi", "sprite", "fanta", "seven up",
+                "7up", "paso de los toros", "aquarius", "manaos", "pritty"
+            )
+            if any(b in q_lower for b in beverage_brands) and not any(k in q_lower for k in ("gaseosa", "bebida", "refresco")):
+                queries_to_try.append(f"gaseosa {q_clean}")
+            elif q_lower == "aceite":
+                queries_to_try.append("aceite comestible")
+            elif q_lower == "shampoo":
+                queries_to_try.append("shampoo pelo")
+            elif q_lower == "cerveza":
+                queries_to_try.append("cerveza lata")
+            elif q_lower == "jabon":
+                queries_to_try.append("jabon tocador")
+
+            for q_term in queries_to_try:
+                q_enc = urllib.parse.quote(q_term)
+                url = f"https://api.mercadolibre.com/products/search?status=active&site_id=MLA&q={q_enc}"
+                r = await client.get(url, headers=headers, timeout=4.5)
+                if r.status_code == 200:
+                    for p in r.json().get("results", []):
+                        pid = p.get("id")
+                        if pid and pid not in seen_pids and _is_supermarket_domain(p.get("domain_id")):
+                            seen_pids.add(pid)
+                            products.append(p)
+                if len(products) >= limit:
+                    break
+
         if not products:
             return []
 
-        # Consultar precios en paralelo para los primeros productos del catálogo
+        # Consultar precios en paralelo para los productos válidos del catálogo de supermercado
         async def _fetch_product_best_item(prod: dict) -> dict | None:
             pid = prod.get("id")
-            if not pid:
+            if not pid or not _is_supermarket_domain(prod.get("domain_id")):
                 return None
             it_url = f"https://api.mercadolibre.com/products/{pid}/items"
             try:
@@ -251,20 +335,26 @@ async def fetch_mercadolibre_live(
                         sids = [it.get("seller_id") for it in items if it.get("seller_id")]
                         await _ensure_seller_reputations(client, token, sids)
 
-                        # Filtrar ofertas elegibles para compra normal en supermercado/fulfillment
+                        # Filtrar ofertas elegibles estrictamente para Full Supermercado / fulfillment oficial
                         candidates = [
                             it for it in items
                             if float(it.get("price") or 0) > 0 and (
-                                "supermarket_eligible" in (it.get("tags") or [])
-                                or (it.get("shipping") or {}).get("logistic_type") == "fulfillment"
-                                or it.get("official_store_id")
+                                (it.get("shipping") or {}).get("logistic_type") == "fulfillment"
+                                or "supermarket_eligible" in (it.get("tags") or [])
+                                or (it.get("official_store_id") and (it.get("shipping") or {}).get("logistic_type") in ("fulfillment", "drop_off", "cross_docking"))
                             )
                         ]
                         if not candidates:
-                            candidates = [it for it in items if float(it.get("price") or 0) > 0]
+                            # Sin Full Supermercado ni fulfillment oficial, se descarta del comparador
+                            return None
 
-                        # Ordenamos estrictamente por menor precio para que el comparador muestre el más barato real
-                        candidates.sort(key=lambda x: float(x.get("price") or 999999))
+                        # Priorizar estrictamente envíos FULL (fulfillment) y luego menor precio
+                        candidates.sort(
+                            key=lambda x: (
+                                not ((x.get("shipping") or {}).get("logistic_type") == "fulfillment"),
+                                float(x.get("price") or 999999),
+                            )
+                        )
                         best_item = candidates[0]
 
                         # Armamos las mejores opciones distintas por vendedor para que el usuario elija
