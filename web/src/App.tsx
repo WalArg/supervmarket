@@ -5,14 +5,24 @@ import ListScreen from './components/ListScreen'
 import ProfileScreen from './components/ProfileScreen'
 import AIScreen from './components/AIScreen'
 import { LocationModal } from './components/LocationModal'
+import { ImportSharedListModal } from './components/ImportSharedListModal'
 import { useCart } from './cart/CartContext'
+import { decodeShareableList, cleanUrlParams } from './cart/portableList'
+import type { SharedItem } from './types'
 import ErrorBoundary from './components/ErrorBoundary'
 
 type Tab = 'buscar' | 'lista' | 'ia' | 'perfil'
 
 function App() {
   const [tab, setTab] = useState<Tab>('buscar')
-  const { totalUnits } = useCart()
+  const { items, totalUnits, importItems } = useCart()
+  const [incomingSharedItems, setIncomingSharedItems] = useState<SharedItem[]>([])
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+
+  const go = (t: Tab) => {
+    setTab(t)
+    window.scrollTo({ top: 0 })
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -28,11 +38,49 @@ function App() {
         })
         .catch(() => {})
     }
+
+    const shareParam = params.get('list') || params.get('habitual') || params.get('cart')
+    if (shareParam) {
+      const decoded = decodeShareableList(shareParam)
+      if (decoded.length > 0) {
+        if (items.length === 0) {
+          // Si el changuito está vacío, importar automáticamente
+          importItems(decoded, 'replace')
+          cleanUrlParams(['list', 'habitual', 'cart'])
+          go('lista')
+        } else {
+          // Si ya hay productos, abrir modal interactivo de fusionar o reemplazar
+          setIncomingSharedItems(decoded)
+          setIsImportModalOpen(true)
+        }
+      }
+    }
   }, [])
 
-  const go = (t: Tab) => {
-    setTab(t)
-    window.scrollTo({ top: 0 })
+  const handleMergeImport = () => {
+    if (incomingSharedItems.length > 0) {
+      importItems(incomingSharedItems, 'merge')
+    }
+    cleanUrlParams(['list', 'habitual', 'cart'])
+    setIsImportModalOpen(false)
+    setIncomingSharedItems([])
+    go('lista')
+  }
+
+  const handleReplaceImport = () => {
+    if (incomingSharedItems.length > 0) {
+      importItems(incomingSharedItems, 'replace')
+    }
+    cleanUrlParams(['list', 'habitual', 'cart'])
+    setIsImportModalOpen(false)
+    setIncomingSharedItems([])
+    go('lista')
+  }
+
+  const handleDismissImport = () => {
+    cleanUrlParams(['list', 'habitual', 'cart'])
+    setIsImportModalOpen(false)
+    setIncomingSharedItems([])
   }
 
   const NAV: { id: Tab; label: string; icon: React.ReactNode }[] = [
@@ -67,6 +115,15 @@ function App() {
           </ErrorBoundary>
         )}
       </div>
+
+      <ImportSharedListModal
+        isOpen={isImportModalOpen}
+        sharedItems={incomingSharedItems}
+        currentCartCount={items.length}
+        onMerge={handleMergeImport}
+        onReplace={handleReplaceImport}
+        onDismiss={handleDismissImport}
+      />
 
       <LocationModal />
 

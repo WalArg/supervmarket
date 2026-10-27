@@ -11,6 +11,12 @@ interface CartCtx {
   qtyOf: (ean: string) => number
   count: number
   totalUnits: number
+  replaceItems: (newItems: ListItem[]) => void
+  mergeItems: (newItems: ListItem[]) => void
+  importItems: (
+    incoming: { ean: string; qty: number; nombre?: string; imagen?: string }[],
+    mode: 'replace' | 'merge',
+  ) => void
 }
 
 const Ctx = createContext<CartCtx | null>(null)
@@ -57,6 +63,60 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const has = (ean: string) => items.some(i => i.ean === ean)
   const qtyOf = (ean: string) => items.find(i => i.ean === ean)?.qty || 0
 
+  const replaceItems = (newItems: ListItem[]) => {
+    setItems(
+      newItems.map(i => ({
+        ean: i.ean,
+        nombre: i.nombre || `Producto ${i.ean}`,
+        imagen: i.imagen || '',
+        qty: Math.max(1, i.qty),
+      })),
+    )
+  }
+
+  const mergeItems = (newItems: ListItem[]) => {
+    setItems(prev => {
+      const map = new Map<string, ListItem>()
+      for (const item of prev) {
+        map.set(item.ean, { ...item })
+      }
+      for (const item of newItems) {
+        if (map.has(item.ean)) {
+          const existing = map.get(item.ean)!
+          map.set(item.ean, {
+            ...existing,
+            qty: existing.qty + Math.max(1, item.qty),
+          })
+        } else {
+          map.set(item.ean, {
+            ean: item.ean,
+            nombre: item.nombre || `Producto ${item.ean}`,
+            imagen: item.imagen || '',
+            qty: Math.max(1, item.qty),
+          })
+        }
+      }
+      return Array.from(map.values())
+    })
+  }
+
+  const importItems = (
+    incoming: { ean: string; qty: number; nombre?: string; imagen?: string }[],
+    mode: 'replace' | 'merge',
+  ) => {
+    const formatted: ListItem[] = incoming.map(i => ({
+      ean: i.ean,
+      nombre: i.nombre || `Producto ${i.ean}`,
+      imagen: i.imagen || '',
+      qty: Math.max(1, i.qty),
+    }))
+    if (mode === 'replace') {
+      replaceItems(formatted)
+    } else {
+      mergeItems(formatted)
+    }
+  }
+
   const value = useMemo(
     () => ({
       items,
@@ -68,6 +128,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       qtyOf,
       count: items.length,
       totalUnits: items.reduce((acc, i) => acc + i.qty, 0),
+      replaceItems,
+      mergeItems,
+      importItems,
     }),
     [items],
   )

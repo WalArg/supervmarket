@@ -1,33 +1,34 @@
 import React, { useEffect, useState } from 'react'
 import {
   Trash2,
-  Loader2,
   Share2,
   Calendar,
   CreditCard,
   ShoppingBasket,
-  TrendingDown,
   Plus,
   Minus,
   Truck,
   MapPin,
-  Sparkles,
+  ChevronDown,
   AlertCircle,
+  Bookmark,
+  BookmarkCheck,
+  Check,
+  RotateCcw,
 } from 'lucide-react'
 import type { OptimizeMode, OptimizePlan } from '../types'
 import { useCart } from '../cart/CartContext'
 import { useLocation } from '../location/LocationContext'
 import { useBenefits } from '../benefits/BenefitsContext'
+import { useHabitualList } from '../cart/HabitualListContext'
 import { optimize } from '../api'
 import { formatPrice } from '../lib/pricing'
 import { storeLabel } from '../lib/stores'
 import StoreCart from './StoreCart'
-
-const MODES: { id: OptimizeMode; label: string }[] = [
-  { id: 'ahorro', label: 'Lo más barato' },
-  { id: 'balanceada', label: 'Hasta 2 súper' },
-  { id: 'comodidad', label: '1 solo súper' },
-]
+import SmartCartHero from './SmartCartHero'
+import MissingItemsBreakdown from './MissingItemsBreakdown'
+import HabitualListManager from './HabitualListManager'
+import { generateShareUrl, formatShareMessage, executeShare } from '../cart/portableList'
 
 const DAY_LABEL: Record<string, string> = {
   lunes: 'Lunes',
@@ -46,15 +47,30 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
   const { items, remove, setQty, clear, totalUnits } = useCart()
   const { cp, locationLabel, exactAddress, setExactAddress, openModal } = useLocation()
   const { selectedCards, selectedDay, setSelectedDay } = useBenefits()
+  const {
+    habitualList,
+    hasHabitualList,
+    itemsCount: habitualCount,
+    totalUnits: habitualUnits,
+    isCartSavedAsHabitual,
+    saveCartAsHabitual,
+    loadHabitualIntoCart,
+    recordSnapshot,
+  } = useHabitualList()
   const [mode, setMode] = useState<OptimizeMode>('ahorro')
   const [includeShipping, setIncludeShipping] = useState(false)
   const [plan, setPlan] = useState<OptimizePlan | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [showSaveToast, setShowSaveToast] = useState(false)
+  const [showCopyToast, setShowCopyToast] = useState(false)
 
   const itemsKey = items.map(i => `${i.ean}:${i.qty}`).join(',')
   const planContextKey = `${itemsKey}|${cp || ''}|${includeShipping}|${selectedCards.join(',')}|${selectedDay}`
 
+
+  // 0ms Mode Switching: Uses precalculated all_plans from backend
   const handleSelectMode = (newMode: OptimizeMode) => {
     setMode(newMode)
     if (plan?.all_plans?.[newMode]) {
@@ -75,7 +91,7 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
       return
     }
 
-    // Si ya tenemos el plan precalculado para ESTE MISMO CP, productos, tarjetas y día, aplicamos el modo en 0ms
+    // Instant switch if plan already cached for this exact context
     if (plan && plan.context_key === planContextKey && plan.all_plans?.[mode]) {
       const selected = plan.all_plans[mode]
       setPlan({
@@ -99,6 +115,7 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
               context_key: planContextKey,
             })
             setLoadError(false)
+            recordSnapshot(p, 'optimization_view')
           }
         })
         .catch(() => {
@@ -108,6 +125,7 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
           if (alive) setLoading(false)
         })
     }, 350)
+
     return () => {
       alive = false
       clearTimeout(t)
@@ -115,27 +133,87 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
   }, [itemsKey, mode, cp, includeShipping, selectedCards.join(','), selectedDay])
 
   const share = async () => {
-    if (!plan) return
-    const lines = ['🛒 Mi lista en SuperVmarket', '']
-    for (const c of plan.carts) {
-      lines.push(`📍 ${storeLabel(c.supermercado)} — ${formatPrice(c.subtotal)}`)
-      c.items.forEach(i => lines.push(`  • ${i.qty}× ${i.nombre}`))
-      lines.push('')
-    }
-    lines.push(`Total: ${formatPrice(plan.total)}`)
-    const text = lines.join('\n')
-    try {
-      if (navigator.share) await navigator.share({ title: 'Mi lista', text })
-      else {
-        await navigator.clipboard.writeText(text)
-        alert('Lista copiada al portapapeles')
-      }
-    } catch {
-      /* usuario canceló */
+    if (!items.length) return
+    const shareUrl = generateShareUrl(items, 'list')
+    const text = formatShareMessage({
+      items,
+      planTotal: plan?.total,
+      planSaving: plan?.ahorro_total,
+      shareUrl,
+    })
+    const res = await executeShare({
+      title: 'Mi lista en SuperVmarket',
+      text,
+      url: shareUrl,
+    })
+    if (res.method === 'clipboard') {
+      setShowCopyToast(true)
+      setTimeout(() => setShowCopyToast(false), 3000)
     }
   }
 
   if (!items.length) {
+    if (hasHabitualList && habitualList && habitualList.items.length > 0) {
+      return (
+        <div className="pt-safe px-4 min-h-[75dvh] flex flex-col justify-center items-center">
+          <div className="w-full max-w-md bg-white rounded-3xl border border-blue-100 p-6 shadow-sm text-center">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <BookmarkCheck size={28} />
+            </div>
+            <h2 className="mt-4 text-[18px] font-extrabold text-slate-900">
+              {habitualList.name || 'Tu Lista Habitual'}
+            </h2>
+            <p className="mt-1 text-[13px] text-slate-500">
+              Tenés {habitualCount} productos guardados ({habitualUnits} unidades).
+            </p>
+
+            {/* Mini miniaturas de productos */}
+            <div className="mt-4 flex items-center justify-center -space-x-2">
+              {habitualList.items.slice(0, 4).map(item =>
+                item.imagen ? (
+                  <img
+                    key={item.ean}
+                    src={item.imagen}
+                    alt={item.nombre}
+                    className="w-10 h-10 rounded-full border-2 border-white object-contain bg-slate-50 p-0.5 shadow-2xs"
+                  />
+                ) : (
+                  <div
+                    key={item.ean}
+                    className="w-10 h-10 rounded-full border-2 border-white bg-slate-100 text-slate-500 text-[10px] font-bold flex items-center justify-center shadow-2xs"
+                  >
+                    {item.nombre.slice(0, 2).toUpperCase()}
+                  </div>
+                ),
+              )}
+              {habitualList.items.length > 4 && (
+                <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-100 text-slate-600 text-[11px] font-bold flex items-center justify-center shadow-2xs">
+                  +{habitualList.items.length - 4}
+                </div>
+              )}
+            </div>
+
+            {/* 1-Tap CTA */}
+            <button
+              type="button"
+              onClick={() => loadHabitualIntoCart('replace')}
+              className="mt-6 w-full min-h-[48px] h-12 rounded-2xl bg-blue-600 text-white font-bold active:scale-98 transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
+            >
+              <RotateCcw size={17} /> Cargar Lista y Comparar Precios
+            </button>
+
+            <button
+              type="button"
+              onClick={onGoSearch}
+              className="mt-2.5 w-full min-h-[44px] h-11 rounded-xl text-slate-500 hover:text-slate-800 text-[13px] font-semibold active:scale-98 transition-all flex items-center justify-center"
+            >
+              Explorar otros productos
+            </button>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="pt-safe px-6 min-h-[75dvh] flex flex-col items-center justify-center text-center">
         <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
@@ -148,7 +226,7 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
         <button
           type="button"
           onClick={onGoSearch}
-          className="mt-6 h-12 px-6 rounded-2xl bg-blue-600 text-white font-bold active:scale-95 transition-all shadow-md shadow-blue-500/20"
+          className="mt-6 min-h-[48px] h-12 px-6 rounded-2xl bg-blue-600 text-white font-bold active:scale-95 transition-all shadow-md shadow-blue-500/20"
         >
           Explorar productos
         </button>
@@ -157,340 +235,350 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
   }
 
   const best = plan?.best_day_suggestion
-  const showBestDay = best && best.day !== plan?.day && best.saving > (plan?.reintegro_bancario_total || 0)
+  const showBestDay =
+    best && best.day !== plan?.day && best.saving > (plan?.reintegro_bancario_total || 0)
 
   return (
     <div>
-      <header className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md pt-safe border-b border-slate-100/60">
+      {/* HEADER COMPACTO STICKY */}
+      <header className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md pt-safe border-b border-slate-100/80">
         <div className="px-4 pt-3 pb-2.5 flex items-center justify-between">
-          <div>
-            <h1 className="text-[20px] font-extrabold tracking-tight">Mi lista</h1>
-            <p className="text-[12px] text-slate-500">
+          <div className="min-w-0 flex-1 mr-2">
+            <h1 className="text-[20px] font-extrabold tracking-tight text-slate-900">Mi lista</h1>
+            <p className="text-[12px] text-slate-500 font-medium truncate">
               {items.length} producto{items.length === 1 ? '' : 's'} · {totalUnits} unidad{totalUnits === 1 ? '' : 'es'}
             </p>
           </div>
           <div className="flex items-center gap-1.5">
-            {plan && (
+            {/* 1-Tap Save habitual / Status Indicator */}
+            {isCartSavedAsHabitual ? (
+              <div
+                title="Tu changuito actual coincide con tu lista habitual"
+                className="min-h-[44px] px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-[11px] font-bold border border-emerald-200/60 flex items-center gap-1 shrink-0"
+              >
+                <Check size={14} className="text-emerald-600" />
+                <span>Guardada</span>
+              </div>
+            ) : (
               <button
                 type="button"
-                onClick={share}
-                aria-label="Compartir"
-                className="p-2 rounded-xl text-slate-600 hover:bg-slate-200/60 active:scale-95 transition-all"
+                onClick={() => {
+                  const res = saveCartAsHabitual()
+                  if (res.success) {
+                    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                      navigator.vibrate(40)
+                    }
+                    setShowSaveToast(true)
+                    setTimeout(() => setShowSaveToast(false), 3000)
+                  }
+                }}
+                className="min-h-[44px] px-2.5 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 text-[11px] font-bold border border-blue-200/60 flex items-center gap-1 active:scale-95 transition-all shrink-0"
+                title="Guardar como lista habitual para cotizar siempre en 1 toque"
+                aria-label="Guardar como lista habitual"
               >
-                <Share2 size={19} />
+                <Bookmark size={14} className="text-blue-600" />
+                <span>Guardar habitual</span>
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={share}
+              aria-label="Compartir lista"
+              className="w-11 h-11 flex items-center justify-center rounded-xl text-slate-600 hover:bg-slate-200/60 active:scale-95 transition-all"
+            >
+              <Share2 size={19} />
+            </button>
             <button
               type="button"
               onClick={clear}
-              className="text-[12px] font-bold text-red-600 px-2.5 py-1.5 rounded-xl hover:bg-red-50 active:scale-95 transition-all"
+              className="min-h-[44px] text-[12px] font-bold text-red-600 px-3 py-2 rounded-xl hover:bg-red-50 active:scale-95 transition-all flex items-center justify-center"
             >
               Vaciar
             </button>
           </div>
         </div>
+
+        {/* Toasts Feedback */}
+        {showSaveToast && (
+          <div className="mx-4 mb-2 p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold flex items-center gap-2 animate-[fade-in_0.2s_ease-out]">
+            <Check size={14} className="text-emerald-600 shrink-0" />
+            <span>¡Guardada en Mi Lista Habitual para cotizar en 1 toque!</span>
+          </div>
+        )}
+        {showCopyToast && (
+          <div className="mx-4 mb-2 p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-bold flex items-center gap-2 animate-[fade-in_0.2s_ease-out]">
+            <Check size={14} className="text-blue-600 shrink-0" />
+            <span>¡Enlace de lista copiado al portapapeles!</span>
+          </div>
+        )}
       </header>
 
-      <main className="px-4 pt-3 pb-28 space-y-4">
-        {/* 1. SECCIÓN: TUS PRODUCTOS (Siempre visible para ver y editar) */}
-        <section className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
-          <div className="px-4 pt-3 pb-2 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-[13px] font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-              <ShoppingBasket size={15} className="text-blue-600" /> Tus productos
-            </h2>
-            <button
-              type="button"
-              onClick={onGoSearch}
-              className="text-[12px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5"
-            >
-              + Agregar más
-            </button>
-          </div>
+      <main className="px-4 pt-3 pb-28 space-y-3">
+        {/* 1. HÉROE SMART CART: 3 ESCENARIOS EN VIEWPORT SUPERIOR */}
+        <SmartCartHero
+          mode={mode}
+          onSelectMode={handleSelectMode}
+          plan={plan}
+          loading={loading}
+        />
 
-          <div className="divide-y divide-slate-100">
-            {items.map(i => (
-              <div key={i.ean} className="flex items-center gap-3 p-3">
-                {i.imagen ? (
-                  <img
-                    src={i.imagen}
-                    alt=""
-                    className="w-12 h-12 object-contain rounded-lg bg-slate-50 p-1 shrink-0 border border-slate-100"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
-                    <ShoppingBasket size={20} />
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <span className="text-[13px] font-semibold text-slate-900 leading-snug line-clamp-2">
-                    {i.nombre}
-                  </span>
-                </div>
-                <div className="flex items-center h-8 rounded-xl border border-slate-200 shrink-0 bg-slate-50">
-                  <button
-                    type="button"
-                    onClick={() => setQty(i.ean, i.qty - 1)}
-                    className="w-8 h-full flex items-center justify-center text-slate-600 hover:bg-slate-200/60 rounded-l-xl active:scale-90"
-                    aria-label="Restar unidad"
-                  >
-                    <Minus size={14} />
-                  </button>
-                  <span className="w-6 text-center text-[13px] font-extrabold text-slate-900">
-                    {i.qty}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setQty(i.ean, i.qty + 1)}
-                    className="w-8 h-full flex items-center justify-center text-slate-600 hover:bg-slate-200/60 rounded-r-xl active:scale-90"
-                    aria-label="Sumar unidad"
-                  >
-                    <Plus size={14} />
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => remove(i.ean)}
-                  aria-label="Quitar de la lista"
-                  className="p-1.5 text-slate-400 hover:text-red-600 active:scale-90 transition-colors shrink-0"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* 1.5. TERMÓMETRO DE AHORRO Y MONITOR DE INFLACIÓN */}
+        <HabitualListManager />
 
-        {/* 2. SECCIÓN: OPTIMIZACIÓN Y RECOMENDACIÓN INTELIGENTE */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[13px] font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles size={15} className="text-amber-500" /> Optimización de Changuito
-            </h2>
-          </div>
-
-          {/* Selector de modo con precios precalculados e instantáneos */}
-          <div className="grid grid-cols-3 p-1.5 bg-slate-200/80 rounded-2xl gap-1">
-            {MODES.map(m => {
-              const isSelected = mode === m.id
-              const preview = plan?.mode_previews?.[m.id]
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => handleSelectMode(m.id)}
-                  className={`py-2 px-1 rounded-xl flex flex-col items-center justify-center text-center transition-all ${
-                    isSelected
-                      ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-900/5'
-                      : 'text-slate-600 hover:text-slate-900 active:scale-[0.98]'
-                  }`}
-                >
-                  <span className="text-[12px] font-extrabold leading-tight">{m.label}</span>
-                  {preview ? (
-                    <span
-                      className={`text-[10px] font-bold mt-0.5 leading-none ${
-                        isSelected
-                          ? 'text-blue-600 font-extrabold'
-                          : preview.diff > 0
-                            ? 'text-amber-700 font-semibold'
-                            : 'text-emerald-700 font-semibold'
-                      }`}
-                    >
-                      {m.id === 'ahorro'
-                        ? `${preview.stops} súper`
-                        : preview.covered_items !== undefined && preview.total_items !== undefined && preview.covered_items < preview.total_items
-                          ? `${preview.covered_items}/${preview.total_items} items`
-                          : preview.diff > 0
-                            ? `+${formatPrice(preview.diff)}`
-                            : preview.stops === 1
-                              ? '1 súper'
-                              : `${preview.stops} súper`}
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-slate-400 mt-0.5 leading-none">—</span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-
-          {loadError && !plan && (
-            <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-[12px] flex items-center justify-between gap-2 shadow-2xs">
-              <div className="flex items-center gap-2 min-w-0">
-                <AlertCircle size={17} className="text-amber-600 shrink-0" />
-                <span className="truncate">Demora al cotizar en vivo. Podés reintentar.</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setLoading(true)
-                  setLoadError(false)
-                  optimize(items, mode, { cp, includeShipping, selectedCards, day: selectedDay })
-                    .then(p => {
-                      setPlan(p)
-                      setLoadError(false)
-                    })
-                    .catch(() => setLoadError(true))
-                    .finally(() => setLoading(false))
-                }}
-                className="px-3 py-1.5 rounded-xl bg-amber-600 text-white font-bold text-[11px] shrink-0 active:scale-95 transition-all shadow-xs"
-              >
-                Reintentar
-              </button>
+        {/* 2. BARRA CONTEXTUAL COMPACTA (44px de altura, consolida CP, Tarjetas y Flete) */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-1.5 flex items-center gap-1.5 shadow-2xs">
+          {/* CP / Ubicación */}
+          <button
+            type="button"
+            onClick={openModal}
+            className="min-h-[44px] h-11 px-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 active:scale-[0.98] transition-all flex items-center gap-1.5 min-w-0 flex-1 text-left"
+            title="Cambiar código postal o dirección"
+            aria-label="Cambiar código postal o dirección"
+          >
+            <div className="w-7 h-7 rounded-lg bg-blue-100/60 text-blue-700 flex items-center justify-center shrink-0">
+              <MapPin size={14} />
             </div>
-          )}
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] font-bold text-slate-800 truncate leading-tight">
+                {locationLabel || (cp ? `CP ${cp}` : 'Ubicación')}
+              </p>
+              <p className="text-[10px] text-slate-400 truncate leading-tight">
+                {exactAddress ? exactAddress.split(',')[0] : (cp ? `Zona CP ${cp}` : 'Elegir zona')}
+              </p>
+            </div>
+          </button>
 
-          {/* Resumen total con ahorro */}
-          <div className="rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white p-4 relative overflow-hidden shadow-md shadow-blue-500/10">
-            {loading && (
-              <div className="absolute inset-0 bg-blue-900/40 backdrop-blur-xs flex items-center justify-center gap-2 text-white font-bold text-[13px] z-10">
-                <Loader2 className="animate-spin" size={20} />
-                <span>Optimizando precios en vivo…</span>
-              </div>
-            )}
-            <p className="text-[12px] font-semibold text-blue-100">
-              Total {plan ? `en ${plan.stops} ${plan.stops === 1 ? 'súper' : 'súper'}` : 'estimado'}
-            </p>
-            <p className="text-[32px] font-extrabold tracking-tight leading-tight">
-              {plan ? formatPrice(plan.total) : '—'}
-            </p>
-            {plan && (
-              <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[12px]">
-                {(plan.ahorro_total ?? 0) > 0 && (
-                  <span className="flex items-center gap-1 text-emerald-300 font-extrabold">
-                    <TrendingDown size={14} /> Ahorrás {formatPrice(plan.ahorro_total || 0)}
-                  </span>
-                )}
-                {(plan.reintegro_bancario_total ?? 0) > 0 && (
-                  <span className="text-blue-100">
-                    incluye -{formatPrice(plan.reintegro_bancario_total || 0)} de reintegros
-                  </span>
-                )}
-                {(plan.envio_estimado ?? 0) > 0 && (
-                  <span className="text-blue-100">
-                    + {formatPrice(plan.envio_estimado || 0)} envío
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Tarjetas y día de compra */}
+          {/* Tarjetas / Día */}
           <button
             type="button"
             onClick={onGoProfile}
-            className="w-full bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-3 text-left active:bg-slate-50 transition-colors shadow-2xs"
+            className="min-h-[44px] h-11 px-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 active:scale-[0.98] transition-all flex items-center gap-1.5 min-w-0 flex-1 text-left"
+            title="Configurar tarjetas y día de compra"
+            aria-label="Configurar tarjetas y día de compra"
           >
-            <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-              <CreditCard size={18} />
+            <div className="w-7 h-7 rounded-lg bg-purple-100/60 text-purple-700 flex items-center justify-center shrink-0">
+              <CreditCard size={14} />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-bold text-slate-900">
-                Comprando el {DAY_LABEL[selectedDay] || selectedDay}
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] font-bold text-slate-800 truncate leading-tight">
+                {DAY_LABEL[selectedDay]?.slice(0, 3) || selectedDay.slice(0, 3)}
               </p>
-              <p className="text-[12px] text-slate-500 truncate">
-                {selectedCards.length
-                  ? `${selectedCards.length} tarjetas/billeteras activas`
-                  : 'Sumá tus tarjetas y billeteras para ver reintegros'}
+              <p className="text-[10px] text-slate-400 truncate leading-tight">
+                {selectedCards.length > 0 ? `${selectedCards.length} 💳` : 'Sin tarjetas'}
               </p>
             </div>
-            <span className="text-[12px] font-bold text-blue-600">Cambiar</span>
           </button>
 
-          {/* Ubicación de entrega */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs">
-            <div className="flex items-center gap-2.5 min-w-0 pr-2">
-              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                <MapPin size={18} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[13px] font-extrabold text-slate-900 truncate">
-                  {locationLabel || (cp ? `CP ${cp}` : 'Sin ubicación')}
-                </p>
-                <p className="text-[11px] text-slate-500 truncate">
-                  {exactAddress || 'Tocá cambiar para editar zona'}
-                </p>
-              </div>
+          {/* Toggle de Flete */}
+          <button
+            type="button"
+            onClick={() => setIncludeShipping(prev => !prev)}
+            className={`min-h-[44px] h-11 px-2.5 rounded-xl border transition-all flex items-center gap-1.5 shrink-0 active:scale-95 ${
+              includeShipping
+                ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold shadow-2xs'
+                : 'bg-slate-50 border-slate-200/60 text-slate-500 font-semibold hover:text-slate-700'
+            }`}
+            title={includeShipping ? 'Envío incluido en el cálculo' : 'Sumar costo de flete al cálculo'}
+            aria-label={includeShipping ? 'Envío incluido en el cálculo' : 'Sumar costo de flete al cálculo'}
+          >
+            <Truck size={15} className={includeShipping ? 'text-blue-600' : 'text-slate-400'} />
+            <span className="text-[11px] leading-tight">Envío</span>
+            <span
+              className={`w-2 h-2 rounded-full transition-colors ${
+                includeShipping ? 'bg-blue-600' : 'bg-slate-300'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* 3. MENSAJES DE ERROR / REINTENTO DE COTIZACIÓN */}
+        {loadError && !plan && (
+          <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-[12px] flex items-center justify-between gap-2 shadow-2xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertCircle size={17} className="text-amber-600 shrink-0" />
+              <span className="truncate">Demora al cotizar en vivo. Podés reintentar.</span>
             </div>
             <button
               type="button"
-              onClick={openModal}
-              className="h-8 px-2.5 rounded-lg bg-blue-50 text-blue-700 text-[12px] font-bold hover:bg-blue-100 active:scale-95 transition-all"
+              onClick={() => {
+                setLoading(true)
+                setLoadError(false)
+                optimize(items, mode, { cp, includeShipping, selectedCards, day: selectedDay })
+                  .then(p => {
+                    setPlan(p)
+                    setLoadError(false)
+                  })
+                  .catch(() => setLoadError(true))
+                  .finally(() => setLoading(false))
+              }}
+              className="min-h-[44px] px-3.5 py-1.5 rounded-xl bg-amber-600 text-white font-bold text-[11px] shrink-0 active:scale-95 transition-all shadow-xs flex items-center justify-center"
             >
-              Cambiar
+              Reintentar
             </button>
           </div>
+        )}
 
-          {/* Sumar costo de envío */}
-          <label className="flex items-center justify-between bg-white rounded-2xl border border-slate-200/80 px-3 py-3 shadow-2xs">
-            <span className="flex items-center gap-2 text-[13px] font-semibold text-slate-700">
-              <Truck size={17} className="text-slate-500" /> Sumar costo de envío al cálculo
-            </span>
-            <input
-              type="checkbox"
-              checked={includeShipping}
-              onChange={e => setIncludeShipping(e.target.checked)}
-              className="w-5 h-5 rounded accent-blue-600"
-            />
-          </label>
-
-          {/* Banner de mejor día */}
-          {showBestDay && best && (
-            <div className="bg-purple-50 border border-purple-200 rounded-2xl p-3 flex items-center gap-3">
-              <Calendar size={20} className="text-purple-600 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-extrabold text-purple-950">Conviene el {best.day_label}</p>
-                <p className="text-[12px] text-purple-800">
-                  Ahorrás {formatPrice(best.saving)} con tus tarjetas
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedDay(best.day)}
-                className="h-9 px-3 rounded-xl bg-purple-600 text-white text-[12px] font-bold active:bg-purple-700"
-              >
-                Ver
-              </button>
+        {/* 4. BANNER CONDICIONAL DE MEJOR DÍA */}
+        {showBestDay && best && (
+          <div className="bg-purple-50 border border-purple-200 rounded-2xl p-3 flex items-center gap-3">
+            <Calendar size={20} className="text-purple-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-extrabold text-purple-950">Conviene el {best.day_label}</p>
+              <p className="text-[12px] text-purple-800">
+                Ahorrás {formatPrice(best.saving)} con tus tarjetas
+              </p>
             </div>
-          )}
+            <button
+              type="button"
+              onClick={() => setSelectedDay(best.day)}
+              className="min-h-[44px] h-11 px-3.5 rounded-xl bg-purple-600 text-white text-[12px] font-bold active:bg-purple-700 active:scale-95 transition-all flex items-center justify-center"
+            >
+              Ver
+            </button>
+          </div>
+        )}
 
-          {/* Supermercados excluidos por CP */}
-          {plan?.excluded_stores && plan.excluded_stores.length > 0 && (
-            <p className="text-[12px] text-amber-800 bg-amber-50 rounded-xl p-2.5 border border-amber-200/60">
-              No entregan en tu CP: {plan.excluded_stores.map(storeLabel).join(', ')}
-            </p>
-          )}
+        {/* 5. TIENDAS EXCLUIDAS POR CP */}
+        {plan?.excluded_stores && plan.excluded_stores.length > 0 && (
+          <p className="text-[12px] text-amber-800 bg-amber-50 rounded-xl p-2.5 border border-amber-200/60">
+            No entregan en tu CP: {plan.excluded_stores.map(storeLabel).join(', ')}
+          </p>
+        )}
 
-          {/* Carritos por supermercado */}
-          {plan?.carts.map(c => (
-            <StoreCart key={c.supermercado} plan={c} />
-          ))}
+        {/* 6. TIENDAS OPTIMIZADAS INMEDIATAMENTE VISIBLES (StoreCart) */}
+        {plan?.carts.map(c => (
+          <StoreCart key={c.supermercado} plan={c} />
+        ))}
 
-          {/* Dirección exacta para el envío final */}
-          {plan && (
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-3.5 space-y-1.5 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] font-bold text-slate-800 flex items-center gap-1.5">
-                  <MapPin size={14} className="text-blue-600" /> Dirección exacta de entrega
-                </span>
-                <span className="text-[11px] text-slate-400 font-medium">Para el repartidor</span>
+        {/* 7. CAJÓN COLAPSABLE DE PRODUCTOS (Expandible para editar cantidades y no tapar las tiendas) */}
+        <section className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setIsDrawerOpen(prev => !prev)}
+            className="w-full min-h-[48px] h-12 px-4 flex items-center justify-between text-left active:bg-slate-50 transition-colors"
+            aria-expanded={isDrawerOpen}
+            aria-label="Ver y editar productos agregados"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <ShoppingBasket size={15} />
               </div>
-              <input
-                type="text"
-                value={exactAddress || ''}
-                onChange={e => setExactAddress(e.target.value)}
-                placeholder="Ej: Av. Santa Fe 3200, Piso 4 Depto B (opcional)"
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-[13px] placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
+              <span className="text-[13px] font-extrabold text-slate-900 truncate">
+                {items.length} producto{items.length === 1 ? '' : 's'} en tu lista
+              </span>
+              <span className="text-[11px] text-slate-500 font-medium shrink-0">
+                ({totalUnits} un.)
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0 text-slate-500">
+              <span className="text-[11px] font-bold text-blue-600">
+                {isDrawerOpen ? 'Ocultar' : 'Ver y editar'}
+              </span>
+              <ChevronDown
+                size={17}
+                className={`transition-transform duration-200 text-slate-400 ${
+                  isDrawerOpen ? 'rotate-180 text-blue-600' : ''
+                }`}
               />
             </div>
-          )}
+          </button>
 
-          {/* Items sin stock */}
-          {plan && Array.isArray(plan.missing) && plan.missing.length > 0 && (
-            <p className="text-[12px] text-red-700 bg-red-50 rounded-xl p-2.5 border border-red-200/60">
-              Sin stock en súper con entrega: {plan.missing.map(m => (typeof m === 'object' && m ? m.nombre || m.ean : String(m))).join(', ')}
-            </p>
+          {isDrawerOpen && (
+            <div className="border-t border-slate-100 divide-y divide-slate-100">
+              <div className="px-4 py-2 bg-slate-50/70 flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  Editar cantidades o quitar
+                </span>
+                <button
+                  type="button"
+                  onClick={onGoSearch}
+                  className="min-h-[44px] px-2 text-[12px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 active:scale-95 transition-transform"
+                >
+                  <Plus size={13} /> Agregar más
+                </button>
+              </div>
+
+              {items.map(i => (
+                <div key={i.ean} className="flex items-center gap-3 p-3">
+                  {i.imagen ? (
+                    <img
+                      src={i.imagen}
+                      alt=""
+                      className="w-12 h-12 object-contain rounded-lg bg-slate-50 p-1 shrink-0 border border-slate-100"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
+                      <ShoppingBasket size={20} />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[13px] font-semibold text-slate-900 leading-snug line-clamp-2">
+                      {i.nombre}
+                    </span>
+                  </div>
+
+                  {/* Stepper táctil accesible >= 44x44px */}
+                  <div className="flex items-center h-11 rounded-xl border border-slate-200 shrink-0 bg-slate-50">
+                    <button
+                      type="button"
+                      onClick={() => setQty(i.ean, i.qty - 1)}
+                      className="w-11 h-11 flex items-center justify-center text-slate-600 hover:bg-slate-200/60 rounded-l-xl active:scale-90 transition-transform"
+                      aria-label={`Restar una unidad de ${i.nombre}`}
+                    >
+                      <Minus size={15} />
+                    </button>
+                    <span className="w-7 text-center text-[13px] font-extrabold text-slate-900">
+                      {i.qty}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setQty(i.ean, i.qty + 1)}
+                      className="w-11 h-11 flex items-center justify-center text-slate-600 hover:bg-slate-200/60 rounded-r-xl active:scale-90 transition-transform"
+                      aria-label={`Sumar una unidad de ${i.nombre}`}
+                    >
+                      <Plus size={15} />
+                    </button>
+                  </div>
+
+                  {/* Botón eliminar táctil accesible >= 44x44px con separación */}
+                  <button
+                    type="button"
+                    onClick={() => remove(i.ean)}
+                    aria-label={`Quitar ${i.nombre} de la lista`}
+                    className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-red-600 active:scale-90 transition-colors shrink-0 rounded-xl hover:bg-red-50 ml-1.5"
+                  >
+                    <Trash2 size={17} />
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
         </section>
+
+        {/* 8. DIRECCIÓN EXACTA DE ENTREGA */}
+        {plan && (
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-3.5 space-y-1.5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] font-bold text-slate-800 flex items-center gap-1.5">
+                <MapPin size={14} className="text-blue-600" /> Dirección exacta de entrega
+              </span>
+              <span className="text-[11px] text-slate-400 font-medium">Para el repartidor</span>
+            </div>
+            <input
+              type="text"
+              value={exactAddress || ''}
+              onChange={e => setExactAddress(e.target.value)}
+              placeholder="Ej: Av. Santa Fe 3200, Piso 4 Depto B (opcional)"
+              className="w-full min-h-[44px] h-11 px-3 rounded-xl border border-slate-200 text-[13px] placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+        )}
+
+        {/* 9. DESGLOSE ESTRUCTURADO DE PRODUCTOS FALTANTES Y ALTERNATIVAS */}
+        {plan?.missing && plan.missing.length > 0 && (
+          <MissingItemsBreakdown missing={plan.missing} />
+        )}
       </main>
     </div>
   )

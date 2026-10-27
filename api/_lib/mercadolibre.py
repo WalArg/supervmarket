@@ -14,6 +14,7 @@ from .parsers import (
     normalizar_unidad,
     sanity_precio_unidad,
 )
+from .stores import decorate_store_url
 
 MELI_CLIENT_ID = os.getenv("MELI_CLIENT_ID", "6947318731363625")
 MELI_CLIENT_SECRET = os.getenv("MELI_CLIENT_SECRET", "g6qrGOxdw6iIatBY6osc35Jq6wVqE9PS")
@@ -170,6 +171,8 @@ def parse_meli_product(prod: dict, item: dict, seller_meta: dict | None = None) 
         else:
             permalink = "https://www.mercadolibre.com.ar/supermercado"
 
+        permalink = decorate_store_url(permalink, "MercadoLibre", "item")
+
         result = {
             "supermercado": "MercadoLibre",
             "ean": ean or f"MELI_{item_id}",
@@ -292,7 +295,12 @@ async def fetch_mercadolibre_live(
                                 if (it_id.startswith("MLA") and not it_id.startswith("MLA-"))
                                 else it_id
                             )
-                            direct_link = f"https://articulo.mercadolibre.com.ar/{clean_id}" if it_id else ""
+                            raw_direct_link = f"https://articulo.mercadolibre.com.ar/{clean_id}" if it_id else ""
+                            direct_link = (
+                                decorate_store_url(raw_direct_link, "MercadoLibre", "item")
+                                if raw_direct_link
+                                else ""
+                            )
                             ship = it.get("shipping") or {}
                             is_full = ship.get("logistic_type") == "fulfillment"
 

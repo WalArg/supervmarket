@@ -6,7 +6,13 @@ calculando el precio real con descuentos por cantidad (`sellingPrice` y `totals`
 el costo de Envío a Domicilio (`delivery`) del Retiro en Sucursal (`pickup-in-point`).
 """
 import httpx
-from .stores import VTEX_DOMAINS, supports_cart, free_shipping_threshold, sales_channel
+from .stores import (
+    VTEX_DOMAINS,
+    supports_cart,
+    free_shipping_threshold,
+    sales_channel,
+    decorate_store_url,
+)
 from . import regions
 
 HEADERS = {
@@ -25,7 +31,8 @@ def guest_link(store: str, items: list[dict], seller: str = "1") -> str | None:
         f"sku={i['sku_id']}&qty={i.get('qty', 1)}&seller={i.get('seller') or seller}&sc={sc}"
         for i in items if i.get("sku_id")
     ]
-    return f"{VTEX_DOMAINS[store]}/checkout/cart/add?{'&'.join(parts)}"
+    raw_url = f"{VTEX_DOMAINS[store]}/checkout/cart/add?{'&'.join(parts)}"
+    return decorate_store_url(raw_url, store, "checkout")
 
 
 async def validate_cart(store: str, items: list[dict], cp: str | None = None) -> dict:
