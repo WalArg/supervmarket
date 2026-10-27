@@ -1215,6 +1215,12 @@ async def live_search_and_sync(
                     )
                     ean_task_stores.append(st)
 
+            # Completado cruzado por EAN en Mercado Libre para los ítems principales
+            missing_meli = [e for e in top_eans[:10] if e not in store_eans.get("MercadoLibre", set())]
+            for me in missing_meli:
+                ean_tasks.append(fetch_mercadolibre_live(client, me, limit=1, cp=cp))
+                ean_task_stores.append("MercadoLibre")
+
         if corrected_q and corrected_q != q_norm:
             ean_tasks.append(fetch_coto_live(client, corrected_q, limit=limit_per_store))
             ean_task_stores.append("Coto")

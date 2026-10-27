@@ -335,8 +335,8 @@ async def fetch_mercadolibre_live(
                         sids = [it.get("seller_id") for it in items if it.get("seller_id")]
                         await _ensure_seller_reputations(client, token, sids)
 
-                        # Filtrar ofertas elegibles estrictamente para Full Supermercado / fulfillment oficial
-                        candidates = [
+                        # 1. Candidatos prioritarios: Full Supermercado / fulfillment oficial / Tiendas Oficiales
+                        full_candidates = [
                             it for it in items
                             if float(it.get("price") or 0) > 0 and (
                                 (it.get("shipping") or {}).get("logistic_type") == "fulfillment"
@@ -344,14 +344,20 @@ async def fetch_mercadolibre_live(
                                 or (it.get("official_store_id") and (it.get("shipping") or {}).get("logistic_type") in ("fulfillment", "drop_off", "cross_docking"))
                             )
                         ]
+                        # 2. Si no hay Full o tienda oficial, permitir ofertas activas de vendedores comerciales
+                        candidates = full_candidates if full_candidates else [
+                            it for it in items
+                            if float(it.get("price") or 0) > 0
+                        ]
                         if not candidates:
-                            # Sin Full Supermercado ni fulfillment oficial, se descarta del comparador
+                            # Sin ofertas disponibles en Mercado Libre
                             return None
 
-                        # Priorizar estrictamente envíos FULL (fulfillment) y luego menor precio
+                        # Priorizar estrictamente envíos FULL (fulfillment), luego tiendas oficiales y menor precio
                         candidates.sort(
                             key=lambda x: (
                                 not ((x.get("shipping") or {}).get("logistic_type") == "fulfillment"),
+                                not bool(x.get("official_store_id")),
                                 float(x.get("price") or 999999),
                             )
                         )
