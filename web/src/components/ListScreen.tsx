@@ -490,30 +490,6 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
           <StoreCart key={c.supermercado} plan={c} />
         ))}
 
-        {/* 6.5. OPORTUNIDAD PATROCINADA (FIREWALL ÉTICO · MONETIZACIÓN ZERO-SUBSCRIPTION) */}
-        <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between gap-3 shadow-2xs">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-200 text-amber-900 border border-amber-300 shrink-0">
-                PATROCINADO
-              </span>
-              <span className="text-[12px] font-extrabold text-amber-950 truncate">
-                Cupón Unilever Trade Direct
-              </span>
-            </div>
-            <p className="text-[11px] text-amber-900 leading-snug">
-              15% OFF en aderezos con código <strong className="font-black text-amber-950">AHORRO15</strong> (canje directo de fábrica).
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onGoSearch}
-            className="min-h-[44px] px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] active:scale-95 transition-all shrink-0 flex items-center justify-center shadow-xs"
-          >
-            Ver cupón
-          </button>
-        </div>
-
         {/* 7. CAJÓN COLAPSABLE DE PRODUCTOS (Expandible para editar cantidades y no tapar las tiendas) */}
         <section className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
           <button

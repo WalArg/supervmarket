@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import SearchScreen from '../SearchScreen'
 import ProductCard from '../ProductCard'
+import SponsoredProductBox from '../SponsoredProductBox'
 import HabitualListManager from '../HabitualListManager'
 import ListScreen from '../ListScreen'
 import { CartProvider } from '../../cart/CartContext'
@@ -36,7 +37,7 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
     vi.restoreAllMocks()
   })
 
-  it('1. SearchScreen renders the [PATROCINADO] brand offers and Ethical Firewall on home', () => {
+  it('1. SearchScreen renders the Mercado Libre [PATROCINADO] section on home', () => {
     render(
       <LocationProvider>
         <SearchScreen />
@@ -45,19 +46,18 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
 
     // Verify Sponsored header & badge
     expect(screen.getByText('PATROCINADO')).toBeTruthy()
-    expect(screen.getByText('Ofertas Destacadas y Cupones de Marca')).toBeTruthy()
+    expect(screen.getByText('Mercado Libre Supermercado')).toBeTruthy()
 
-    // Verify brand deals
-    expect(screen.getByText(/Hellmann's Doypack 15% OFF/i)).toBeTruthy()
-    expect(screen.getByText(/Mermeladas La Campagnola 2×1/i)).toBeTruthy()
-    expect(screen.getByText(/Pack Quilmes Clásica Lata/i)).toBeTruthy()
+    // Verify Mercado Libre highlights
+    expect(screen.getByText(/Envíos FULL en 24hs/i)).toBeTruthy()
+    expect(screen.getByText(/Compra protegida/i)).toBeTruthy()
 
     // Verify Ethical Firewall disclaimer
     expect(screen.getByText(/Firewall Ético SuperVmarket/i)).toBeTruthy()
     expect(screen.getByText(/Ley 24\.240/i)).toBeTruthy()
   })
 
-  it('2. ProductCard renders price history indicator and handles [PATROCINADO] badge', () => {
+  it('2. ProductCard renders price discount tag and SponsoredProductBox displays Mercado Libre prominently', () => {
     const sampleGroup: ProductGroup = {
       ean: '7790070336026',
       nombre: 'Fideos Lucchetti Tirabuzón 500g',
@@ -76,35 +76,49 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
           unit_measure: 'kg',
           supports_cart: true,
         },
+        {
+          supermercado: 'MercadoLibre',
+          precio: 2100,
+          precio_lista: 2100,
+          discount: 0,
+          stock: true,
+          link: 'https://articulo.mercadolibre.com.ar/MLA-123456',
+          sku_id: 'MLA-123456',
+          unit_price: 4200,
+          unit_measure: 'kg',
+          supports_cart: false,
+          seller_name: 'Tienda Oficial Lucchetti',
+          is_full: true,
+          free_shipping: true,
+        },
       ],
     }
 
-    const { rerender } = render(
+    render(
       <LocationProvider>
         <BenefitsProvider>
           <CartProvider>
-            <ProductCard group={sampleGroup} isSponsored={false} />
+            <ProductCard group={sampleGroup} />
           </CartProvider>
         </BenefitsProvider>
       </LocationProvider>,
     )
 
-    // Should render price history indicator (minimum recent)
+    // Should render price discount indicator (minimum recent)
     expect(screen.getByText(/📉 Mínimo reciente/i)).toBeTruthy()
 
-    // Now re-render with isSponsored=true
-    rerender(
-      <LocationProvider>
-        <BenefitsProvider>
-          <CartProvider>
-            <ProductCard group={sampleGroup} isSponsored={true} />
-          </CartProvider>
-        </BenefitsProvider>
-      </LocationProvider>,
+    // Now render SponsoredProductBox directly for Mercado Libre
+    render(
+      <SponsoredProductBox
+        product={sampleGroup}
+        offer={sampleGroup.offers[1]}
+      />,
     )
 
-    expect(screen.getByText('PATROCINADO')).toBeTruthy()
-    expect(screen.getByText(/Oferta destacada de marca/i)).toBeTruthy()
+    expect(screen.getAllByText('PATROCINADO').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('Destacado en Mercado Libre')).toBeTruthy()
+    expect(screen.getByText('Tienda Oficial Lucchetti')).toBeTruthy()
+    expect(screen.getByText(/FULL/i)).toBeTruthy()
   })
 
   it('3. ListScreen renders Mi Lista Habitual discovery card and 1-tap sample basket loader', () => {

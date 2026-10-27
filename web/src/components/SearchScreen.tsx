@@ -2,8 +2,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, Clock, TrendingUp, SearchX, MapPin, ChevronDown } from 'lucide-react'
 import ProductCard from './ProductCard'
 import BarcodeScanner from './BarcodeScanner'
+import SponsoredProductBox from './SponsoredProductBox'
 import { searchProducts } from '../api'
 import { useLocation } from '../location/LocationContext'
+import { SPONSORED_CONFIG } from '../lib/sponsoredConfig'
 import type { ProductGroup } from '../types'
 
 const POPULAR = ['Leche', 'Coca Cola', 'Yerba', 'Aceite', 'Fideos', 'Café', 'Pañales', 'Arroz', 'Cerveza', 'Detergente', 'Papel higiénico', 'Azúcar']
@@ -90,6 +92,19 @@ const SearchScreen: React.FC = () => {
       }),
     [results, onlyOffers, onlyMulti, onlyBulk],
   )
+
+  // Detecta el primer producto en resultados que tenga oferta de la tienda patrocinada (MercadoLibre)
+  const sponsoredCandidate = useMemo(() => {
+    for (const group of visible) {
+      const meliOffer = group.offers.find(o =>
+        SPONSORED_CONFIG.isStoreSponsored(o.supermercado),
+      )
+      if (meliOffer) {
+        return { product: group, offer: meliOffer }
+      }
+    }
+    return null
+  }, [visible])
 
   const runSearch = (q: string) => {
     setQuery(q)
@@ -244,97 +259,43 @@ const SearchScreen: React.FC = () => {
               </div>
             </section>
 
-            {/* SECCIÓN MONETIZACIÓN ZERO-SUBSCRIPTION: OFERTAS PATROCINADAS & CUPONES DE MARCA */}
-            <section className="bg-amber-50/50 rounded-3xl border border-amber-200/70 p-4 space-y-3">
+            {/* SECCIÓN PATROCINADA EXCLUSIVA: MERCADO LIBRE */}
+            <section className="bg-amber-50/60 rounded-3xl border border-amber-200/80 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-amber-200/80 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-amber-200/90 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md">
                     PATROCINADO
                   </span>
                   <h2 className="text-[13.5px] font-extrabold text-amber-950">
-                    Ofertas Destacadas y Cupones de Marca
+                    Mercado Libre Supermercado
                   </h2>
                 </div>
-                <span className="text-[10.5px] font-semibold text-amber-800">Sin suscripción</span>
+                <span className="text-[10.5px] font-bold text-amber-800">Tienda Oficial</span>
               </div>
 
-              <div className="space-y-2">
-                {/* Oferta 1: Unilever / Hellmann's */}
-                <div className="bg-white rounded-2xl p-3 border border-amber-200/60 flex items-center justify-between gap-3 shadow-2xs">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase">
-                      <span>Unilever</span>
-                      <span>·</span>
-                      <span>Aderezos</span>
-                    </div>
-                    <p className="text-[13px] font-extrabold text-slate-900 truncate">
-                      Hellmann's Doypack 15% OFF
-                    </p>
-                    <p className="text-[11px] text-emerald-700 font-bold">
-                      Cupón activo: AHORRO15 (canje directo)
-                    </p>
+              <div className="bg-white rounded-2xl p-3.5 border border-amber-200/60 flex items-center justify-between gap-3 shadow-2xs">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-800 flex-wrap">
+                    <span className="text-emerald-700">⚡ Envíos FULL en 24hs</span>
+                    <span className="text-slate-300">·</span>
+                    <span className="text-slate-600">Compra protegida</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => runSearch('Hellmanns')}
-                    className="min-h-[44px] px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[12px] font-bold active:scale-95 transition-all shrink-0 flex items-center justify-center shadow-xs"
-                  >
-                    Ver oferta
-                  </button>
+                  <p className="text-[12px] text-slate-600 mt-0.5 leading-snug">
+                    Comprá productos de supermercado en Mercado Libre con entrega rápida y envío gratis acumulable.
+                  </p>
                 </div>
-
-                {/* Oferta 2: Arcor */}
-                <div className="bg-white rounded-2xl p-3 border border-amber-200/60 flex items-center justify-between gap-3 shadow-2xs">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase">
-                      <span>Arcor</span>
-                      <span>·</span>
-                      <span>Desayuno & Merienda</span>
-                    </div>
-                    <p className="text-[13px] font-extrabold text-slate-900 truncate">
-                      Mermeladas La Campagnola 2×1
-                    </p>
-                    <p className="text-[11px] text-amber-800 font-medium">
-                      Precio promocional en cadenas adheridas
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => runSearch('La Campagnola')}
-                    className="min-h-[44px] px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[12px] font-bold active:scale-95 transition-all shrink-0 flex items-center justify-center shadow-xs"
-                  >
-                    Ver oferta
-                  </button>
-                </div>
-
-                {/* Oferta 3: Quilmes */}
-                <div className="bg-white rounded-2xl p-3 border border-amber-200/60 flex items-center justify-between gap-3 shadow-2xs">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase">
-                      <span>Cervecería Quilmes</span>
-                      <span>·</span>
-                      <span>Bebidas</span>
-                    </div>
-                    <p className="text-[13px] font-extrabold text-slate-900 truncate">
-                      Pack Quilmes Clásica Lata
-                    </p>
-                    <p className="text-[11px] text-emerald-700 font-bold">
-                      Ahorro directo de fábrica
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => runSearch('Quilmes')}
-                    className="min-h-[44px] px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[12px] font-bold active:scale-95 transition-all shrink-0 flex items-center justify-center shadow-xs"
-                  >
-                    Ver oferta
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => runSearch('MercadoLibre')}
+                  className="min-h-[44px] px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[12px] font-bold active:scale-95 transition-all shrink-0 flex items-center justify-center shadow-xs"
+                >
+                  Ver ofertas
+                </button>
               </div>
 
               {/* Firewall Ético Disclaimer */}
               <p className="text-[10.5px] text-amber-900/80 leading-relaxed pt-0.5">
-                ⚖️ <strong>Firewall Ético SuperVmarket</strong>: Los acuerdos comerciales de marcas y supermercados permiten mantener la plataforma 100% gratuita para vos. Nunca alteran el cálculo del producto más barato orgánico (Ley 24.240).
+                ⚖️ <strong>Firewall Ético SuperVmarket</strong>: Mercado Libre participa en la comparación orgánica de precios. El recuadro patrocinado es un espacio destacado que no altera el orden de los resultados más baratos (Ley 24.240).
               </p>
             </section>
 
@@ -381,36 +342,20 @@ const SearchScreen: React.FC = () => {
 
         {hasQuery && visible.length > 0 && (
           <div className={`space-y-3 transition-opacity ${loading ? 'opacity-50' : ''}`}>
-            {/* Top slot banner si la búsqueda coincide con marcas patrocinadas */}
-            {(debounced.toLowerCase().includes('hellmann') ||
-              debounced.toLowerCase().includes('arcor') ||
-              debounced.toLowerCase().includes('quilmes') ||
-              debounced.toLowerCase().includes('mayonesa') ||
-              debounced.toLowerCase().includes('mermelada') ||
-              debounced.toLowerCase().includes('cerveza')) && (
-              <div className="bg-amber-50/80 rounded-2xl border border-amber-200/90 p-3 flex items-center justify-between gap-2 shadow-2xs">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-900 border border-amber-300 shrink-0">
-                    PATROCINADO
-                  </span>
-                  <p className="text-[11.5px] text-amber-950 font-medium truncate">
-                    Oferta de marca destacada · Los resultados orgánicos más baratos figuran abajo
-                  </p>
-                </div>
-              </div>
+            {/* RECUADRO DE PATROCINADO EXCLUSIVO: MERCADO LIBRE */}
+            {sponsoredCandidate && (
+              <SponsoredProductBox
+                product={sponsoredCandidate.product}
+                offer={sponsoredCandidate.offer}
+              />
             )}
 
             <p className="text-[12px] font-semibold text-slate-400 px-1">
               {visible.length} productos · ordenados por {sort === 'unit_price_asc' ? 'precio por kg/l/unidad' : 'precio final'}
             </p>
-            {visible.map((g, idx) => {
-              const isSponsoredMatch =
-                idx === 0 &&
-                (debounced.toLowerCase().includes('hellmann') ||
-                  debounced.toLowerCase().includes('arcor') ||
-                  debounced.toLowerCase().includes('quilmes'))
-              return <ProductCard key={g.ean} group={g} isSponsored={isSponsoredMatch} />
-            })}
+            {visible.map(g => (
+              <ProductCard key={g.ean} group={g} />
+            ))}
           </div>
         )}
       </main>
