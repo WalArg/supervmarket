@@ -47,7 +47,16 @@ export const HabitualListManager: React.FC = () => {
 
   // Generación matemática de Sparkline SVG puro (0 dependencias)
   const renderSparkline = () => {
-    if (history.length < 2) return null
+    if (history.length < 2) {
+      return (
+        <div className="mt-3 pt-3 border-t border-slate-100 text-[11px] text-slate-500 bg-slate-50/80 rounded-xl p-3 border border-slate-100">
+          <p className="font-bold text-slate-700 mb-0.5">📊 Histórico de Precios en construcción</p>
+          <p>
+            Registramos la línea base de tu compra hoy. En tus próximas visitas se irá dibujando la curva de inflación y variación de precios de tu changuito.
+          </p>
+        </div>
+      )
+    }
 
     const width = 300
     const height = 55

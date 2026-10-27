@@ -61,7 +61,7 @@ const OffersSheet: React.FC<{
                 <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Opciones de compra</p>
                 <h3 className="text-[14px] font-semibold text-slate-900 leading-snug line-clamp-2">{group.nombre}</h3>
                 <p className="text-[10.5px] text-blue-700 font-semibold mt-0.5">
-                  📊 Historial de precios: comparativa en vivo entre supermercados
+                  🔍 Comparativa en vivo de precios y stock entre supermercados
                 </p>
               </div>
               <button type="button" onClick={onClose} aria-label="Cerrar" className="p-2 -mr-2 rounded-full text-slate-400 active:bg-slate-100">

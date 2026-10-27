@@ -104,20 +104,13 @@ const ProductCard: React.FC<{ group: ProductGroup; isSponsored?: boolean }> = ({
               </span>
             )}
 
-            {/* Indicador de Histórico de Precios */}
-            {best.eff < best.o.precio || best.o.discount >= 5 ? (
+            {/* Descuento verificado vs precio regular de góndola */}
+            {(best.eff < best.o.precio || best.o.discount >= 5) && (
               <span
                 className="inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded-md"
-                title="Mejor precio reciente vs precio regular"
+                title="Precio con rebaja verificada vs precio regular"
               >
                 📉 Mínimo reciente (-{best.o.discount || Math.round(((best.o.precio - best.eff) / best.o.precio) * 100)}%)
-              </span>
-            ) : (
-              <span
-                className="inline-flex items-center gap-0.5 text-[11px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md"
-                title="Historial de precios activo"
-              >
-                📊 Histórico: mejor precio
               </span>
             )}
 
