@@ -939,7 +939,10 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             d_nom = display_title
             d_marca = "Carnicería"
         else:
-            ean = str(d["ean"])
+            raw_e = str(d["ean"]).strip()
+            if len(raw_e) == 14 and raw_e.startswith("0") and raw_e.isdigit():
+                raw_e = raw_e[1:]
+            ean = raw_e
             d_nom = (d.get("nombre") or "").strip()
             d_marca = (d.get("marca") or "").strip()
 

@@ -156,6 +156,8 @@ def parse_meli_product(prod: dict, item: dict, seller_meta: dict | None = None) 
         for candidate in gtin_val.split(","):
             c_clean = candidate.strip()
             if c_clean.isdigit() and 8 <= len(c_clean) <= 14:
+                if len(c_clean) == 14 and c_clean.startswith("0"):
+                    c_clean = c_clean[1:]
                 ean = c_clean
                 break
 
