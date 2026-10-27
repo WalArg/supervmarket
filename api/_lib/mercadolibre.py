@@ -355,11 +355,10 @@ async def fetch_mercadolibre_live(
                             # Sin ofertas disponibles en Mercado Libre
                             return None
 
-                        # Priorizar estrictamente envíos FULL (fulfillment), luego tiendas oficiales y menor precio
+                        # Priorizar envíos FULL (fulfillment) y dentro de cada tipo siempre menor precio
                         candidates.sort(
                             key=lambda x: (
                                 not ((x.get("shipping") or {}).get("logistic_type") == "fulfillment"),
-                                not bool(x.get("official_store_id")),
                                 float(x.get("price") or 999999),
                             )
                         )
@@ -415,6 +414,9 @@ async def fetch_mercadolibre_live(
                             })
                             if len(meli_options) >= 3:
                                 break
+
+                        # Ordenar estrictamente las opciones de menor a mayor precio
+                        meli_options.sort(key=lambda o: (not o["is_full"], o["price"]))
 
                         # Metadata del mejor vendedor para la oferta principal
                         best_sid = best_item.get("seller_id")

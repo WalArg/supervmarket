@@ -238,7 +238,9 @@ const OffersSheet: React.FC<{
                           <span>Top {r.o.meli_options.length} opciones en Mercado Libre</span>
                         </div>
                         <div className="space-y-1.5">
-                          {r.o.meli_options.map((opt, oIdx) => (
+                          {[...r.o.meli_options]
+                            .sort((a, b) => a.price - b.price)
+                            .map((opt, oIdx) => (
                             <div
                               key={opt.item_id || oIdx}
                               className="p-2 rounded-xl bg-slate-50 border border-slate-100/80 flex items-center justify-between gap-2"

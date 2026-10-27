@@ -122,10 +122,11 @@ const SearchScreen: React.FC = () => {
   )
 
   // Detecta el producto para el recuadro patrocinado (Mercado Libre)
-  // Requisitos estrictos de producto:
+  // Requisitos de producto:
   // 1. Debe pertenecer a la tienda patrocinada configurada (MercadoLibre)
-  // 2. Debe ser estrictamente de FULL SÚPER (o.is_full === true)
-  // 3. Debe guardar concordancia con la búsqueda del usuario (no productos desalineados)
+  // 2. Debe guardar concordancia con la búsqueda del usuario (no productos desalineados)
+  // 3. Prioriza FULL SÚPER si existe en los resultados; si no hay Full para esa búsqueda,
+  //    toma la mejor oferta disponible de Mercado Libre que coincida (ej: Tiendas Oficiales)
   const sponsoredCandidate = useMemo(() => {
     const qTokens = debounced
       .toLowerCase()
@@ -133,21 +134,34 @@ const SearchScreen: React.FC = () => {
       .map(t => t.trim())
       .filter(t => t.length >= 3)
 
+    const matchesQuery = (group: ProductGroup) => {
+      if (qTokens.length === 0) return true
+      const prodText = `${group.nombre} ${group.marca}`.toLowerCase()
+      return qTokens.some(tok => prodText.includes(tok))
+    }
+
+    // 1. Prioridad: Oferta patrocinada de FULL SÚPER que coincida temáticamente
     for (const group of visible) {
-      const meliOffer = group.offers.find(
+      if (!matchesQuery(group)) continue
+      const fullOffer = group.offers.find(
         o => SPONSORED_CONFIG.isStoreSponsored(o.supermercado) && o.is_full === true,
       )
-      if (!meliOffer) continue
-
-      // Validar concordancia temática con la búsqueda activa si el usuario ingresó un término
-      if (qTokens.length > 0) {
-        const prodText = `${group.nombre} ${group.marca}`.toLowerCase()
-        const matchesQuery = qTokens.some(tok => prodText.includes(tok))
-        if (!matchesQuery) continue
+      if (fullOffer) {
+        return { product: group, offer: fullOffer }
       }
-
-      return { product: group, offer: meliOffer }
     }
+
+    // 2. Fallback: Si no hay oferta FULL en la búsqueda, tomar la mejor oferta de Mercado Libre que coincida
+    for (const group of visible) {
+      if (!matchesQuery(group)) continue
+      const storeOffer = group.offers.find(
+        o => SPONSORED_CONFIG.isStoreSponsored(o.supermercado),
+      )
+      if (storeOffer) {
+        return { product: group, offer: storeOffer }
+      }
+    }
+
     return null
   }, [visible, debounced])
 
