@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, Clock, TrendingUp, SearchX, MapPin, ChevronDown, Store } from 'lucide-react'
+import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, Clock, TrendingUp, SearchX, MapPin, ChevronDown, Store, Check } from 'lucide-react'
 import ProductCard from './ProductCard'
 import BarcodeScanner from './BarcodeScanner'
 import SponsoredProductBox from './SponsoredProductBox'
@@ -239,125 +239,47 @@ const SearchScreen: React.FC = () => {
         {/* Filtros generales y Desplegable de Comercios */}
         {hasQuery && (
           <div className="px-4 pb-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {/* Desplegable de Comercios */}
+            {/* Botón activador del Desplegable de Comercios */}
             {availableStores.length > 0 && (
-              <div className="relative shrink-0">
-                <button
-                  type="button"
-                  id="store-filter-dropdown"
-                  aria-haspopup="listbox"
-                  aria-expanded={storeDropdownOpen}
-                  onClick={() => setStoreDropdownOpen(v => !v)}
-                  className={`h-8 px-3 rounded-full text-[13px] font-semibold flex items-center gap-1.5 border transition-all ${
-                    selectedStore
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs font-bold'
-                      : 'bg-white text-slate-700 border-slate-200 active:bg-slate-100'
-                  }`}
-                >
-                  {selectedStore ? (
-                    <>
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ background: '#ffffff' }}
-                      />
-                      <span>{storeLabel(selectedStore)}</span>
-                      <ChevronDown
-                        size={13}
-                        className={`transition-transform duration-200 ${
-                          storeDropdownOpen ? 'rotate-180' : ''
-                        }`}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <Store size={14} className="text-slate-500" />
-                      <span>Comercio: Todos</span>
-                      <ChevronDown
-                        size={13}
-                        className={`transition-transform duration-200 ${
-                          storeDropdownOpen ? 'rotate-180' : ''
-                        }`}
-                      />
-                    </>
-                  )}
-                </button>
-
-                {/* Menú desplegable */}
-                {storeDropdownOpen && (
+              <button
+                type="button"
+                id="store-filter-dropdown"
+                aria-haspopup="listbox"
+                aria-expanded={storeDropdownOpen}
+                onClick={() => setStoreDropdownOpen(v => !v)}
+                className={`shrink-0 h-8 px-3 rounded-full text-[13px] font-semibold flex items-center gap-1.5 border transition-all ${
+                  selectedStore
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs font-bold'
+                    : 'bg-white text-slate-700 border-slate-200 active:bg-slate-100'
+                }`}
+              >
+                {selectedStore ? (
                   <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setStoreDropdownOpen(false)}
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ background: '#ffffff' }}
                     />
-                    <div
-                      role="listbox"
-                      aria-labelledby="store-filter-dropdown"
-                      className="absolute left-0 top-full mt-1.5 z-50 w-60 bg-white rounded-2xl border border-slate-200 shadow-xl py-1.5 max-h-72 overflow-y-auto"
-                    >
-                      <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                        Filtrar por comercio
-                      </div>
-
-                      {/* Opción Todos */}
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={selectedStore === null}
-                        onClick={() => {
-                          setSelectedStore(null)
-                          setStoreDropdownOpen(false)
-                        }}
-                        className={`w-full px-3 py-2 text-left text-[13px] font-semibold flex items-center justify-between transition-colors ${
-                          selectedStore === null
-                            ? 'bg-blue-50 text-blue-700 font-bold'
-                            : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-slate-400" />
-                          <span>Todos los comercios</span>
-                        </div>
-                        <span className="text-[11px] text-slate-400 font-normal">
-                          ({results.length})
-                        </span>
-                      </button>
-
-                      {/* Comercios disponibles */}
-                      {availableStores.map(({ store, count }) => {
-                        const isSel = selectedStore === store
-                        return (
-                          <button
-                            key={store}
-                            type="button"
-                            role="option"
-                            aria-selected={isSel}
-                            onClick={() => {
-                              setSelectedStore(store)
-                              setStoreDropdownOpen(false)
-                            }}
-                            className={`w-full px-3 py-2 text-left text-[13px] font-semibold flex items-center justify-between transition-colors ${
-                              isSel
-                                ? 'bg-blue-50 text-blue-700 font-bold'
-                                : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span
-                                className="w-2.5 h-2.5 rounded-full shrink-0"
-                                style={{ background: storeColor(store) }}
-                              />
-                              <span className="truncate">{storeLabel(store)}</span>
-                            </div>
-                            <span className="text-[11px] text-slate-400 font-normal shrink-0 pl-1">
-                              ({count})
-                            </span>
-                          </button>
-                        )
-                      })}
-                    </div>
+                    <span>{storeLabel(selectedStore)}</span>
+                    <ChevronDown
+                      size={13}
+                      className={`transition-transform duration-200 ${
+                        storeDropdownOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Store size={14} className="text-slate-500" />
+                    <span>Comercio: Todos</span>
+                    <ChevronDown
+                      size={13}
+                      className={`transition-transform duration-200 ${
+                        storeDropdownOpen ? 'rotate-180' : ''
+                      }`}
+                    />
                   </>
                 )}
-              </div>
+              </button>
             )}
 
             <Chip active={false} onClick={() => setSort(s => (s === 'unit_price_asc' ? 'price_asc' : 'unit_price_asc'))}>
@@ -373,6 +295,102 @@ const SearchScreen: React.FC = () => {
             <Chip active={onlyMulti} onClick={() => setOnlyMulti(v => !v)}>
               <Layers size={14} /> En 2+ súper
             </Chip>
+          </div>
+        )}
+
+        {/* Modal / Bottom Sheet Desplegable de Comercios (Fuera del contenedor overflow para que nunca se corte) */}
+        {storeDropdownOpen && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            {/* Backdrop oscuro */}
+            <div
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
+              onClick={() => setStoreDropdownOpen(false)}
+            />
+
+            {/* Hoja / Diálogo Flotante */}
+            <div
+              role="listbox"
+              aria-labelledby="store-filter-dropdown"
+              className="relative z-10 w-full sm:max-w-sm bg-white rounded-t-3xl sm:rounded-2xl p-4 shadow-2xl border border-slate-100 max-h-[80vh] flex flex-col"
+            >
+              <div className="w-10 h-1 rounded-full bg-slate-200 mx-auto mb-3 sm:hidden" />
+
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h3 className="text-[16px] font-extrabold text-slate-900">Filtrar por comercio</h3>
+                  <p className="text-[12px] text-slate-500">Seleccioná la cadena para ver solo sus productos</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStoreDropdownOpen(false)}
+                  className="p-1.5 -mr-1.5 rounded-full text-slate-400 hover:text-slate-600 active:bg-slate-100"
+                  aria-label="Cerrar"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto divide-y divide-slate-100 py-2 overscroll-contain">
+                {/* Opción Todos */}
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={selectedStore === null}
+                  onClick={() => {
+                    setSelectedStore(null)
+                    setStoreDropdownOpen(false)
+                  }}
+                  className={`w-full py-3 px-3 rounded-xl text-left flex items-center justify-between transition-colors min-h-[44px] ${
+                    selectedStore === null
+                      ? 'bg-blue-50 text-blue-700 font-bold'
+                      : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-slate-400" />
+                    <span className="text-[14px]">Todos los comercios</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[12px] font-normal text-slate-400">({results.length})</span>
+                    {selectedStore === null && <Check size={16} strokeWidth={2.5} className="text-blue-600" />}
+                  </div>
+                </button>
+
+                {/* Comercios disponibles */}
+                {availableStores.map(({ store, count }) => {
+                  const isSel = selectedStore === store
+                  return (
+                    <button
+                      key={store}
+                      type="button"
+                      role="option"
+                      aria-selected={isSel}
+                      onClick={() => {
+                        setSelectedStore(store)
+                        setStoreDropdownOpen(false)
+                      }}
+                      className={`w-full py-3 px-3 rounded-xl text-left flex items-center justify-between transition-colors min-h-[44px] ${
+                        isSel
+                          ? 'bg-blue-50 text-blue-700 font-bold'
+                          : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ background: storeColor(store) }}
+                        />
+                        <span className="text-[14px] truncate">{storeLabel(store)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[12px] font-normal text-slate-400">({count})</span>
+                        {isSel && <Check size={16} strokeWidth={2.5} className="text-blue-600" />}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           </div>
         )}
       </header>
