@@ -185,9 +185,9 @@ describe('Navigation Structure, Centered Search & Góndolas de Ofertas', () => {
     expect(screen.getByText('Ofertas y Góndolas')).toBeTruthy()
     expect(screen.getByText('Mayores descuentos del día comparados en vivo')).toBeTruthy()
 
-    // Sponsored Mercado Libre section is ALWAYS present
+    // Sponsored Mercado Libre section is ALWAYS present (one per high-discount tier)
     expect(screen.getAllByText('PATROCINADO').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('Destacado en Mercado Libre')).toBeTruthy()
+    expect(screen.getAllByText('Destacado en Mercado Libre').length).toBeGreaterThanOrEqual(1)
 
     // Top discounts banner
     expect(screen.getByText('🔥 Mayores Descuentos del Día')).toBeTruthy()

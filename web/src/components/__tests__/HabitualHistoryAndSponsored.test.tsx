@@ -327,7 +327,7 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
 
     // Check Mercado Libre sponsored product is always rendered in Offers
     expect(screen.getAllByText('PATROCINADO').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('Destacado en Mercado Libre')).toBeTruthy()
+    expect(screen.getAllByText('Destacado en Mercado Libre').length).toBeGreaterThanOrEqual(1)
   })
 
   it('8. Store filter: allows filtering search results via dropdown menu', async () => {

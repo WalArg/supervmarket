@@ -1,15 +1,10 @@
 import React, { useMemo, useState } from 'react'
-import { Flame, MapPin, ChevronDown, Sparkles, Zap, ExternalLink, ShoppingCart, Percent, ArrowUpDown } from 'lucide-react'
-import { GONDOLAS, type Gondola } from '../data/gondolasData'
+import { Flame, MapPin, ChevronDown, Sparkles, Zap, ShoppingCart, Tag, Percent } from 'lucide-react'
+import { GONDOLAS, DISCOUNT_TIERS, type Gondola, type DiscountTier } from '../data/gondolasData'
 import { useLocation } from '../location/LocationContext'
-import { useCart } from '../cart/CartContext'
-import { formatPrice } from '../lib/pricing'
-import { storeLabel, storeColor } from '../lib/stores'
-import { decorateOutboundUrl, trackOutboundAffiliateClick } from '../lib/affiliate'
 import GondolaSection from './GondolaSection'
 import GondolaCard from './GondolaCard'
 import SponsoredProductBox from './SponsoredProductBox'
-import type { ProductGroup, Offer } from '../types'
 
 interface OffersScreenProps {
   onGoSearch?: () => void
@@ -17,77 +12,29 @@ interface OffersScreenProps {
 
 export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
   const { cp, locationLabel, openModal } = useLocation()
-  const { add } = useCart()
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedFilter, setSelectedFilter] = useState<string>('all')
 
-  // Encuentra la mejor oferta patrocinada de Mercado Libre (la de mayor descuento)
-  const meliSponsored = useMemo(() => {
-    let candidate: { product: ProductGroup; offer: Offer } | null = null
-    let maxDiscount = -1
-
-    for (const g of GONDOLAS) {
-      for (const prod of g.products) {
-        const mlOffer = prod.offers.find(
-          o => (o.supermercado === 'MercadoLibre' || o.supermercado === 'meli') && (o.discount || 0) > maxDiscount,
-        )
-        if (mlOffer && (mlOffer.discount || 0) > maxDiscount) {
-          maxDiscount = mlOffer.discount || 0
-          candidate = { product: prod, offer: mlOffer }
-        }
-      }
-    }
-    return candidate
-  }, [])
-
-  // Góndolas con productos ordenados de mayor a menor descuento
-  const sortedGondolas = useMemo(() => {
-    return GONDOLAS.map(g => {
-      const sortedProducts = [...g.products].sort((a, b) => {
-        const maxA = Math.max(...a.offers.map(o => o.discount || 0))
-        const maxB = Math.max(...b.offers.map(o => o.discount || 0))
-        return maxB - maxA
-      })
-      return {
-        ...g,
-        products: sortedProducts,
-      }
-    })
-  }, [])
-
-  // Selección de los mayores descuentos globales (Top bombazos del día)
+  // Ofertas globales con los mayores descuentos reales (Top bombazos 50% a 80% OFF)
   const topDiscountProducts = useMemo(() => {
-    const allProducts: { product: ProductGroup; maxDiscount: number }[] = []
-    const seenEans = new Set<string>()
-
-    for (const g of GONDOLAS) {
-      for (const prod of g.products) {
-        if (!seenEans.has(prod.ean)) {
-          seenEans.add(prod.ean)
-          const maxDiscount = Math.max(...prod.offers.map(o => o.discount || 0))
-          allProducts.push({ product: prod, maxDiscount })
-        }
-      }
-    }
-
-    return allProducts
-      .sort((a, b) => b.maxDiscount - a.maxDiscount)
-      .slice(0, 6)
-      .map(item => item.product)
+    return [
+      DISCOUNT_TIERS[0].products[2], // Oreo 80% OFF
+      DISCOUNT_TIERS[0].products[0], // Whisky Petakon 73% OFF
+      DISCOUNT_TIERS[0].products[1], // Chocolate Belgium 70% OFF
+      DISCOUNT_TIERS[1].products[0], // Vodka Shooter 60% OFF
+      DISCOUNT_TIERS[2].products[0], // Lucchetti 50% OFF (2x1)
+      DISCOUNT_TIERS[2].products[1], // Manteca Tonadita 50% OFF
+      DISCOUNT_TIERS[2].products[3], // Quilmes 50% OFF (2x1)
+    ]
   }, [])
-
-  const filteredGondolas = useMemo(() => {
-    if (selectedCategory === 'all') return sortedGondolas
-    return sortedGondolas.filter(g => g.id === selectedCategory)
-  }, [selectedCategory, sortedGondolas])
 
   return (
     <div className="pb-28">
       {/* Header Sticky */}
-      <header className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md pt-safe border-b border-slate-100">
+      <header className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md pt-safe border-b border-slate-100 shadow-2xs">
         <div className="px-4 pt-3 pb-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 text-white flex items-center justify-center shadow-xs">
                 <Flame size={18} className="fill-white" />
               </div>
               <div>
@@ -111,27 +58,41 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
             </button>
           </div>
 
-          {/* Filtros rápidos de góndolas */}
+          {/* Filtros rápidos por rangos de descuento y categorías */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-3 pb-0.5">
             <button
               type="button"
-              onClick={() => setSelectedCategory('all')}
+              onClick={() => setSelectedFilter('all')}
               className={`shrink-0 h-8 px-3 rounded-full text-[12px] font-bold transition-all border ${
-                selectedCategory === 'all'
+                selectedFilter === 'all'
                   ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                   : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
               }`}
             >
-              Todas las góndolas
+              Todos los Descuentos
             </button>
-            {sortedGondolas.map(g => (
+            {DISCOUNT_TIERS.map(tier => (
+              <button
+                key={tier.id}
+                type="button"
+                onClick={() => setSelectedFilter(tier.id)}
+                className={`shrink-0 h-8 px-3 rounded-full text-[12px] font-bold transition-all border flex items-center gap-1 ${
+                  selectedFilter === tier.id
+                    ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <span>{tier.percentLabel} OFF</span>
+              </button>
+            ))}
+            {GONDOLAS.map(g => (
               <button
                 key={g.id}
                 type="button"
-                onClick={() => setSelectedCategory(g.id)}
+                onClick={() => setSelectedFilter(g.id)}
                 className={`shrink-0 h-8 px-3 rounded-full text-[12px] font-bold transition-all border ${
-                  selectedCategory === g.id
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                  selectedFilter === g.id
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -143,18 +104,8 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
       </header>
 
       <main className="px-4 pt-3 space-y-6">
-        {/* OPCIÓN PATROCINADA SIEMPRE PRESENTE: MERCADO LIBRE */}
-        {meliSponsored && (
-          <section className="space-y-1.5">
-            <SponsoredProductBox
-              product={meliSponsored.product}
-              offer={meliSponsored.offer}
-            />
-          </section>
-        )}
-
-        {/* TOP BOMBAZOS DEL DÍA (Mayores descuentos globales) */}
-        {selectedCategory === 'all' && (
+        {/* BANNER PRINCIPAL TOP DESCUENTOS BOMBARDEROS */}
+        {selectedFilter === 'all' && (
           <section className="space-y-2.5 pt-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
@@ -163,8 +114,8 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
                   🔥 Mayores Descuentos del Día
                 </h2>
               </div>
-              <span className="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
-                Hasta -30% OFF
+              <span className="text-[11px] font-black text-rose-700 bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
+                ¡Hasta 80% y 73% OFF!
               </span>
             </div>
 
@@ -178,15 +129,71 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
           </section>
         )}
 
-        {/* GÓNDOLAS DE PRODUCTOS SEPARADAS */}
-        <div className="space-y-6">
-          {filteredGondolas.map(gondola => (
-            <GondolaSection
-              key={gondola.id}
-              gondola={gondola}
-            />
-          ))}
-        </div>
+        {/* SECCIONES POR RANGOS DE DESCUENTOS GRANDES (70%-80%, 60%, 50%, 40%) */}
+        {/* Cada uno contiene su producto patrocinado de Mercado Libre con descuento acorde */}
+        {DISCOUNT_TIERS.filter(
+          tier => selectedFilter === 'all' || selectedFilter === tier.id,
+        ).map(tier => (
+          <section
+            key={tier.id}
+            className="space-y-3 pt-2 border-t border-slate-200/60 first:border-t-0"
+          >
+            {/* Encabezado del Nivel de Descuento */}
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-[16px] font-black text-slate-900 tracking-tight">
+                    {tier.title}
+                  </h3>
+                </div>
+                <p className="text-[12px] text-slate-500 font-medium mt-0.5">
+                  {tier.subtitle}
+                </p>
+              </div>
+              <span className="shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-600 text-white shadow-2xs">
+                {tier.badge}
+              </span>
+            </div>
+
+            {/* OPCIÓN PATROCINADA DE MERCADO LIBRE CON EL MISMO PORCENTAJE ALTO */}
+            <div className="pt-0.5">
+              <SponsoredProductBox
+                product={tier.meliSponsored.product}
+                offer={tier.meliSponsored.offer}
+              />
+            </div>
+
+            {/* Productos con ese nivel de descuento */}
+            <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-1 px-0.5 -mx-0.5 snap-x">
+              {tier.products.map(product => (
+                <div key={`tier-${tier.id}-${product.ean}`} className="snap-start shrink-0">
+                  <GondolaCard group={product} />
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+
+        {/* GÓNDOLAS POR CATEGORÍA CON SUPER OFERTAS */}
+        {(selectedFilter === 'all' || GONDOLAS.some(g => g.id === selectedFilter)) && (
+          <div className="space-y-6 pt-2 border-t border-slate-200/60">
+            <div className="flex items-center gap-2">
+              <Sparkles size={16} className="text-blue-600" />
+              <h2 className="text-[15px] font-extrabold text-slate-900 tracking-tight">
+                Góndolas de Ofertas por Rubro
+              </h2>
+            </div>
+
+            {GONDOLAS.filter(
+              g => selectedFilter === 'all' || selectedFilter === g.id,
+            ).map(gondola => (
+              <GondolaSection
+                key={gondola.id}
+                gondola={gondola}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Banner buscador complementario */}
         {onGoSearch && (
@@ -198,10 +205,10 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
             >
               <div>
                 <h3 className="text-[14px] font-extrabold text-blue-950">
-                  ¿Buscás un producto en específico?
+                  ¿Buscás otro producto en específico?
                 </h3>
                 <p className="text-[12px] text-blue-700 font-medium mt-0.5">
-                  Usá el buscador en vivo para comparar entre todos los supermercados.
+                  Comparamos precios y promociones entre todos los supermercados al instante.
                 </p>
               </div>
               <span className="shrink-0 ml-3 px-3 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-[12px] group-hover:bg-blue-700 shadow-xs">
