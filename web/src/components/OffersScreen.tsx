@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react'
-import { Flame, MapPin, ChevronDown, Sparkles, Zap, ShoppingCart, Tag, Percent } from 'lucide-react'
-import { GONDOLAS, DISCOUNT_TIERS, type Gondola, type DiscountTier } from '../data/gondolasData'
+import React, { useState } from 'react'
+import { Flame, MapPin, ChevronDown, Sparkles } from 'lucide-react'
+import { GONDOLAS, DISCOUNT_TIERS } from '../data/gondolasData'
 import { useLocation } from '../location/LocationContext'
 import GondolaSection from './GondolaSection'
 import GondolaCard from './GondolaCard'
@@ -13,19 +13,6 @@ interface OffersScreenProps {
 export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
   const { cp, locationLabel, openModal } = useLocation()
   const [selectedFilter, setSelectedFilter] = useState<string>('all')
-
-  // Ofertas globales con los mayores descuentos reales (Top bombazos 50% a 80% OFF)
-  const topDiscountProducts = useMemo(() => {
-    return [
-      DISCOUNT_TIERS[0].products[2], // Oreo 80% OFF
-      DISCOUNT_TIERS[0].products[0], // Whisky Petakon 73% OFF
-      DISCOUNT_TIERS[0].products[1], // Chocolate Belgium 70% OFF
-      DISCOUNT_TIERS[1].products[0], // Vodka Shooter 60% OFF
-      DISCOUNT_TIERS[2].products[0], // Lucchetti 50% OFF (2x1)
-      DISCOUNT_TIERS[2].products[1], // Manteca Tonadita 50% OFF
-      DISCOUNT_TIERS[2].products[3], // Quilmes 50% OFF (2x1)
-    ]
-  }, [])
 
   return (
     <div className="pb-28">
@@ -104,46 +91,14 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
       </header>
 
       <main className="px-4 pt-3 space-y-6">
-        {/* BANNER PRINCIPAL TOP DESCUENTOS BOMBARDEROS */}
-        {selectedFilter === 'all' && (
-          <section className="space-y-2.5 pt-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-                <h2 className="text-[15px] font-extrabold text-slate-900 tracking-tight">
-                  🔥 Mayores Descuentos del Día
-                </h2>
-              </div>
-              <span className="text-[11px] font-black text-rose-700 bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
-                ¡Hasta 80% y 73% OFF!
-              </span>
-            </div>
-
-            <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-1 px-0.5 -mx-0.5 snap-x">
-              {/* Opción destacada de Mercado Libre a la izquierda */}
-              <div className="snap-start shrink-0">
-                <SponsoredGondolaCard
-                  product={DISCOUNT_TIERS[0].meliSponsored.product}
-                  offer={DISCOUNT_TIERS[0].meliSponsored.offer}
-                />
-              </div>
-              {topDiscountProducts.map(product => (
-                <div key={`top-${product.ean}`} className="snap-start shrink-0">
-                  <GondolaCard group={product} />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* SECCIONES POR RANGOS DE DESCUENTOS GRANDES (70%-80%, 60%, 50%, 40%) */}
         {/* Cada uno contiene su producto patrocinado de Mercado Libre como PRIMERA TARJETA A LA IZQUIERDA con descuento acorde */}
         {DISCOUNT_TIERS.filter(
           tier => selectedFilter === 'all' || selectedFilter === tier.id,
-        ).map(tier => (
+        ).map((tier, idx) => (
           <section
             key={tier.id}
-            className="space-y-3 pt-2 border-t border-slate-200/60 first:border-t-0"
+            className={`space-y-3 ${idx > 0 ? 'pt-4 border-t border-slate-200/60' : 'pt-1'}`}
           >
             {/* Encabezado del Nivel de Descuento */}
             <div className="flex items-start justify-between gap-2">
