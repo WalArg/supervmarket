@@ -24,39 +24,41 @@ export interface DiscountTier {
 }
 
 /**
- * NIVELES DE MEGADECUENTOS (70%-80%, 60%, 50%, 40%)
- * Cada nivel cuenta con su opción patrocinada de Mercado Libre como PRIMERA tarjeta del carrusel con descuento acorde.
- * Todos los links de supermercados y Mercado Libre corresponden a páginas directas de producto activas y verificadas.
- * Los precios de promociones por volumen (2do al 70%, 2do al 50%, 2x1) muestran el precio unitario efectivo real.
+ * NIVELES DE MEGADECUENTOS Y PROMOCIONES REALES
+ * 1. 2da Unidad al 70% y 80% OFF (Promociones en pareja con precio unitario efectivo)
+ * 2. Liquidaciones y Grandes Rebajas (Hasta 75% OFF directo)
+ * 3. 50% OFF y Promos 2x1 (Mitad de precio)
+ * 4. Canasta Básica y Esenciales (25% a 45% OFF directo)
+ * Cada nivel cuenta con su opción patrocinada de Mercado Libre como PRIMERA tarjeta con su descuento REAL verificado.
  */
 export const DISCOUNT_TIERS: DiscountTier[] = [
   {
     id: 'tier-70-80',
-    title: '70% y 80% OFF — Mega Liquidación & 2do al 80%',
-    subtitle: 'Grandes rebajas y liquidaciones: 2das unidades al 70% y 80% OFF',
-    badge: 'Hasta 80% OFF',
-    percentLabel: '70% - 80%',
+    title: '2da Unidad al 70% y 80% OFF — Promociones en Pareja',
+    subtitle: 'Llevando 2 unidades: la 2da al 70% y 80% OFF en súper (precio unitario efectivo)',
+    badge: '2da al 70% y 80%',
+    percentLabel: '70% y 80% OFF',
     icon: 'flame',
     meliSponsored: {
       product: {
-        ean: '7794450000781',
-        nombre: 'Vino Tinto Álamos Malbec 750 Ml',
-        marca: 'Álamos',
-        imagen: 'https://ardiaprod.vteximg.com.br/arquivos/ids/314458/Vino-Tinto-Alamos-Malbec-750-Ml-_1.jpg?v=638599428555500000',
+        ean: '7622201735296',
+        nombre: 'Galletitas Oreo x 118 g',
+        marca: 'Oreo',
+        imagen: 'https://farmacityar.vteximg.com.br/arquivos/ids/298494/251535_galletitas-oreo-x-118-g_imagen-1.jpg?v=639229342479300000',
         offers: [],
       },
       offer: {
         supermercado: 'MercadoLibre',
-        precio: 5794,
-        precio_lista: 10939,
-        stock: 80,
-        link: 'https://www.mercadolibre.com.ar/vino-alamos-malbec-750cc/p/MLA19870533',
-        seller_name: 'Meli BuyBox (Oficial)',
+        precio: 2097,
+        precio_lista: 2639,
+        stock: 120,
+        link: 'https://www.mercadolibre.com.ar/paquete-de-galletitas-oreo-118g/p/MLA24583573',
+        seller_name: 'Tienda Oficial Mondelez',
         is_full: true,
-        discount: 70,
-        promo_label: '70% OFF en 2da un.',
-        unit_measure: 'lt',
-        unit_price: 7725,
+        discount: 21,
+        promo_label: '21% OFF',
+        unit_measure: 'kg',
+        unit_price: 17771,
       },
     },
     products: [
@@ -118,6 +120,60 @@ export const DISCOUNT_TIERS: DiscountTier[] = [
         ],
       },
       {
+        ean: '7791290796430',
+        nombre: 'Jabón Líquido Skip Limpieza Activa Doypack 800ml',
+        marca: 'Skip',
+        imagen: 'https://farmaonline.vteximg.com.br/arquivos/ids/1458225/8144165_0.jpg?v=639252564197900000',
+        offers: [
+          {
+            supermercado: 'Carrefour',
+            precio: 2847,
+            precio_lista: 4745,
+            stock: 50,
+            link: 'https://www.carrefour.com.ar/jabon-liquido-skip-bio-enzimas-doypack-800-ml-695715/p',
+            discount: 40,
+            promo_label: '2do al 80% ($2.847 c/u x2)',
+            promo_min_qty: 2,
+            unit_measure: 'lt',
+            unit_price: 3559,
+          },
+          {
+            supermercado: 'Dia',
+            precio: 3081,
+            precio_lista: 4740,
+            stock: 60,
+            link: 'https://diaonline.supermercadosdia.com.ar/jabon-liquido-skip-bio-enzimas-doypack-800-ml-213543/p',
+            discount: 35,
+            promo_label: '35% OFF',
+            unit_measure: 'lt',
+            unit_price: 3851,
+          },
+          {
+            supermercado: 'MercadoLibre',
+            precio: 3190,
+            precio_lista: 4740,
+            stock: 80,
+            link: 'https://www.mercadolibre.com.ar/p/MLA19858406',
+            seller_name: 'Tienda Oficial Unilever',
+            is_full: true,
+            discount: 33,
+            promo_label: '33% OFF',
+            unit_measure: 'lt',
+            unit_price: 3988,
+          },
+          {
+            supermercado: 'Masonline',
+            precio: 4745,
+            precio_lista: 4745,
+            stock: 40,
+            link: 'https://www.masonline.com.ar/jabon-liquido-para-ropa-skip-concentrado-limpieza-activa-para-ciclos-cortos-800-ml-2/p',
+            discount: 0,
+            unit_measure: 'lt',
+            unit_price: 5931,
+          },
+        ],
+      },
+      {
         ean: '7793147570866',
         nombre: 'Cerveza Rubia Lata Grolsch 473cc',
         marca: 'Grolsch',
@@ -150,6 +206,38 @@ export const DISCOUNT_TIERS: DiscountTier[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    id: 'tier-60',
+    title: 'Liquidaciones Directas y Bombas de Ahorro (Hasta 75% OFF)',
+    subtitle: 'Grandes rebajas y liquidaciones directas de stock en bebidas y limpieza',
+    badge: 'Hasta 75% OFF',
+    percentLabel: '35% a 75%',
+    icon: 'zap',
+    meliSponsored: {
+      product: {
+        ean: '7790990003220',
+        nombre: 'Jabón Líquido para Ropa Ariel Platinum Botella 3 Lt',
+        marca: 'Ariel',
+        imagen: 'https://ardiaprod.vteximg.com.br/arquivos/ids/362701/Jabon-Liquido-Para-Ropa-Ariel-Platinum-Doypack-3-Lt-_1.jpg?v=639003522645770000',
+        offers: [],
+      },
+      offer: {
+        supermercado: 'MercadoLibre',
+        precio: 12954,
+        precio_lista: 19929,
+        stock: 90,
+        link: 'https://www.mercadolibre.com.ar/ariel-platinum-botella-3-l-3-kg-unidad-1-1/p/MLA27822878',
+        seller_name: 'ECOMODICO (Oficial)',
+        is_full: true,
+        discount: 35,
+        promo_label: '35% OFF',
+        unit_measure: 'lt',
+        unit_price: 4318,
+      },
+    },
+    products: [
       {
         ean: '7798134193752',
         nombre: 'Whisky Petakon en petaca 380 ml',
@@ -169,38 +257,6 @@ export const DISCOUNT_TIERS: DiscountTier[] = [
           },
         ],
       },
-    ],
-  },
-  {
-    id: 'tier-60',
-    title: '60% OFF — Súper Rebajas Bombas',
-    subtitle: 'Descuentos masivos en perfumería, limpieza y bebidas seleccionadas',
-    badge: 'Hasta 60% OFF',
-    percentLabel: '60%',
-    icon: 'zap',
-    meliSponsored: {
-      product: {
-        ean: '7790990003220',
-        nombre: 'Jabón Líquido para Ropa Ariel Platinum Botella 3 Lt',
-        marca: 'Ariel',
-        imagen: 'https://ardiaprod.vteximg.com.br/arquivos/ids/362701/Jabon-Liquido-Para-Ropa-Ariel-Platinum-Doypack-3-Lt-_1.jpg?v=639003522645770000',
-        offers: [],
-      },
-      offer: {
-        supermercado: 'MercadoLibre',
-        precio: 12954,
-        precio_lista: 19929,
-        stock: 90,
-        link: 'https://www.mercadolibre.com.ar/ariel-platinum-botella-3-l-3-kg-unidad-1-1/p/MLA27822878',
-        seller_name: 'ECOMODICO (Oficial)',
-        is_full: true,
-        discount: 60,
-        promo_label: '60% OFF en 2da un.',
-        unit_measure: 'lt',
-        unit_price: 4318,
-      },
-    },
-    products: [
       {
         ean: '7790154009136',
         nombre: 'Vodka Lima Shooter 473 Ml',
@@ -273,13 +329,13 @@ export const DISCOUNT_TIERS: DiscountTier[] = [
           {
             supermercado: 'MercadoLibre',
             precio: 5794,
-            precio_lista: 10939,
+            precio_lista: 6099,
             stock: 60,
             link: 'https://www.mercadolibre.com.ar/vino-alamos-malbec-750cc/p/MLA19870533',
             seller_name: 'Meli BuyBox (Oficial)',
             is_full: true,
-            discount: 47,
-            promo_label: '47% OFF',
+            discount: 5,
+            promo_label: '5% OFF',
             unit_measure: 'lt',
             unit_price: 7725,
           },
@@ -295,89 +351,35 @@ export const DISCOUNT_TIERS: DiscountTier[] = [
           },
         ],
       },
-      {
-        ean: '7791290796430',
-        nombre: 'Jabón Líquido Skip Limpieza Activa Doypack 800ml',
-        marca: 'Skip',
-        imagen: 'https://farmaonline.vteximg.com.br/arquivos/ids/1458225/8144165_0.jpg?v=639252564197900000',
-        offers: [
-          {
-            supermercado: 'Carrefour',
-            precio: 2847,
-            precio_lista: 4745,
-            stock: 50,
-            link: 'https://www.carrefour.com.ar/jabon-liquido-skip-bio-enzimas-doypack-800-ml-695715/p',
-            discount: 40,
-            promo_label: '2do al 80% ($2.847 c/u x2)',
-            promo_min_qty: 2,
-            unit_measure: 'lt',
-            unit_price: 3559,
-          },
-          {
-            supermercado: 'Dia',
-            precio: 3081,
-            precio_lista: 4740,
-            stock: 60,
-            link: 'https://diaonline.supermercadosdia.com.ar/jabon-liquido-skip-bio-enzimas-doypack-800-ml-213543/p',
-            discount: 35,
-            promo_label: '35% OFF',
-            unit_measure: 'lt',
-            unit_price: 3851,
-          },
-          {
-            supermercado: 'MercadoLibre',
-            precio: 3190,
-            precio_lista: 4740,
-            stock: 80,
-            link: 'https://www.mercadolibre.com.ar/p/MLA19858406',
-            seller_name: 'Tienda Oficial Unilever',
-            is_full: true,
-            discount: 33,
-            promo_label: '33% OFF',
-            unit_measure: 'lt',
-            unit_price: 3988,
-          },
-          {
-            supermercado: 'Masonline',
-            precio: 4745,
-            precio_lista: 4745,
-            stock: 40,
-            link: 'https://www.masonline.com.ar/jabon-liquido-para-ropa-skip-concentrado-limpieza-activa-para-ciclos-cortos-800-ml-2/p',
-            discount: 0,
-            unit_measure: 'lt',
-            unit_price: 5931,
-          },
-        ],
-      },
     ],
   },
   {
     id: 'tier-50',
-    title: '50% OFF — 2x1 y Mitad de Precio',
-    subtitle: 'Las promociones 2x1 más populares para duplicar tu changuito al 50%',
+    title: '50% OFF y 2x1 — Mitad de Precio',
+    subtitle: 'Promociones 2x1 y 50% directo para duplicar tu changuito al 50%',
     badge: '50% OFF (2x1)',
-    percentLabel: '50%',
+    percentLabel: '50% (2x1)',
     icon: 'percent',
     meliSponsored: {
       product: {
-        ean: '7790070231864',
-        nombre: 'Aceite de Oliva Cocinero Extra Virgen Suave 500 Ml',
-        marca: 'Cocinero',
-        imagen: 'https://ardiaprod.vteximg.com.br/arquivos/ids/390557/Aceite-de-Oliva-Cocinero-Extra-Virgen-Intenso-500-Ml-_1.jpg?v=639268806916470000',
+        ean: '7790070336026',
+        nombre: 'Fideos Lucchetti Tirabuzón 500 G',
+        marca: 'Lucchetti',
+        imagen: 'https://masonlineprod.vteximg.com.br/arquivos/ids/334621/Fideos-Lucchetti-Tirabuzon-500-G-1-49865.jpg?v=638623893699570000',
         offers: [],
       },
       offer: {
         supermercado: 'MercadoLibre',
-        precio: 12239,
-        precio_lista: 13599,
+        precio: 1877,
+        precio_lista: 3500,
         stock: 100,
-        link: 'https://www.mercadolibre.com.ar/p/MLA28411232',
-        seller_name: 'Tienda Oficial Molinos',
+        link: 'https://articulo.mercadolibre.com.ar/MLA-1584768540',
+        seller_name: 'ECOMODICO (Oficial)',
         is_full: true,
-        discount: 50,
-        promo_label: '50% OFF en 2da un.',
-        unit_measure: 'lt',
-        unit_price: 24478,
+        discount: 46,
+        promo_label: '46% OFF',
+        unit_measure: 'kg',
+        unit_price: 3754,
       },
     },
     products: [
@@ -399,24 +401,21 @@ export const DISCOUNT_TIERS: DiscountTier[] = [
             unit_price: 10995,
           },
           {
-            supermercado: 'MercadoLibre',
-            precio: 2890,
-            precio_lista: 4399,
-            stock: 90,
-            link: 'https://www.mercadolibre.com.ar/manteca-tonadita-calidad-extra-200-g/p/MLA55864318',
-            seller_name: 'Distribuidora Láctea',
-            is_full: true,
-            discount: 34,
-            promo_label: '34% OFF',
-            unit_measure: 'kg',
-            unit_price: 14450,
-          },
-          {
             supermercado: 'Dia',
             precio: 4399,
             precio_lista: 4399,
             stock: 35,
             link: 'https://diaonline.supermercadosdia.com.ar/manteca-tonadita-extra-calidad-200-gr-236478/p',
+            discount: 0,
+            unit_measure: 'kg',
+            unit_price: 21995,
+          },
+          {
+            supermercado: 'Masonline',
+            precio: 4399,
+            precio_lista: 4399,
+            stock: 30,
+            link: 'https://www.masonline.com.ar/manteca-tonadita-200g/p',
             discount: 0,
             unit_measure: 'kg',
             unit_price: 21995,
@@ -520,10 +519,10 @@ export const DISCOUNT_TIERS: DiscountTier[] = [
   },
   {
     id: 'tier-40',
-    title: '40% OFF — Gran Ahorro de Canasta',
-    subtitle: 'Descuentos de hasta 40% en aceites, yerbas, lácteos y productos esenciales',
-    badge: '40% OFF',
-    percentLabel: '40%',
+    title: 'Canasta Básica y Esenciales — Gran Ahorro (25% a 45% OFF)',
+    subtitle: 'Descuentos directos en aceites, detergentes, yerba y lácteos de consumo diario',
+    badge: 'Hasta 45% OFF',
+    percentLabel: '25% - 45%',
     icon: 'tag',
     meliSponsored: {
       product: {
@@ -728,9 +727,9 @@ export const GONDOLAS: Gondola[] = [
     searchTerm: 'ofertas',
     products: [
       DISCOUNT_TIERS[0].products[0], // Oreo 2do al 70% ($1.715 c/u x2)
-      DISCOUNT_TIERS[0].products[1], // Grolsch 2do al 70% ($2.659 c/u x2)
-      DISCOUNT_TIERS[0].products[2], // Petakon 73% OFF Liquidación ($690)
-      DISCOUNT_TIERS[1].products[2], // Skip 2do al 80% ($2.847 c/u x2)
+      DISCOUNT_TIERS[0].products[1], // Skip 2do al 80% ($2.847 c/u x2)
+      DISCOUNT_TIERS[0].products[2], // Grolsch 2do al 70% ($2.659 c/u x2)
+      DISCOUNT_TIERS[1].products[0], // Petakon 73% OFF Liquidación ($690)
       DISCOUNT_TIERS[2].products[0], // Manteca Tonadita 50% OFF ($2.199)
       DISCOUNT_TIERS[2].products[1], // Leche Condensada Nestle 50% OFF ($2.830)
     ],
@@ -767,7 +766,7 @@ export const GONDOLAS: Gondola[] = [
     icon: 'sparkles',
     searchTerm: 'limpieza',
     products: [
-      DISCOUNT_TIERS[1].products[2], // Skip 2do al 80% ($2.847 c/u x2)
+      DISCOUNT_TIERS[0].products[1], // Skip 2do al 80% ($2.847 c/u x2)
       DISCOUNT_TIERS[3].products[3], // Dove 40% OFF
     ],
   },
@@ -778,10 +777,10 @@ export const GONDOLAS: Gondola[] = [
     icon: 'coffee',
     searchTerm: 'bebidas',
     products: [
-      DISCOUNT_TIERS[0].products[1], // Grolsch 2do al 70%
-      DISCOUNT_TIERS[0].products[2], // Whisky Petakon 73% OFF
-      DISCOUNT_TIERS[1].products[0], // Vodka Shooter
-      DISCOUNT_TIERS[1].products[1], // Álamos Malbec
+      DISCOUNT_TIERS[0].products[2], // Grolsch 2do al 70%
+      DISCOUNT_TIERS[1].products[0], // Whisky Petakon 73% OFF
+      DISCOUNT_TIERS[1].products[1], // Vodka Shooter
+      DISCOUNT_TIERS[1].products[2], // Álamos Malbec
     ],
   },
 ]
