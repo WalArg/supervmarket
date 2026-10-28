@@ -4,7 +4,7 @@ import { GONDOLAS, DISCOUNT_TIERS, type Gondola, type DiscountTier } from '../da
 import { useLocation } from '../location/LocationContext'
 import GondolaSection from './GondolaSection'
 import GondolaCard from './GondolaCard'
-import SponsoredProductBox from './SponsoredProductBox'
+import SponsoredGondolaCard from './SponsoredGondolaCard'
 
 interface OffersScreenProps {
   onGoSearch?: () => void
@@ -120,6 +120,13 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
             </div>
 
             <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-1 px-0.5 -mx-0.5 snap-x">
+              {/* Opción destacada de Mercado Libre a la izquierda */}
+              <div className="snap-start shrink-0">
+                <SponsoredGondolaCard
+                  product={DISCOUNT_TIERS[0].meliSponsored.product}
+                  offer={DISCOUNT_TIERS[0].meliSponsored.offer}
+                />
+              </div>
               {topDiscountProducts.map(product => (
                 <div key={`top-${product.ean}`} className="snap-start shrink-0">
                   <GondolaCard group={product} />
@@ -130,7 +137,7 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
         )}
 
         {/* SECCIONES POR RANGOS DE DESCUENTOS GRANDES (70%-80%, 60%, 50%, 40%) */}
-        {/* Cada uno contiene su producto patrocinado de Mercado Libre con descuento acorde */}
+        {/* Cada uno contiene su producto patrocinado de Mercado Libre como PRIMERA TARJETA A LA IZQUIERDA con descuento acorde */}
         {DISCOUNT_TIERS.filter(
           tier => selectedFilter === 'all' || selectedFilter === tier.id,
         ).map(tier => (
@@ -155,16 +162,14 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
               </span>
             </div>
 
-            {/* OPCIÓN PATROCINADA DE MERCADO LIBRE CON EL MISMO PORCENTAJE ALTO */}
-            <div className="pt-0.5">
-              <SponsoredProductBox
-                product={tier.meliSponsored.product}
-                offer={tier.meliSponsored.offer}
-              />
-            </div>
-
-            {/* Productos con ese nivel de descuento */}
+            {/* Carrusel horizontal: El patrocinado de Mercado Libre es el PRIMERO DE LA IZQUIERDA con su descuento correspondiente */}
             <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-1 px-0.5 -mx-0.5 snap-x">
+              <div className="snap-start shrink-0">
+                <SponsoredGondolaCard
+                  product={tier.meliSponsored.product}
+                  offer={tier.meliSponsored.offer}
+                />
+              </div>
               {tier.products.map(product => (
                 <div key={`tier-${tier.id}-${product.ean}`} className="snap-start shrink-0">
                   <GondolaCard group={product} />
