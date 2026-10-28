@@ -61,9 +61,14 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
         onClick={() => setSheetOpen(true)}
         className="w-[168px] shrink-0 bg-white rounded-2xl border border-slate-200/80 p-2.5 flex flex-col justify-between shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-slate-300 hover:shadow-md transition-all cursor-pointer relative group"
       >
-        {/* Badges superiores: descuento y guardado */}
+        {/* Badges superiores: descuento / promo y guardado */}
         <div className="flex items-center justify-between gap-1 mb-1.5">
-          {best.o.discount && best.o.discount > 0 ? (
+          {best.o.promo_label && (best.o.promo_label.includes('2do') || best.o.promo_label.includes('2x1') || best.o.promo_label.includes('3x2')) ? (
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-rose-700 bg-rose-50 border border-rose-200/80 px-1.5 py-0.5 rounded-md truncate max-w-[110px]" title={best.o.promo_label}>
+              <Flame size={10} className="fill-rose-500 text-rose-500 shrink-0" />
+              {best.o.promo_label.split('(')[0].trim()}
+            </span>
+          ) : best.o.discount && best.o.discount > 0 ? (
             <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-rose-700 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-md">
               <Flame size={10} className="fill-rose-500 text-rose-500" />
               -{best.o.discount}%

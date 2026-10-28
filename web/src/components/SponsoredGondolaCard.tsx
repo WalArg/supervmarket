@@ -42,7 +42,12 @@ export const SponsoredGondolaCard: React.FC<SponsoredGondolaCardProps> = ({ prod
     >
       {/* Badges superiores: descuento correspondiente del nivel y PATROCINADO */}
       <div className="flex items-center justify-between gap-1 mb-1.5">
-        {offer.discount && offer.discount > 0 ? (
+        {offer.promo_label && (offer.promo_label.includes('2do') || offer.promo_label.includes('2x1') || offer.promo_label.includes('3x2')) ? (
+          <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-rose-700 bg-rose-50 border border-rose-200/80 px-1.5 py-0.5 rounded-md truncate max-w-[95px]" title={offer.promo_label}>
+            <Flame size={10} className="fill-rose-500 text-rose-500 shrink-0" />
+            {offer.promo_label.split('(')[0].trim()}
+          </span>
+        ) : offer.discount && offer.discount > 0 ? (
           <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-rose-700 bg-rose-50 border border-rose-200/80 px-1.5 py-0.5 rounded-md">
             <Flame size={10} className="fill-rose-500 text-rose-500" />
             -{offer.discount}%
