@@ -53,8 +53,7 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
     expect(screen.queryByText('PATROCINADO')).toBeNull()
     expect(screen.queryByText('Mercado Libre Supermercado')).toBeNull()
 
-    // Clean home components should still be visible
-    expect(screen.getByText(/Lo más buscado/i)).toBeTruthy()
+    // Clean home components: scanner banner is visible and no habitual searches cluttering
     expect(screen.getByText(/¿Estás en el súper\?/i)).toBeTruthy()
   })
 

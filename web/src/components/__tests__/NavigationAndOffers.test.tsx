@@ -137,8 +137,14 @@ describe('Navigation Structure, Centered Search & Góndolas de Ofertas', () => {
 
     // Initially centered
     expect(screen.getByText('Encontrá el mejor precio')).toBeTruthy()
-    expect(screen.getByText(/Lo más buscado/i)).toBeTruthy()
     expect(screen.getByText(/¿Estás en el súper\?/i)).toBeTruthy()
+
+    // No scanner button to the right of input before searching
+    expect(screen.queryByRole('button', { name: /escanear código de barras/i })).toBeNull()
+
+    // No habitual searches at the beginning
+    expect(screen.queryByText(/Búsquedas recientes/i)).toBeNull()
+    expect(screen.queryByText(/Lo más buscado/i)).toBeNull()
 
     // Type in search input
     const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
@@ -149,6 +155,9 @@ describe('Navigation Structure, Centered Search & Góndolas de Ofertas', () => {
       expect(screen.getByText('Leche Descremada La Serenísima 1L')).toBeTruthy()
     })
 
+    // Now barcode button appears to the right of the search input at the top
+    expect(screen.getByRole('button', { name: /escanear código de barras/i })).toBeTruthy()
+
     // Centered hero branding hides when search is active
     expect(screen.queryByText('Encontrá el mejor precio')).toBeNull()
 
@@ -156,8 +165,9 @@ describe('Navigation Structure, Centered Search & Góndolas de Ofertas', () => {
     const clearBtn = screen.getByRole('button', { name: /borrar/i })
     fireEvent.click(clearBtn)
 
-    // Re-displays centered layout
+    // Re-displays centered layout and hides the top scanner button
     expect(screen.getByText('Encontrá el mejor precio')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /escanear código de barras/i })).toBeNull()
   })
 
   it('4. OffersScreen: renders separated góndolas, top discounts, and always a Mercado Libre sponsored option', () => {

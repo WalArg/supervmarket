@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, Clock, TrendingUp, SearchX, MapPin, ChevronDown, Store, Check, Sparkles } from 'lucide-react'
+import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, SearchX, MapPin, ChevronDown, Store, Check, Sparkles } from 'lucide-react'
 import ProductCard from './ProductCard'
 import BarcodeScanner from './BarcodeScanner'
 import SponsoredProductBox from './SponsoredProductBox'
@@ -9,18 +9,7 @@ import { SPONSORED_CONFIG } from '../lib/sponsoredConfig'
 import { storeColor, storeLabel } from '../lib/stores'
 import type { ProductGroup } from '../types'
 
-const POPULAR = ['Leche', 'Coca Cola', 'Yerba', 'Aceite', 'Fideos', 'Café', 'Pañales', 'Arroz', 'Cerveza', 'Detergente', 'Papel higiénico', 'Azúcar']
-const RECENT_KEY = 'sv_recent_v1'
-
 type Sort = 'unit_price_asc' | 'price_asc'
-
-const loadRecent = (): string[] => {
-  try {
-    return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]')
-  } catch {
-    return []
-  }
-}
 
 const Chip: React.FC<{ active: boolean; onClick: () => void; children: React.ReactNode }> = ({ active, onClick, children }) => (
   <button
@@ -47,22 +36,12 @@ const SearchScreen: React.FC = () => {
   const [selectedStore, setSelectedStore] = useState<string | null>(null)
   const [storeDropdownOpen, setStoreDropdownOpen] = useState(false)
   const [scanning, setScanning] = useState(false)
-  const [recent, setRecent] = useState<string[]>(loadRecent)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query.trim()), 350)
     return () => clearTimeout(t)
   }, [query])
-
-  const pushRecent = useCallback((q: string) => {
-    if (q.length < 2 || /^\d{8,14}$/.test(q)) return
-    setRecent(prev => {
-      const next = [q, ...prev.filter(x => x.toLowerCase() !== q.toLowerCase())].slice(0, 8)
-      localStorage.setItem(RECENT_KEY, JSON.stringify(next))
-      return next
-    })
-  }, [])
 
   useEffect(() => {
     if (debounced.length < 2) {
@@ -77,14 +56,13 @@ const SearchScreen: React.FC = () => {
       .then(data => {
         if (!alive) return
         setResults(data)
-        if (data.length) pushRecent(debounced)
       })
       .catch(() => alive && setResults([]))
       .finally(() => alive && setLoading(false))
     return () => {
       alive = false
     }
-  }, [debounced, sort, onlyOffers, cp, pushRecent])
+  }, [debounced, sort, onlyOffers, cp])
 
   // Lista de comercios presentes en los resultados de búsqueda para filtrado
   const availableStores = useMemo(() => {
@@ -213,7 +191,7 @@ const SearchScreen: React.FC = () => {
 
           {/* Hero Branding centrado: Visible únicamente en el estado inicial sin búsqueda */}
           {!hasQuery && (
-            <div className="pt-6 pb-4 text-center animate-in fade-in zoom-in-95 duration-300">
+            <div className="pt-8 pb-4 text-center animate-in fade-in zoom-in-95 duration-300">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[11.5px] font-bold mb-3 shadow-2xs">
                 <Sparkles size={13} className="text-blue-600" /> Compará precios de supermercados
               </div>
@@ -226,14 +204,14 @@ const SearchScreen: React.FC = () => {
             </div>
           )}
 
-          {/* Formulario de búsqueda y escáner centrado / dinámico */}
+          {/* Formulario de búsqueda centrado (sin botón de escáner al inicio) / sticky arriba con escáner */}
           <form
             onSubmit={e => {
               e.preventDefault()
               runSearch(query.trim())
             }}
             className={`flex items-center gap-2 transition-all duration-300 ${
-              !hasQuery ? 'max-w-lg mx-auto mt-1' : ''
+              !hasQuery ? 'max-w-lg mx-auto mt-2' : ''
             }`}
           >
             <div className="relative flex-1">
@@ -250,7 +228,7 @@ const SearchScreen: React.FC = () => {
                 className={`w-full pl-11 pr-10 rounded-2xl bg-white border text-base font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all ${
                   hasQuery
                     ? 'h-12 border-slate-200'
-                    : 'h-13 border-slate-300/80 shadow-xs focus:border-blue-500'
+                    : 'h-14 border-slate-300/80 shadow-xs focus:border-blue-500'
                 }`}
               />
               {query && (
@@ -270,17 +248,17 @@ const SearchScreen: React.FC = () => {
               )}
             </div>
 
-            {/* Botón de escáner a la derecha del buscador */}
-            <button
-              type="button"
-              onClick={() => setScanning(true)}
-              aria-label="Escanear código de barras"
-              className={`shrink-0 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white flex items-center justify-center active:scale-95 transition-all shadow-md ${
-                hasQuery ? 'h-12 w-12' : 'h-13 w-13'
-              }`}
-            >
-              <ScanBarcode size={22} />
-            </button>
+            {/* Botón de escáner a la derecha del buscador: Solo cuando el usuario busca */}
+            {hasQuery && (
+              <button
+                type="button"
+                onClick={() => setScanning(true)}
+                aria-label="Escanear código de barras"
+                className="h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white flex items-center justify-center active:scale-95 transition-all shadow-md animate-in fade-in duration-200"
+              >
+                <ScanBarcode size={22} />
+              </button>
+            )}
           </form>
         </div>
 
@@ -438,7 +416,7 @@ const SearchScreen: React.FC = () => {
 
       {/* CONTENIDO PRINCIPAL */}
       <main className="px-4 pt-2 space-y-4">
-        {/* VISTA INICIAL CENTRADA EN BUSCAR Y ESCANEAR (cuando no hay búsqueda activa) */}
+        {/* VISTA INICIAL CENTRADA EN BUSCAR Y ESCANEAR (sin búsquedas habituales) */}
         {!hasQuery && (
           <div className="space-y-6 pt-2 max-w-lg mx-auto">
             {/* Banner escáner centrado */}
@@ -457,58 +435,6 @@ const SearchScreen: React.FC = () => {
                 </div>
               </div>
             </button>
-
-            {/* Búsquedas recientes */}
-            {recent.length > 0 && (
-              <section className="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs">
-                <div className="flex items-center justify-between mb-2.5">
-                  <h2 className="text-[13px] font-bold text-slate-600 flex items-center gap-1.5">
-                    <Clock size={14} className="text-slate-400" /> Búsquedas recientes
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRecent([])
-                      localStorage.removeItem(RECENT_KEY)
-                    }}
-                    className="text-[12px] font-semibold text-slate-400 hover:text-slate-600"
-                  >
-                    Borrar
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {recent.map(r => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => runSearch(r)}
-                      className="h-8 px-3 rounded-full bg-slate-50 border border-slate-200 text-[13px] font-medium text-slate-800 active:bg-slate-100 hover:bg-slate-100 transition-colors"
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Lo más buscado */}
-            <section className="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs">
-              <h2 className="text-[13px] font-bold text-slate-600 flex items-center gap-1.5 mb-2.5">
-                <TrendingUp size={14} className="text-blue-600" /> Lo más buscado
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {POPULAR.map(p => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => runSearch(p)}
-                    className="h-8 px-3 rounded-full bg-slate-50 border border-slate-200 text-[13px] font-medium text-slate-800 active:bg-slate-100 hover:bg-slate-100 transition-colors"
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            </section>
 
             <p className="text-[12px] text-slate-400 text-center px-4 leading-relaxed pt-2">
               Comparamos en vivo Carrefour, Coto, Día, Jumbo, Disco, Vea, Más Online, Farmacity, Mercado Libre y más.
