@@ -52,7 +52,7 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [showCopyToast, setShowCopyToast] = useState(false)
 
-  const itemsKey = items.map(i => `${i.ean}:${i.qty}`).join(',')
+  const itemsKey = items.map(i => `${i.ean}:${i.qty}:${i.store || ''}`).join(',')
   const planContextKey = `${itemsKey}|${cp || ''}|${includeShipping}|${selectedCards.join(',')}|${selectedDay}`
 
 

@@ -39,6 +39,11 @@ class CartItem(BaseModel):
     ean: str
     qty: int = 1
     nombre: str | None = None
+    store: str | None = None
+    supermercado: str | None = None
+    link: str | None = None
+    precio: float | None = None
+    sku_id: str | None = None
 
 
 class OptimizeRequest(BaseModel):

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X, ExternalLink, Flame, CreditCard, MapPinOff, Plus, Check } from 'lucide-react'
+import { X, ExternalLink, Flame, CreditCard, MapPinOff, Plus, Minus, Check } from 'lucide-react'
 import type { ProductGroup } from '../types'
 import { storeColor, storeLabel } from '../lib/stores'
 import { formatPrice } from '../lib/pricing'
 import { useCart } from '../cart/CartContext'
 import type { OfferRow } from './ProductCard'
-import QtyControl from './QtyControl'
 
 /** Hoja inferior con todas las opciones de compra y agregado directo al changuito. */
 const OffersSheet: React.FC<{
@@ -15,14 +14,24 @@ const OffersSheet: React.FC<{
   group: ProductGroup
   rows: OfferRow[]
 }> = ({ open, onClose, group, rows }) => {
-  const { add, qtyOf } = useCart()
+  const { add, setQty, qtyOf, itemOf } = useCart()
   const [justAddedKey, setJustAddedKey] = useState<string | null>(null)
 
   const ean = group.ean || group.offers?.[0]?.ean || (group as any).id || group.nombre
   const totalInCart = qtyOf(ean)
+  const cartItem = itemOf(ean)
+  const selectedStore = cartItem?.store
 
-  const handleAddOffer = (key: string, qty: number = 1) => {
-    add(group, qty)
+  const best = rows[0]
+  const activeStore = selectedStore || best?.o?.supermercado
+
+  const handleAddOffer = (
+    key: string,
+    qty: number = 1,
+    store?: string,
+    extra?: { link?: string; precio?: number; sku_id?: string },
+  ) => {
+    add(group, qty, store, extra)
     setJustAddedKey(key)
     navigator.vibrate?.(10)
     setTimeout(() => {
@@ -38,8 +47,6 @@ const OffersSheet: React.FC<{
       document.body.style.overflow = prev
     }
   }, [open])
-
-  const best = rows[0]
 
   return (
     <AnimatePresence>
@@ -88,8 +95,17 @@ const OffersSheet: React.FC<{
             <ul className="flex-1 overflow-y-auto overscroll-contain divide-y divide-slate-100">
               {rows.map((r, idx) => {
                 const diff = idx > 0 && best.eff > 0 ? Math.round(((r.eff - best.eff) / best.eff) * 100) : 0
+                const isThisStoreSelected = totalInCart > 0 && activeStore === r.o.supermercado
+                const rowKey = `${r.o.supermercado}-${r.o.sku_id || idx}`
+                const isJustAdded = justAddedKey === rowKey
+
                 return (
-                  <li key={`${r.o.supermercado}-${r.o.sku_id}`} className={`px-4 py-3 ${r.noDelivery ? 'opacity-50' : ''}`}>
+                  <li
+                    key={`${r.o.supermercado}-${r.o.sku_id || idx}`}
+                    className={`px-4 py-3 transition-colors ${
+                      isThisStoreSelected ? 'bg-blue-50/40' : ''
+                    } ${r.noDelivery ? 'opacity-50' : ''}`}
+                  >
                     <div className="flex items-center gap-3">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: storeColor(r.o.supermercado) }} />
                       <div className="flex-1 min-w-0">
@@ -97,6 +113,11 @@ const OffersSheet: React.FC<{
                           <span className="text-[14px] font-bold text-slate-900">{storeLabel(r.o.supermercado)}</span>
                           {idx === 0 && rows.length > 1 && (
                             <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">MEJOR</span>
+                          )}
+                          {isThisStoreSelected && (
+                            <span className="text-[10px] font-extrabold text-blue-700 bg-blue-100/80 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                              <Check size={10} strokeWidth={3} /> En changuito
+                            </span>
                           )}
                           {r.noDelivery && (
                             <span className="inline-flex items-center gap-0.5 text-[10px] text-red-600 font-semibold">
@@ -121,13 +142,7 @@ const OffersSheet: React.FC<{
                                     ? 'bg-amber-400'
                                     : 'bg-red-500'
                                 }`}
-                                title={
-                                  r.o.seller_reputation === '5_green'
-                                    ? `Excelente reputación (MercadoLíder ${r.o.power_seller_status || 'Platinum'})`
-                                    : r.o.seller_reputation === '3_yellow'
-                                    ? 'Termómetro Amarillo (Atención regular / Oficial)'
-                                    : 'Reputación en evaluación'
-                                }
+                                title={`Reputación: ${r.o.seller_reputation}`}
                               />
                             )}
                             {r.o.power_seller_status && (
@@ -185,35 +200,77 @@ const OffersSheet: React.FC<{
                           {formatPrice(r.eff)}
                           {r.minQty > 1 && <span className="text-[11px] font-bold text-slate-400"> c/u</span>}
                         </div>
-                        {/* Botón principal: AGREGAR AL CARRITO (sin salir de la app) */}
-                        {(() => {
-                          const rowKey = `${r.o.supermercado}-${r.o.sku_id || idx}`
-                          const isJustAdded = justAddedKey === rowKey
-                          return (
+
+                        {/* Botón principal: AGREGAR O CONTROLAR CANTIDAD POR COMERCIO */}
+                        {isThisStoreSelected ? (
+                          <div className="mt-1 flex items-center h-[34px] rounded-xl border border-blue-600 bg-blue-600 text-white shadow-2xs">
                             <button
                               type="button"
-                              onClick={() => handleAddOffer(rowKey, r.minQty || 1)}
-                              className={`mt-1 min-h-[34px] h-[34px] px-3 rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 transition-all active:scale-95 shadow-2xs ${
-                                isJustAdded
-                                  ? 'bg-emerald-600 text-white'
-                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-                              }`}
-                              title={`Agregar oferta de ${storeLabel(r.o.supermercado)} al carrito`}
+                              onClick={() => {
+                                navigator.vibrate?.(8)
+                                setQty(ean, totalInCart - 1)
+                              }}
+                              className="w-8 h-full flex items-center justify-center hover:bg-blue-700 active:bg-blue-800 rounded-l-xl transition-colors"
+                              aria-label={`Restar una unidad de ${storeLabel(r.o.supermercado)}`}
                             >
-                              {isJustAdded ? (
-                                <>
-                                  <Check size={13} strokeWidth={3} />
-                                  <span>Agregado</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Plus size={14} strokeWidth={3} />
-                                  <span>{r.minQty > 1 ? `Sumar (${r.minQty})` : 'Agregar'}</span>
-                                </>
-                              )}
+                              <Minus size={13} strokeWidth={3} />
                             </button>
-                          )
-                        })()}
+                            <span className="w-6 text-center text-[12px] font-extrabold">{totalInCart}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.vibrate?.(8)
+                                handleAddOffer(rowKey, 1, r.o.supermercado, {
+                                  link: r.o.link,
+                                  precio: r.eff,
+                                  sku_id: r.o.sku_id,
+                                })
+                              }}
+                              className="w-8 h-full flex items-center justify-center hover:bg-blue-700 active:bg-blue-800 rounded-r-xl transition-colors"
+                              aria-label={`Sumar una unidad de ${storeLabel(r.o.supermercado)}`}
+                            >
+                              <Plus size={13} strokeWidth={3} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleAddOffer(
+                                rowKey,
+                                totalInCart > 0 ? 0 : r.minQty || 1,
+                                r.o.supermercado,
+                                {
+                                  link: r.o.link,
+                                  precio: r.eff,
+                                  sku_id: r.o.sku_id,
+                                },
+                              )
+                            }
+                            className={`mt-1 min-h-[34px] h-[34px] px-3 rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 transition-all active:scale-95 shadow-2xs ${
+                              isJustAdded
+                                ? 'bg-emerald-600 text-white'
+                                : totalInCart > 0
+                                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
+                            title={`Agregar oferta de ${storeLabel(r.o.supermercado)} al carrito`}
+                          >
+                            {isJustAdded ? (
+                              <>
+                                <Check size={13} strokeWidth={3} />
+                                <span>{totalInCart > 0 ? 'Cambiado' : 'Agregado'}</span>
+                              </>
+                            ) : totalInCart > 0 ? (
+                              <span>Elegir este</span>
+                            ) : (
+                              <>
+                                <Plus size={14} strokeWidth={3} />
+                                <span>{r.minQty > 1 ? `Sumar (${r.minQty})` : 'Agregar'}</span>
+                              </>
+                            )}
+                          </button>
+                        )}
 
                         {/* Enlace secundario opcional y discreto hacia la web oficial */}
                         {r.o.link && r.o.link.startsWith('http') && (
@@ -240,61 +297,71 @@ const OffersSheet: React.FC<{
                         <div className="space-y-1.5">
                           {[...r.o.meli_options]
                             .sort((a, b) => a.price - b.price)
-                            .map((opt, oIdx) => (
-                            <div
-                              key={opt.item_id || oIdx}
-                              className="p-2 rounded-xl bg-slate-50 border border-slate-100/80 flex items-center justify-between gap-2"
-                            >
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span
-                                    className={`w-2 h-2 rounded-full shrink-0 ${
-                                      opt.reputation === '5_green'
-                                        ? 'bg-emerald-500'
-                                        : opt.reputation === '4_light_green'
-                                        ? 'bg-lime-500'
-                                        : opt.reputation === '3_yellow'
-                                        ? 'bg-amber-400'
-                                        : 'bg-slate-300'
-                                    }`}
-                                    title={`Reputación: ${opt.reputation}`}
-                                  />
-                                  <span className="text-[12px] font-bold text-slate-800 truncate">
-                                    {opt.seller_name}
-                                  </span>
-                                  {opt.power_status && (
-                                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/70 px-1 rounded">
-                                      {opt.power_status === 'platinum' ? 'Platinum' : opt.power_status}
+                            .map((opt, oIdx) => {
+                              const optKey = opt.item_id || `opt-${oIdx}`
+                              const isJustAddedOpt = justAddedKey === optKey
+                              return (
+                                <div
+                                  key={opt.item_id || oIdx}
+                                  className="p-2 rounded-xl bg-slate-50 border border-slate-100/80 flex items-center justify-between gap-2"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span
+                                        className={`w-2 h-2 rounded-full shrink-0 ${
+                                          opt.reputation === '5_green'
+                                            ? 'bg-emerald-500'
+                                            : opt.reputation === '4_light_green'
+                                            ? 'bg-lime-500'
+                                            : opt.reputation === '3_yellow'
+                                            ? 'bg-amber-400'
+                                            : 'bg-slate-300'
+                                        }`}
+                                        title={`Reputación: ${opt.reputation}`}
+                                      />
+                                      <span className="text-[12px] font-bold text-slate-800 truncate">
+                                        {opt.seller_name}
+                                      </span>
+                                      {opt.power_status && (
+                                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/70 px-1 rounded">
+                                          {opt.power_status === 'platinum' ? 'Platinum' : opt.power_status}
+                                        </span>
+                                      )}
+                                      {opt.is_full && (
+                                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1 rounded">
+                                          ⚡ FULL
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-[11px] text-slate-500 mt-0.5">
+                                      {opt.free_shipping ? '🚚 Envío gratis oficial' : opt.is_full ? '⚡ FULL · Acumulable' : '🚚 Envío a domicilio'}
+                                    </div>
+                                  </div>
+                                  <div className="text-right shrink-0 flex items-center gap-2">
+                                    <span className="font-extrabold text-slate-900 text-[13px]">
+                                      {formatPrice(opt.price)}
                                     </span>
-                                  )}
-                                  {opt.is_full && (
-                                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1 rounded">
-                                      ⚡ FULL
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-[11px] text-slate-500 mt-0.5">
-                                  {opt.free_shipping ? '🚚 Envío gratis oficial' : opt.is_full ? '⚡ FULL · Acumulable' : '🚚 Envío a domicilio'}
-                                </div>
-                              </div>
-                              <div className="text-right shrink-0 flex items-center gap-2">
-                                <span className="font-extrabold text-slate-900 text-[13px]">
-                                  {formatPrice(opt.price)}
-                                </span>
-                                {(() => {
-                                  const optKey = opt.item_id || `opt-${oIdx}`
-                                  const isJustAdded = justAddedKey === optKey
-                                  return (
                                     <button
                                       type="button"
-                                      onClick={() => handleAddOffer(optKey, 1)}
+                                      onClick={() =>
+                                        handleAddOffer(
+                                          optKey,
+                                          totalInCart > 0 ? 0 : 1,
+                                          'MercadoLibre',
+                                          {
+                                            link: opt.link,
+                                            precio: opt.price,
+                                            sku_id: opt.item_id,
+                                          },
+                                        )
+                                      }
                                       className={`h-7 px-2.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 ${
-                                        isJustAdded
+                                        isJustAddedOpt
                                           ? 'bg-emerald-600 text-white'
                                           : 'bg-blue-600 hover:bg-blue-700 text-white'
                                       }`}
                                     >
-                                      {isJustAdded ? (
+                                      {isJustAddedOpt ? (
                                         <>
                                           <Check size={12} strokeWidth={3} />
                                           <span>Listo</span>
@@ -302,26 +369,25 @@ const OffersSheet: React.FC<{
                                       ) : (
                                         <>
                                           <Plus size={12} strokeWidth={3} />
-                                          <span>Agregar</span>
+                                          <span>{totalInCart > 0 ? 'Elegir' : 'Agregar'}</span>
                                         </>
                                       )}
                                     </button>
-                                  )
-                                })()}
-                                {opt.link && (
-                                  <a
-                                    href={opt.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-1 text-slate-400 hover:text-blue-600"
-                                    title="Ver en Mercado Libre"
-                                  >
-                                    <ExternalLink size={11} />
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                                    {opt.link && (
+                                      <a
+                                        href={opt.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-1 text-slate-400 hover:text-blue-600"
+                                        title="Ver en Mercado Libre"
+                                      >
+                                        <ExternalLink size={11} />
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              )
+                            })}
                         </div>
                       </div>
                     )}
@@ -330,12 +396,78 @@ const OffersSheet: React.FC<{
               })}
             </ul>
 
+            {/* BARRA INFERIOR DINÁMICA: Refleja con precisión la tienda y precio elegidos */}
             <div className="px-4 pt-3 pb-safe border-t border-slate-100 bg-white">
               <div className="pb-3 flex items-center justify-between gap-3">
-                <div className="text-[13px] text-slate-500">
-                  Mejor: <span className="font-extrabold text-slate-900">{formatPrice(best.eff)}</span> en {storeLabel(best.o.supermercado)}
+                <div className="min-w-0 flex-1">
+                  {totalInCart > 0 ? (
+                    <div>
+                      <p className="text-[13px] font-extrabold text-slate-900 leading-tight truncate">
+                        En changuito: <span className="text-blue-700">{totalInCart} un.</span> en {storeLabel(activeStore)}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+                        Subtotal {formatPrice(((rows.find(r => r.o.supermercado === activeStore)?.eff) || best.eff) * totalInCart)}
+                        {activeStore !== best.o.supermercado && ` · Mejor precio en ${storeLabel(best.o.supermercado)} (${formatPrice(best.eff)})`}
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-[13px] text-slate-600 leading-tight">
+                        Mejor precio: <span className="font-extrabold text-slate-900">{formatPrice(best.eff)}</span> en {storeLabel(best.o.supermercado)}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Elegí tu opción preferida arriba</p>
+                    </div>
+                  )}
                 </div>
-                <QtyControl group={group} bulkQty={best.minQty} />
+
+                {totalInCart > 0 ? (
+                  <div className="flex items-center h-10 rounded-xl bg-blue-600 text-white shrink-0 shadow-2xs">
+                    <button
+                      type="button"
+                      aria-label="Restar una unidad"
+                      onClick={() => {
+                        navigator.vibrate?.(8)
+                        setQty(ean, totalInCart - 1)
+                      }}
+                      className="w-10 h-full flex items-center justify-center active:bg-blue-700 rounded-l-xl"
+                    >
+                      <Minus size={16} strokeWidth={3} />
+                    </button>
+                    <span className="min-w-[24px] text-center text-[14px] font-extrabold">{totalInCart}</span>
+                    <button
+                      type="button"
+                      aria-label="Sumar una unidad"
+                      onClick={() => {
+                        navigator.vibrate?.(8)
+                        const selRow = rows.find(r => r.o.supermercado === activeStore) || best
+                        handleAddOffer(
+                          `${activeStore}-${selRow.o.sku_id}`,
+                          1,
+                          activeStore,
+                          { link: selRow.o.link, precio: selRow.eff, sku_id: selRow.o.sku_id },
+                        )
+                      }}
+                      className="w-10 h-full flex items-center justify-center active:bg-blue-700 rounded-r-xl"
+                    >
+                      <Plus size={16} strokeWidth={3} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleAddOffer(
+                        `${best.o.supermercado}-${best.o.sku_id}`,
+                        best.minQty || 1,
+                        best.o.supermercado,
+                        { link: best.o.link, precio: best.eff, sku_id: best.o.sku_id },
+                      )
+                    }
+                    className="h-10 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-extrabold flex items-center gap-1 active:scale-95 transition-all shadow-xs shrink-0"
+                  >
+                    <Plus size={16} strokeWidth={3} /> Agregar mejor
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>

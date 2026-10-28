@@ -104,10 +104,18 @@ def _assign(
 
     for it in items:
         ean, qty = it["ean"], max(1, int(it.get("qty", 1)))
+        preferred_store = it.get("store") or it.get("supermercado")
         best = None
         best_calc = None
 
-        for o in offers_by_ean.get(ean, []):
+        offs = offers_by_ean.get(ean, [])
+        # Si el usuario eligió expresamente un comercio (ej. Mercado Libre en OffersSheet)
+        if preferred_store:
+            store_offs = [o for o in offs if o.get("supermercado") == preferred_store]
+            if store_offs:
+                offs = store_offs
+
+        for o in offs:
             if allowed_stores is not None and o["supermercado"] not in allowed_stores:
                 continue
             calc = _calc_offer_line(
@@ -133,6 +141,7 @@ def _assign(
                 "regular_total": best_calc["regular_total"],
                 "applied_promo": best_calc["applied_promo"],
                 "unit_multiplier": best_calc.get("unit_multiplier", 1.0),
+                "link": it.get("link") or best.get("link") or "",
             })
 
     return assignment, round(merch_total, 2), round(regular_total, 2), covered
@@ -562,6 +571,21 @@ async def optimize(
         for it in missing_live:
             if it["ean"] not in names and it.get("nombre"):
                 names[it["ean"]] = it["nombre"]
+
+    for it in items:
+        pref = it.get("store") or it.get("supermercado")
+        if pref and it.get("precio"):
+            ean = it["ean"]
+            existing = offers_by_ean.setdefault(ean, [])
+            if not any(o.get("supermercado") == pref for o in existing):
+                existing.append({
+                    "supermercado": pref,
+                    "ean": ean,
+                    "sku_id": it.get("sku_id") or it.get("sku") or "",
+                    "nombre": it.get("nombre") or names.get(ean, "Producto"),
+                    "precio": float(it["precio"]),
+                    "link": it.get("link") or "",
+                })
 
     valid_stores: set[str] | None = None
     excluded_stores: list[str] = []

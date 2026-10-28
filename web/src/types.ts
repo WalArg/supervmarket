@@ -211,6 +211,11 @@ export interface ListItem {
   nombre: string
   imagen: string
   qty: number
+  store?: string
+  supermercado?: string
+  sku_id?: string
+  link?: string
+  precio?: number
 }
 
 export interface StatsSummary {
