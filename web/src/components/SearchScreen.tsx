@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, Clock, TrendingUp, SearchX, MapPin, ChevronDown, Store, Check } from 'lucide-react'
+import { Search, X, ScanBarcode, ArrowUpDown, Flame, Layers, Clock, TrendingUp, SearchX, MapPin, ChevronDown, Store, Check, Sparkles } from 'lucide-react'
 import ProductCard from './ProductCard'
 import BarcodeScanner from './BarcodeScanner'
 import SponsoredProductBox from './SponsoredProductBox'
-import GondolaSection from './GondolaSection'
 import { searchProducts } from '../api'
 import { useLocation } from '../location/LocationContext'
 import { SPONSORED_CONFIG } from '../lib/sponsoredConfig'
 import { storeColor, storeLabel } from '../lib/stores'
-import { GONDOLAS } from '../data/gondolasData'
 import type { ProductGroup } from '../types'
 
 const POPULAR = ['Leche', 'Coca Cola', 'Yerba', 'Aceite', 'Fideos', 'Café', 'Pañales', 'Arroz', 'Cerveza', 'Detergente', 'Papel higiénico', 'Azúcar']
@@ -122,11 +120,6 @@ const SearchScreen: React.FC = () => {
   )
 
   // Detecta el producto para el recuadro patrocinado (Mercado Libre)
-  // Requisitos de producto:
-  // 1. Debe pertenecer a la tienda patrocinada configurada (MercadoLibre)
-  // 2. Debe guardar concordancia con la búsqueda del usuario (no productos desalineados)
-  // 3. Prioriza FULL SÚPER si existe en los resultados; si no hay Full para esa búsqueda,
-  //    toma la mejor oferta disponible de Mercado Libre que coincida (ej: Tiendas Oficiales)
   const sponsoredCandidate = useMemo(() => {
     const qTokens = debounced
       .toLowerCase()
@@ -185,12 +178,26 @@ const SearchScreen: React.FC = () => {
   const hasQuery = debounced.length >= 2
 
   return (
-    <div>
-      {/* Header fijo con buscador */}
-      <header className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md pt-safe relative">
-        <div className="px-4 pt-3 pb-2">
-          <div className="flex items-center justify-between mb-2.5">
-            <h1 className="text-[20px] font-extrabold tracking-tight">
+    <div className="pb-28">
+      {/* HEADER DINÁMICO: Centrado inicialmente y sticky arriba cuando hay búsqueda */}
+      <header
+        className={`transition-all duration-300 ${
+          hasQuery
+            ? 'sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md pt-safe border-b border-slate-100/90 shadow-2xs'
+            : 'pt-safe'
+        }`}
+      >
+        <div className="px-4 pt-3 pb-2.5">
+          {/* Fila superior: Logo y selector de ubicación */}
+          <div className="flex items-center justify-between mb-2">
+            <h1
+              onClick={() => {
+                setQuery('')
+                setDebounced('')
+                setSelectedStore(null)
+              }}
+              className="text-[20px] font-extrabold tracking-tight cursor-pointer"
+            >
               Super<span className="text-blue-600">V</span>market
             </h1>
             <button
@@ -203,12 +210,31 @@ const SearchScreen: React.FC = () => {
               <ChevronDown size={11} className="text-blue-500 shrink-0" />
             </button>
           </div>
+
+          {/* Hero Branding centrado: Visible únicamente en el estado inicial sin búsqueda */}
+          {!hasQuery && (
+            <div className="pt-6 pb-4 text-center animate-in fade-in zoom-in-95 duration-300">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[11.5px] font-bold mb-3 shadow-2xs">
+                <Sparkles size={13} className="text-blue-600" /> Compará precios de supermercados
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                Encontrá el mejor precio
+              </h2>
+              <p className="text-[13.5px] text-slate-500 font-medium max-w-sm mx-auto mt-1">
+                Buscá por producto, marca o escaneá con la cámara de tu celular.
+              </p>
+            </div>
+          )}
+
+          {/* Formulario de búsqueda y escáner centrado / dinámico */}
           <form
             onSubmit={e => {
               e.preventDefault()
               runSearch(query.trim())
             }}
-            className="flex items-center gap-2"
+            className={`flex items-center gap-2 transition-all duration-300 ${
+              !hasQuery ? 'max-w-lg mx-auto mt-1' : ''
+            }`}
           >
             <div className="relative flex-1">
               <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -221,7 +247,11 @@ const SearchScreen: React.FC = () => {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Buscá o escaneá el producto que querés buscar..."
-                className="w-full h-12 pl-11 pr-10 rounded-2xl bg-white border border-slate-200 text-base font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                className={`w-full pl-11 pr-10 rounded-2xl bg-white border text-base font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all ${
+                  hasQuery
+                    ? 'h-12 border-slate-200'
+                    : 'h-13 border-slate-300/80 shadow-xs focus:border-blue-500'
+                }`}
               />
               {query && (
                 <button
@@ -239,20 +269,24 @@ const SearchScreen: React.FC = () => {
                 </button>
               )}
             </div>
+
+            {/* Botón de escáner a la derecha del buscador */}
             <button
               type="button"
               onClick={() => setScanning(true)}
               aria-label="Escanear código de barras"
-              className="h-12 w-12 shrink-0 rounded-2xl bg-blue-600 text-white flex items-center justify-center active:bg-blue-700"
+              className={`shrink-0 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white flex items-center justify-center active:scale-95 transition-all shadow-md ${
+                hasQuery ? 'h-12 w-12' : 'h-13 w-13'
+              }`}
             >
               <ScanBarcode size={22} />
             </button>
           </form>
         </div>
 
-        {/* Filtros generales y Desplegable de Comercios */}
+        {/* Filtros generales y Desplegable de Comercios (solo cuando hay búsqueda) */}
         {hasQuery && (
-          <div className="px-4 pb-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <div className="px-4 pb-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar animate-in fade-in duration-200">
             {/* Botón activador del Desplegable de Comercios */}
             {availableStores.length > 0 && (
               <button
@@ -312,17 +346,14 @@ const SearchScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Desplegable de Comercios: Se abre hacia ABAJO directamente debajo del botón */}
+        {/* Menú Desplegable de Comercios */}
         {storeDropdownOpen && (
           <>
-            {/* Backdrop transparente para cerrar al tocar en cualquier parte de la pantalla */}
             <div
               className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-[1px]"
               onClick={() => setStoreDropdownOpen(false)}
               aria-hidden="true"
             />
-
-            {/* Menú desplegable flotante hacia ABAJO */}
             <div
               role="listbox"
               aria-labelledby="store-filter-dropdown"
@@ -343,7 +374,6 @@ const SearchScreen: React.FC = () => {
               </div>
 
               <div className="overflow-y-auto divide-y divide-slate-50 py-1 overscroll-contain">
-                {/* Opción Todos */}
                 <button
                   type="button"
                   role="option"
@@ -368,7 +398,6 @@ const SearchScreen: React.FC = () => {
                   </div>
                 </button>
 
-                {/* Comercios disponibles */}
                 {availableStores.map(({ store, count }) => {
                   const isSel = selectedStore === store
                   return (
@@ -407,15 +436,34 @@ const SearchScreen: React.FC = () => {
         )}
       </header>
 
-      <main className="px-4 pt-1 pb-28 space-y-4">
-        {/* Inicio: Góndolas y ofertas */}
+      {/* CONTENIDO PRINCIPAL */}
+      <main className="px-4 pt-2 space-y-4">
+        {/* VISTA INICIAL CENTRADA EN BUSCAR Y ESCANEAR (cuando no hay búsqueda activa) */}
         {!hasQuery && (
-          <div className="space-y-6 pt-1">
+          <div className="space-y-6 pt-2 max-w-lg mx-auto">
+            {/* Banner escáner centrado */}
+            <button
+              type="button"
+              onClick={() => setScanning(true)}
+              className="w-full rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-4 flex items-center gap-3.5 text-left active:scale-[0.99] transition-all shadow-md hover:shadow-lg"
+            >
+              <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center shrink-0">
+                <ScanBarcode size={26} />
+              </div>
+              <div className="flex-1">
+                <div className="font-extrabold text-[15.5px]">¿Estás en el súper?</div>
+                <div className="text-[13px] text-blue-100 leading-snug mt-0.5">
+                  Escaneá el código de barras y fijate si en otro lado está más barato.
+                </div>
+              </div>
+            </button>
+
+            {/* Búsquedas recientes */}
             {recent.length > 0 && (
-              <section>
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-[13px] font-bold text-slate-500 flex items-center gap-1.5">
-                    <Clock size={14} /> Búsquedas recientes
+              <section className="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs">
+                <div className="flex items-center justify-between mb-2.5">
+                  <h2 className="text-[13px] font-bold text-slate-600 flex items-center gap-1.5">
+                    <Clock size={14} className="text-slate-400" /> Búsquedas recientes
                   </h2>
                   <button
                     type="button"
@@ -423,7 +471,7 @@ const SearchScreen: React.FC = () => {
                       setRecent([])
                       localStorage.removeItem(RECENT_KEY)
                     }}
-                    className="text-[12px] font-semibold text-slate-400"
+                    className="text-[12px] font-semibold text-slate-400 hover:text-slate-600"
                   >
                     Borrar
                   </button>
@@ -434,7 +482,7 @@ const SearchScreen: React.FC = () => {
                       key={r}
                       type="button"
                       onClick={() => runSearch(r)}
-                      className="h-9 px-3.5 rounded-full bg-white border border-slate-200 text-[14px] font-medium text-slate-800 active:bg-slate-100"
+                      className="h-8 px-3 rounded-full bg-slate-50 border border-slate-200 text-[13px] font-medium text-slate-800 active:bg-slate-100 hover:bg-slate-100 transition-colors"
                     >
                       {r}
                     </button>
@@ -443,20 +491,10 @@ const SearchScreen: React.FC = () => {
               </section>
             )}
 
-            {/* Góndolas de supermercado con ofertas reales */}
-            <div className="space-y-6">
-              {GONDOLAS.map(gondola => (
-                <GondolaSection
-                  key={gondola.id}
-                  gondola={gondola}
-                />
-              ))}
-            </div>
-
             {/* Lo más buscado */}
-            <section className="pt-2 border-t border-slate-200/60">
-              <h2 className="text-[13px] font-bold text-slate-500 flex items-center gap-1.5 mb-2">
-                <TrendingUp size={14} /> Lo más buscado
+            <section className="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs">
+              <h2 className="text-[13px] font-bold text-slate-600 flex items-center gap-1.5 mb-2.5">
+                <TrendingUp size={14} className="text-blue-600" /> Lo más buscado
               </h2>
               <div className="flex flex-wrap gap-2">
                 {POPULAR.map(p => (
@@ -464,7 +502,7 @@ const SearchScreen: React.FC = () => {
                     key={p}
                     type="button"
                     onClick={() => runSearch(p)}
-                    className="h-9 px-3.5 rounded-full bg-white border border-slate-200 text-[14px] font-medium text-slate-800 active:bg-slate-100"
+                    className="h-8 px-3 rounded-full bg-slate-50 border border-slate-200 text-[13px] font-medium text-slate-800 active:bg-slate-100 hover:bg-slate-100 transition-colors"
                   >
                     {p}
                   </button>
@@ -472,30 +510,13 @@ const SearchScreen: React.FC = () => {
               </div>
             </section>
 
-            {/* Banner escáner */}
-            <button
-              type="button"
-              onClick={() => setScanning(true)}
-              className="w-full rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-4 flex items-center gap-3 text-left active:opacity-90 shadow-sm"
-            >
-              <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                <ScanBarcode size={24} />
-              </div>
-              <div>
-                <div className="font-extrabold text-[15px]">¿Estás en el súper?</div>
-                <div className="text-[13px] text-blue-100">
-                  Escaneá el código de barras y fijate si en otro lado está más barato.
-                </div>
-              </div>
-            </button>
-
-            <p className="text-[12px] text-slate-400 text-center px-6 leading-relaxed">
+            <p className="text-[12px] text-slate-400 text-center px-4 leading-relaxed pt-2">
               Comparamos en vivo Carrefour, Coto, Día, Jumbo, Disco, Vea, Más Online, Farmacity, Mercado Libre y más.
             </p>
           </div>
         )}
 
-        {/* Cargando */}
+        {/* SKELETONS AL CARGAR RESULTADOS */}
         {hasQuery && loading && results.length === 0 &&
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="bg-white rounded-2xl border border-slate-200/80 p-3 flex gap-3 animate-pulse">
@@ -508,7 +529,7 @@ const SearchScreen: React.FC = () => {
             </div>
           ))}
 
-        {/* Sin resultados con o sin filtro de comercio */}
+        {/* SIN RESULTADOS */}
         {hasQuery && !loading && visible.length === 0 && (
           <div className="text-center py-14 px-6">
             <SearchX size={40} className="mx-auto text-slate-300" />
@@ -534,10 +555,10 @@ const SearchScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Resultados de búsqueda */}
+        {/* RESULTADOS DE BÚSQUEDA */}
         {hasQuery && visible.length > 0 && (
           <div className={`space-y-3 transition-opacity ${loading ? 'opacity-50' : ''}`}>
-            {/* RECUADRO DE PATROCINADO EXCLUSIVO: MERCADO LIBRE (solo si no hay filtro de otro súper) */}
+            {/* RECUADRO DE PATROCINADO EXCLUSIVO: MERCADO LIBRE */}
             {sponsoredCandidate && (!selectedStore || selectedStore === 'MercadoLibre') && (
               <SponsoredProductBox
                 product={sponsoredCandidate.product}

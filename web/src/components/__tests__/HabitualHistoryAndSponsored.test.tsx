@@ -2,6 +2,7 @@ import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import SearchScreen from '../SearchScreen'
+import OffersScreen from '../OffersScreen'
 import ProductCard from '../ProductCard'
 import SponsoredProductBox from '../SponsoredProductBox'
 import HabitualListManager from '../HabitualListManager'
@@ -302,20 +303,16 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
     expect(screen.getByText('No tenés productos guardados')).toBeTruthy()
   })
 
-  it('7. Inicio renders Góndolas temáticas with real products and search input with scan placeholder', () => {
+  it('7. OffersScreen renders Góndolas temáticas with real products and Mercado Libre sponsored section', () => {
     render(
       <LocationProvider>
         <CartProvider>
           <SavedProvider>
-            <SearchScreen />
+            <OffersScreen />
           </SavedProvider>
         </CartProvider>
       </LocationProvider>,
     )
-
-    // Check placeholder
-    const searchInput = screen.getByPlaceholderText(/Buscá o escaneá el producto que querés buscar\.\.\./i)
-    expect(searchInput).toBeTruthy()
 
     // Check Góndola headers
     expect(screen.getByText('Ofertas destacadas del día')).toBeTruthy()
@@ -326,8 +323,12 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
     expect(screen.queryByRole('button', { name: /ver todo/i })).toBeNull()
 
     // Check products inside gondolas
-    expect(screen.getByText('Fideos Lucchetti Tirabuzón 500 G')).toBeTruthy()
-    expect(screen.getByText('Leche La Serenísima Clásica Entera 1 L')).toBeTruthy()
+    expect(screen.getAllByText('Fideos Lucchetti Tirabuzón 500 G').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Leche La Serenísima Clásica Entera 1 L').length).toBeGreaterThanOrEqual(1)
+
+    // Check Mercado Libre sponsored product is always rendered in Offers
+    expect(screen.getAllByText('PATROCINADO').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('Destacado en Mercado Libre')).toBeTruthy()
   })
 
   it('8. Store filter: allows filtering search results via dropdown menu', async () => {

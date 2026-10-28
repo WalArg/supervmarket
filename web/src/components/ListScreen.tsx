@@ -12,6 +12,7 @@ import {
   ChevronDown,
   AlertCircle,
   Check,
+  ArrowLeft,
 } from 'lucide-react'
 import type { OptimizeMode, OptimizePlan } from '../types'
 import { useCart } from '../cart/CartContext'
@@ -36,9 +37,14 @@ const DAY_LABEL: Record<string, string> = {
   domingo: 'Domingo',
 }
 
-const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> = ({
+const ListScreen: React.FC<{
+  onGoSearch: () => void
+  onGoProfile: () => void
+  onBack?: () => void
+}> = ({
   onGoSearch,
   onGoProfile,
+  onBack,
 }) => {
   const { items, remove, setQty, clear, totalUnits } = useCart()
   const { cp, locationLabel, exactAddress, setExactAddress, openModal } = useLocation()
@@ -156,6 +162,15 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
         >
           Explorar productos
         </button>
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mt-3 min-h-[44px] h-11 px-4 rounded-xl text-slate-500 hover:text-slate-800 text-sm font-semibold flex items-center gap-1.5 transition-colors"
+          >
+            <ArrowLeft size={16} /> Volver
+          </button>
+        )}
       </div>
     )
   }
@@ -169,11 +184,23 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
       {/* HEADER COMPACTO STICKY */}
       <header className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md pt-safe border-b border-slate-100/80">
         <div className="px-4 pt-3 pb-2.5 flex items-center justify-between">
-          <div className="min-w-0 flex-1 mr-2">
-            <h1 className="text-[20px] font-extrabold tracking-tight text-slate-900">Carrito</h1>
-            <p className="text-[12px] text-slate-500 font-medium truncate">
-              {items.length} producto{items.length === 1 ? '' : 's'} · {totalUnits} unidad{totalUnits === 1 ? '' : 'es'}
-            </p>
+          <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label="Volver"
+                className="w-11 h-11 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 shrink-0 transition-all"
+              >
+                <ArrowLeft size={19} />
+              </button>
+            )}
+            <div className="min-w-0 flex-1">
+              <h1 className="text-[20px] font-extrabold tracking-tight text-slate-900">Carrito</h1>
+              <p className="text-[12px] text-slate-500 font-medium truncate">
+                {items.length} producto{items.length === 1 ? '' : 's'} · {totalUnits} unidad{totalUnits === 1 ? '' : 'es'}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-1.5">
             <button

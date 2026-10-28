@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Sparkles,
   Check,
+  ArrowLeft,
 } from 'lucide-react'
 import { useSaved, type SavedItem } from '../saved/SavedContext'
 import { useCart } from '../cart/CartContext'
@@ -20,9 +21,10 @@ import type { OfferRow } from './ProductCard'
 interface SavedScreenProps {
   onGoSearch: () => void
   onGoCart: () => void
+  onBack?: () => void
 }
 
-export const SavedScreen: React.FC<SavedScreenProps> = ({ onGoSearch, onGoCart }) => {
+export const SavedScreen: React.FC<SavedScreenProps> = ({ onGoSearch, onGoCart, onBack }) => {
   const { savedItems, savedCount, removeSaved, clearSaved } = useSaved()
   const { add: addToCart } = useCart()
   const [selectedItemForOffers, setSelectedItemForOffers] = useState<SavedItem | null>(null)
@@ -77,16 +79,28 @@ export const SavedScreen: React.FC<SavedScreenProps> = ({ onGoSearch, onGoCart }
       {/* Header Sticky */}
       <header className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md pt-safe border-b border-slate-100">
         <div className="px-4 pt-3 pb-2.5 flex items-center justify-between">
-          <div>
-            <h1 className="text-[20px] font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
-              <Bookmark size={20} className="fill-amber-500 text-amber-500" />
-              Guardados
-            </h1>
-            <p className="text-[12px] text-slate-500 font-medium">
-              {savedCount === 0
-                ? 'Sin productos guardados'
-                : `${savedCount} producto${savedCount === 1 ? '' : 's'} para tener a mano`}
-            </p>
+          <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label="Volver"
+                className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 flex items-center justify-center shrink-0 transition-all"
+              >
+                <ArrowLeft size={19} />
+              </button>
+            )}
+            <div className="min-w-0 flex-1">
+              <h1 className="text-[20px] font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+                <Bookmark size={20} className="fill-amber-500 text-amber-500" />
+                Guardados
+              </h1>
+              <p className="text-[12px] text-slate-500 font-medium truncate">
+                {savedCount === 0
+                  ? 'Sin productos guardados'
+                  : `${savedCount} producto${savedCount === 1 ? '' : 's'} para tener a mano`}
+              </p>
+            </div>
           </div>
 
           {savedCount > 0 && (
@@ -142,6 +156,15 @@ export const SavedScreen: React.FC<SavedScreenProps> = ({ onGoSearch, onGoCart }
             >
               <Search size={17} /> Explorar productos en el buscador
             </button>
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="mt-3 text-slate-500 hover:text-slate-800 text-sm font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <ArrowLeft size={16} /> Volver
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
