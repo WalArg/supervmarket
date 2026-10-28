@@ -302,7 +302,7 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
     expect(screen.getByText('No tenés productos guardados')).toBeTruthy()
   })
 
-  it('7. OffersScreen renders Góndolas temáticas with real products and Mercado Libre sponsored section', () => {
+  it('7. OffersScreen renders real discount tiers with real products and Mercado Libre sponsored section', () => {
     render(
       <LocationProvider>
         <CartProvider>
@@ -313,15 +313,14 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
       </LocationProvider>,
     )
 
-    // Check Góndola headers
-    expect(screen.getByText('Ofertas destacadas del día')).toBeTruthy()
-    expect(screen.getByText('Lácteos y Frescos')).toBeTruthy()
-    expect(screen.getByText('Almacén y Canasta Básica')).toBeTruthy()
+    // Check discount tier headers
+    expect(screen.getByText(/50% OFF y 2x1/i)).toBeTruthy()
+    expect(screen.getByText(/Canasta Básica y Esenciales/i)).toBeTruthy()
 
     // No search-triggering "Ver todo" buttons on gondolas
     expect(screen.queryByRole('button', { name: /ver todo/i })).toBeNull()
 
-    // Check products inside gondolas
+    // Check products inside discount tiers
     expect(screen.getAllByText('Fideos Lucchetti Tirabuzón 500 G').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Leche La Serenísima Clásica Entera 1 L').length).toBeGreaterThanOrEqual(1)
 

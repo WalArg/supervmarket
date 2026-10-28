@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
-import { Flame, MapPin, ChevronDown, Sparkles } from 'lucide-react'
-import { GONDOLAS, DISCOUNT_TIERS } from '../data/gondolasData'
+import { Flame, MapPin, ChevronDown, Plus, Search } from 'lucide-react'
+import { DISCOUNT_TIERS } from '../data/gondolasData'
 import { useLocation } from '../location/LocationContext'
-import GondolaSection from './GondolaSection'
 import GondolaCard from './GondolaCard'
 import SponsoredGondolaCard from './SponsoredGondolaCard'
 
@@ -13,6 +12,17 @@ interface OffersScreenProps {
 export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
   const { cp, locationLabel, openModal } = useLocation()
   const [selectedFilter, setSelectedFilter] = useState<string>('all')
+  // Cantidad de productos visibles por nivel de carrusel (inicialmente 3, expandible con "Cargar más")
+  const [visibleCountByTier, setVisibleCountByTier] = useState<Record<string, number>>({})
+
+  const getVisibleCount = (tierId: string) => visibleCountByTier[tierId] ?? 3
+
+  const handleLoadMore = (tierId: string, total: number) => {
+    setVisibleCountByTier(prev => ({
+      ...prev,
+      [tierId]: Math.min((prev[tierId] ?? 3) + 3, total),
+    }))
+  }
 
   return (
     <div className="pb-28">
@@ -26,7 +36,7 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
               </div>
               <div>
                 <h1 className="text-[19px] font-extrabold tracking-tight text-slate-900 leading-none">
-                  Ofertas y Góndolas
+                  Ofertas
                 </h1>
                 <p className="text-[11px] text-slate-500 font-medium mt-0.5">
                   Mayores descuentos del día comparados en vivo
@@ -45,7 +55,7 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
             </button>
           </div>
 
-          {/* Filtros rápidos por rangos de descuento y categorías */}
+          {/* Filtros rápidos exclusivamente por rangos de descuentos grandes */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-3 pb-0.5">
             <button
               type="button"
@@ -69,21 +79,7 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                <span>{tier.percentLabel} OFF</span>
-              </button>
-            ))}
-            {GONDOLAS.map(g => (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => setSelectedFilter(g.id)}
-                className={`shrink-0 h-8 px-3 rounded-full text-[12px] font-bold transition-all border ${
-                  selectedFilter === g.id
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                {g.title.split(' ')[0]} {g.title.split(' ')[1] || ''}
+                <span>{tier.percentLabel}</span>
               </button>
             ))}
           </div>
@@ -91,69 +87,94 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
       </header>
 
       <main className="px-4 pt-3 space-y-6">
-        {/* SECCIONES POR RANGOS DE DESCUENTOS GRANDES (70%-80%, 60%, 50%, 40%) */}
-        {/* Cada uno contiene su producto patrocinado de Mercado Libre como PRIMERA TARJETA A LA IZQUIERDA con descuento acorde */}
+        {/* SECCIONES POR RANGOS DE DESCUENTOS GRANDES (70%-80%, Liquidaciones, 50% y 2x1, Canasta Básica) */}
         {DISCOUNT_TIERS.filter(
           tier => selectedFilter === 'all' || selectedFilter === tier.id,
-        ).map((tier, idx) => (
-          <section
-            key={tier.id}
-            className={`space-y-3 ${idx > 0 ? 'pt-4 border-t border-slate-200/60' : 'pt-1'}`}
-          >
-            {/* Encabezado del Nivel de Descuento */}
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-[16px] font-black text-slate-900 tracking-tight">
-                    {tier.title}
-                  </h3>
+        ).map((tier, idx) => {
+          const visibleLimit = getVisibleCount(tier.id)
+          const visibleProducts = tier.products.slice(0, visibleLimit)
+          const hasMore = tier.products.length > visibleLimit
+
+          return (
+            <section
+              key={tier.id}
+              className={`space-y-3 ${idx > 0 ? 'pt-4 border-t border-slate-200/60' : 'pt-1'}`}
+            >
+              {/* Encabezado del Nivel de Descuento */}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[16px] font-black text-slate-900 tracking-tight">
+                      {tier.title}
+                    </h3>
+                  </div>
+                  <p className="text-[12px] text-slate-500 font-medium mt-0.5">
+                    {tier.subtitle}
+                  </p>
                 </div>
-                <p className="text-[12px] text-slate-500 font-medium mt-0.5">
-                  {tier.subtitle}
-                </p>
+                <span className="shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-600 text-white shadow-2xs">
+                  {tier.badge}
+                </span>
               </div>
-              <span className="shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-600 text-white shadow-2xs">
-                {tier.badge}
-              </span>
-            </div>
 
-            {/* Carrusel horizontal: El patrocinado de Mercado Libre es el PRIMERO DE LA IZQUIERDA con su descuento correspondiente */}
-            <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-1 px-0.5 -mx-0.5 snap-x">
-              <div className="snap-start shrink-0">
-                <SponsoredGondolaCard
-                  product={tier.meliSponsored.product}
-                  offer={tier.meliSponsored.offer}
-                />
-              </div>
-              {tier.products.map(product => (
-                <div key={`tier-${tier.id}-${product.ean}`} className="snap-start shrink-0">
-                  <GondolaCard group={product} />
+              {/* Carrusel horizontal: El patrocinado de Mercado Libre es el PRIMERO DE LA IZQUIERDA */}
+              <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-1 px-0.5 -mx-0.5 snap-x">
+                <div className="snap-start shrink-0">
+                  <SponsoredGondolaCard
+                    product={tier.meliSponsored.product}
+                    offer={tier.meliSponsored.offer}
+                  />
                 </div>
-              ))}
-            </div>
-          </section>
-        ))}
+                {visibleProducts.map(product => (
+                  <div key={`tier-${tier.id}-${product.ean}`} className="snap-start shrink-0">
+                    <GondolaCard group={product} />
+                  </div>
+                ))}
 
-        {/* GÓNDOLAS POR CATEGORÍA CON SUPER OFERTAS */}
-        {(selectedFilter === 'all' || GONDOLAS.some(g => g.id === selectedFilter)) && (
-          <div className="space-y-6 pt-2 border-t border-slate-200/60">
-            <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-blue-600" />
-              <h2 className="text-[15px] font-extrabold text-slate-900 tracking-tight">
-                Góndolas de Ofertas por Rubro
-              </h2>
-            </div>
-
-            {GONDOLAS.filter(
-              g => selectedFilter === 'all' || selectedFilter === g.id,
-            ).map(gondola => (
-              <GondolaSection
-                key={gondola.id}
-                gondola={gondola}
-              />
-            ))}
-          </div>
-        )}
+                {/* Tarjeta interactiva de Cargar Más al final del carrusel */}
+                {hasMore ? (
+                  <div className="snap-start shrink-0 flex items-stretch">
+                    <button
+                      type="button"
+                      onClick={() => handleLoadMore(tier.id, tier.products.length)}
+                      aria-label={`Cargar más ofertas en ${tier.title}`}
+                      className="w-[140px] rounded-2xl border-2 border-dashed border-rose-300 hover:border-rose-500 bg-rose-50/60 hover:bg-rose-100/70 p-4 flex flex-col items-center justify-center text-center transition-all group active:scale-95 shadow-2xs cursor-pointer"
+                    >
+                      <div className="w-11 h-11 rounded-2xl bg-rose-100 group-hover:bg-rose-600 text-rose-600 group-hover:text-white flex items-center justify-center mb-2.5 transition-all shadow-xs group-hover:scale-105">
+                        <Plus size={22} className="stroke-[2.5]" />
+                      </div>
+                      <span className="text-[13px] font-black text-rose-950 leading-tight">
+                        Cargar más ofertas
+                      </span>
+                      <span className="text-[10px] text-rose-600 font-bold mt-1.5 bg-white/90 px-2 py-0.5 rounded-full border border-rose-200">
+                        +{tier.products.length - visibleLimit} más
+                      </span>
+                    </button>
+                  </div>
+                ) : onGoSearch ? (
+                  <div className="snap-start shrink-0 flex items-stretch">
+                    <button
+                      type="button"
+                      onClick={onGoSearch}
+                      aria-label="Ver más ofertas en el catálogo"
+                      className="w-[140px] rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 p-4 flex flex-col items-center justify-center text-center transition-all group active:scale-95 shadow-2xs cursor-pointer"
+                    >
+                      <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200 text-slate-700 group-hover:text-blue-600 flex items-center justify-center mb-2.5 transition-all shadow-2xs group-hover:scale-105">
+                        <Search size={20} className="stroke-[2.2]" />
+                      </div>
+                      <span className="text-[13px] font-black text-slate-800 leading-tight">
+                        Ver más ofertas
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-medium mt-1.5">
+                        Ir al Buscador
+                      </span>
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          )
+        })}
 
         {/* Banner buscador complementario */}
         {onGoSearch && (

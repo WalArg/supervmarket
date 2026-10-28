@@ -170,7 +170,7 @@ describe('Navigation Structure, Centered Search & Góndolas de Ofertas', () => {
     expect(screen.queryByRole('button', { name: /escanear código de barras/i })).toBeNull()
   })
 
-  it('4. OffersScreen: renders separated góndolas, top discounts, and always a Mercado Libre sponsored option', () => {
+  it('4. OffersScreen: renders top discounts, Mercado Libre sponsored option, and load more cards in carousels', () => {
     render(
       <LocationProvider>
         <CartProvider>
@@ -182,7 +182,7 @@ describe('Navigation Structure, Centered Search & Góndolas de Ofertas', () => {
     )
 
     // Header title
-    expect(screen.getByText('Ofertas y Góndolas')).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'Ofertas' })).toBeTruthy()
     expect(screen.getByText('Mayores descuentos del día comparados en vivo')).toBeTruthy()
 
     // Sponsored Mercado Libre section is ALWAYS present (one per high-discount tier)
@@ -192,11 +192,11 @@ describe('Navigation Structure, Centered Search & Góndolas de Ofertas', () => {
     // Discount tiers section
     expect(screen.getAllByText(/70% y 80% OFF/i).length).toBeGreaterThanOrEqual(1)
 
-    // Góndolas separation
-    expect(screen.getByText('Ofertas destacadas del día')).toBeTruthy()
-    expect(screen.getByText('Lácteos y Frescos')).toBeTruthy()
-    expect(screen.getByText('Almacén y Canasta Básica')).toBeTruthy()
-    expect(screen.getByText('Limpieza y Hogar')).toBeTruthy()
-    expect(screen.getByText('Bebidas y Desayuno')).toBeTruthy()
+    // Interactive load more buttons in horizontal carousels
+    const loadMoreButtons = screen.getAllByRole('button', { name: /Cargar más ofertas/i })
+    expect(loadMoreButtons.length).toBeGreaterThanOrEqual(1)
+
+    // Clicking "Cargar más ofertas" expands visible products
+    fireEvent.click(loadMoreButtons[0])
   })
 })
