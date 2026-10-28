@@ -4,7 +4,7 @@ import { X, ExternalLink, Flame, CreditCard, MapPinOff, Plus, Minus, Check } fro
 import type { ProductGroup } from '../types'
 import { storeColor, storeLabel } from '../lib/stores'
 import { formatPrice } from '../lib/pricing'
-import { useCart } from '../cart/CartContext'
+import { useCart, getItemKey } from '../cart/CartContext'
 import type { OfferRow } from './ProductCard'
 
 /** Hoja inferior con todas las opciones de compra y agregado directo al changuito. */
@@ -14,16 +14,16 @@ const OffersSheet: React.FC<{
   group: ProductGroup
   rows: OfferRow[]
 }> = ({ open, onClose, group, rows }) => {
-  const { add, setQty, qtyOf, itemOf } = useCart()
+  const { add, setQty, qtyOf, items } = useCart()
   const [justAddedKey, setJustAddedKey] = useState<string | null>(null)
 
   const ean = group.ean || group.offers?.[0]?.ean || (group as any).id || group.nombre
   const totalInCart = qtyOf(ean)
-  const cartItem = itemOf(ean)
-  const selectedStore = cartItem?.store
+  const cartItemsForThisProduct = items.filter(
+    i => i.ean === ean || (i.id && i.id.startsWith(`${ean}::`)),
+  )
 
   const best = rows[0]
-  const activeStore = selectedStore || best?.o?.supermercado
 
   const handleAddOffer = (
     key: string,
@@ -95,15 +95,15 @@ const OffersSheet: React.FC<{
             <ul className="flex-1 overflow-y-auto overscroll-contain divide-y divide-slate-100">
               {rows.map((r, idx) => {
                 const diff = idx > 0 && best.eff > 0 ? Math.round(((r.eff - best.eff) / best.eff) * 100) : 0
-                const isThisStoreSelected = totalInCart > 0 && activeStore === r.o.supermercado
-                const rowKey = `${r.o.supermercado}-${r.o.sku_id || idx}`
+                const rowKey = getItemKey(ean, r.o.supermercado, r.o.sku_id)
+                const rowQty = qtyOf(rowKey)
                 const isJustAdded = justAddedKey === rowKey
 
                 return (
                   <li
                     key={`${r.o.supermercado}-${r.o.sku_id || idx}`}
                     className={`px-4 py-3 transition-colors ${
-                      isThisStoreSelected ? 'bg-blue-50/40' : ''
+                      rowQty > 0 ? 'bg-blue-50/40' : ''
                     } ${r.noDelivery ? 'opacity-50' : ''}`}
                   >
                     <div className="flex items-center gap-3">
@@ -114,9 +114,9 @@ const OffersSheet: React.FC<{
                           {idx === 0 && rows.length > 1 && (
                             <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">MEJOR</span>
                           )}
-                          {isThisStoreSelected && (
+                          {rowQty > 0 && (
                             <span className="text-[10px] font-extrabold text-blue-700 bg-blue-100/80 px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                              <Check size={10} strokeWidth={3} /> En changuito
+                              <Check size={10} strokeWidth={3} /> {rowQty} en changuito
                             </span>
                           )}
                           {r.noDelivery && (
@@ -201,21 +201,21 @@ const OffersSheet: React.FC<{
                           {r.minQty > 1 && <span className="text-[11px] font-bold text-slate-400"> c/u</span>}
                         </div>
 
-                        {/* Botón principal: AGREGAR O CONTROLAR CANTIDAD POR COMERCIO */}
-                        {isThisStoreSelected ? (
+                        {/* Botón principal: AGREGAR O CONTROLAR CANTIDAD INDEPENDIENTE */}
+                        {rowQty > 0 ? (
                           <div className="mt-1 flex items-center h-[34px] rounded-xl border border-blue-600 bg-blue-600 text-white shadow-2xs">
                             <button
                               type="button"
                               onClick={() => {
                                 navigator.vibrate?.(8)
-                                setQty(ean, totalInCart - 1)
+                                setQty(rowKey, rowQty - 1)
                               }}
                               className="w-8 h-full flex items-center justify-center hover:bg-blue-700 active:bg-blue-800 rounded-l-xl transition-colors"
                               aria-label={`Restar una unidad de ${storeLabel(r.o.supermercado)}`}
                             >
                               <Minus size={13} strokeWidth={3} />
                             </button>
-                            <span className="w-6 text-center text-[12px] font-extrabold">{totalInCart}</span>
+                            <span className="w-6 text-center text-[12px] font-extrabold">{rowQty}</span>
                             <button
                               type="button"
                               onClick={() => {
@@ -238,7 +238,7 @@ const OffersSheet: React.FC<{
                             onClick={() =>
                               handleAddOffer(
                                 rowKey,
-                                totalInCart > 0 ? 0 : r.minQty || 1,
+                                r.minQty || 1,
                                 r.o.supermercado,
                                 {
                                   link: r.o.link,
@@ -250,8 +250,6 @@ const OffersSheet: React.FC<{
                             className={`mt-1 min-h-[34px] h-[34px] px-3 rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 transition-all active:scale-95 shadow-2xs ${
                               isJustAdded
                                 ? 'bg-emerald-600 text-white'
-                                : totalInCart > 0
-                                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
                                 : 'bg-blue-600 hover:bg-blue-700 text-white'
                             }`}
                             title={`Agregar oferta de ${storeLabel(r.o.supermercado)} al carrito`}
@@ -259,10 +257,8 @@ const OffersSheet: React.FC<{
                             {isJustAdded ? (
                               <>
                                 <Check size={13} strokeWidth={3} />
-                                <span>{totalInCart > 0 ? 'Cambiado' : 'Agregado'}</span>
+                                <span>Agregado</span>
                               </>
-                            ) : totalInCart > 0 ? (
-                              <span>Elegir este</span>
                             ) : (
                               <>
                                 <Plus size={14} strokeWidth={3} />
@@ -298,8 +294,10 @@ const OffersSheet: React.FC<{
                           {[...r.o.meli_options]
                             .sort((a, b) => a.price - b.price)
                             .map((opt, oIdx) => {
-                              const optKey = opt.item_id || `opt-${oIdx}`
+                              const optKey = getItemKey(ean, 'MercadoLibre', opt.item_id)
+                              const optQty = qtyOf(optKey)
                               const isJustAddedOpt = justAddedKey === optKey
+
                               return (
                                 <div
                                   key={opt.item_id || oIdx}
@@ -341,38 +339,78 @@ const OffersSheet: React.FC<{
                                     <span className="font-extrabold text-slate-900 text-[13px]">
                                       {formatPrice(opt.price)}
                                     </span>
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleAddOffer(
-                                          optKey,
-                                          totalInCart > 0 ? 0 : 1,
-                                          'MercadoLibre',
-                                          {
-                                            link: opt.link,
-                                            precio: opt.price,
-                                            sku_id: opt.item_id,
-                                          },
-                                        )
-                                      }
-                                      className={`h-7 px-2.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 ${
-                                        isJustAddedOpt
-                                          ? 'bg-emerald-600 text-white'
-                                          : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                      }`}
-                                    >
-                                      {isJustAddedOpt ? (
-                                        <>
-                                          <Check size={12} strokeWidth={3} />
-                                          <span>Listo</span>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Plus size={12} strokeWidth={3} />
-                                          <span>{totalInCart > 0 ? 'Elegir' : 'Agregar'}</span>
-                                        </>
-                                      )}
-                                    </button>
+
+                                    {optQty > 0 ? (
+                                      <div className="flex items-center h-7 rounded-lg border border-blue-600 bg-blue-600 text-white shadow-2xs">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            navigator.vibrate?.(8)
+                                            setQty(optKey, optQty - 1)
+                                          }}
+                                          className="w-6 h-full flex items-center justify-center hover:bg-blue-700 active:bg-blue-800 rounded-l-lg"
+                                          aria-label={`Restar una unidad de ${opt.seller_name}`}
+                                        >
+                                          <Minus size={11} strokeWidth={3} />
+                                        </button>
+                                        <span className="w-5 text-center text-[11px] font-extrabold">{optQty}</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            navigator.vibrate?.(8)
+                                            handleAddOffer(
+                                              optKey,
+                                              1,
+                                              'MercadoLibre',
+                                              {
+                                                link: opt.link,
+                                                precio: opt.price,
+                                                sku_id: opt.item_id,
+                                              },
+                                            )
+                                          }}
+                                          className="w-6 h-full flex items-center justify-center hover:bg-blue-700 active:bg-blue-800 rounded-r-lg"
+                                          aria-label={`Sumar una unidad de ${opt.seller_name}`}
+                                        >
+                                          <Plus size={11} strokeWidth={3} />
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        title={`Agregar opción de ${opt.seller_name}`}
+                                        onClick={() =>
+                                          handleAddOffer(
+                                            optKey,
+                                            1,
+                                            'MercadoLibre',
+                                            {
+                                              link: opt.link,
+                                              precio: opt.price,
+                                              sku_id: opt.item_id,
+                                            },
+                                          )
+                                        }
+                                        className={`h-7 px-2.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 ${
+                                          isJustAddedOpt
+                                            ? 'bg-emerald-600 text-white'
+                                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                        }`}
+                                      >
+                                        {isJustAddedOpt ? (
+                                          <>
+                                            <Check size={12} strokeWidth={3} />
+                                            <span>Agregado</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Plus size={12} strokeWidth={3} />
+                                            <span>Agregar</span>
+                                          </>
+                                        )}
+                                      </button>
+                                    )}
+
                                     {opt.link && (
                                       <a
                                         href={opt.link}
@@ -403,11 +441,12 @@ const OffersSheet: React.FC<{
                   {totalInCart > 0 ? (
                     <div>
                       <p className="text-[13px] font-extrabold text-slate-900 leading-tight truncate">
-                        En changuito: <span className="text-blue-700">{totalInCart} un.</span> en {storeLabel(activeStore)}
+                        En changuito: <span className="text-blue-700">{totalInCart} un.</span> en total
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5 truncate">
-                        Subtotal {formatPrice(((rows.find(r => r.o.supermercado === activeStore)?.eff) || best.eff) * totalInCart)}
-                        {activeStore !== best.o.supermercado && ` · Mejor precio en ${storeLabel(best.o.supermercado)} (${formatPrice(best.eff)})`}
+                      <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                        {cartItemsForThisProduct.length > 1
+                          ? `${cartItemsForThisProduct.length} ofertas distintas agregadas`
+                          : `En ${storeLabel(cartItemsForThisProduct[0]?.store || best.o.supermercado)}`}
                       </p>
                     </div>
                   ) : (
@@ -421,43 +460,19 @@ const OffersSheet: React.FC<{
                 </div>
 
                 {totalInCart > 0 ? (
-                  <div className="flex items-center h-10 rounded-xl bg-blue-600 text-white shrink-0 shadow-2xs">
-                    <button
-                      type="button"
-                      aria-label="Restar una unidad"
-                      onClick={() => {
-                        navigator.vibrate?.(8)
-                        setQty(ean, totalInCart - 1)
-                      }}
-                      className="w-10 h-full flex items-center justify-center active:bg-blue-700 rounded-l-xl"
-                    >
-                      <Minus size={16} strokeWidth={3} />
-                    </button>
-                    <span className="min-w-[24px] text-center text-[14px] font-extrabold">{totalInCart}</span>
-                    <button
-                      type="button"
-                      aria-label="Sumar una unidad"
-                      onClick={() => {
-                        navigator.vibrate?.(8)
-                        const selRow = rows.find(r => r.o.supermercado === activeStore) || best
-                        handleAddOffer(
-                          `${activeStore}-${selRow.o.sku_id}`,
-                          1,
-                          activeStore,
-                          { link: selRow.o.link, precio: selRow.eff, sku_id: selRow.o.sku_id },
-                        )
-                      }}
-                      className="w-10 h-full flex items-center justify-center active:bg-blue-700 rounded-r-xl"
-                    >
-                      <Plus size={16} strokeWidth={3} />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="h-10 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-extrabold flex items-center gap-1 active:scale-95 transition-all shadow-xs shrink-0"
+                  >
+                    <Check size={16} strokeWidth={3} /> Listo
+                  </button>
                 ) : (
                   <button
                     type="button"
                     onClick={() =>
                       handleAddOffer(
-                        `${best.o.supermercado}-${best.o.sku_id}`,
+                        getItemKey(ean, best.o.supermercado, best.o.sku_id),
                         best.minQty || 1,
                         best.o.supermercado,
                         { link: best.o.link, precio: best.eff, sku_id: best.o.sku_id },

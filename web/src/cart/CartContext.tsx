@@ -7,16 +7,21 @@ interface CartExtra {
   sku_id?: string
 }
 
+export function getItemKey(ean: string, store?: string, sku_id?: string): string {
+  if (!store && !sku_id) return ean
+  return `${ean}::${store || ''}::${sku_id || ''}`
+}
+
 interface CartCtx {
   items: ListItem[]
   add: (group: ProductGroup, qty?: number, store?: string, extra?: CartExtra) => void
-  remove: (ean: string) => void
-  setQty: (ean: string, qty: number) => void
+  remove: (keyOrEan: string) => void
+  setQty: (keyOrEan: string, qty: number) => void
   setStoreForEan: (ean: string, store?: string, extra?: CartExtra) => void
   clear: () => void
-  has: (ean: string) => boolean
-  qtyOf: (ean: string) => number
-  itemOf: (ean: string) => ListItem | undefined
+  has: (keyOrEan: string) => boolean
+  qtyOf: (keyOrEan: string) => number
+  itemOf: (keyOrEan: string) => ListItem | undefined
   count: number
   totalUnits: number
   replaceItems: (newItems: ListItem[]) => void
@@ -55,14 +60,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     extra?: CartExtra,
   ) => {
     const ean = g.ean || g.offers?.[0]?.ean || (g as any).id || g.nombre
+    const itemKey = getItemKey(ean, store, extra?.sku_id)
+
     setItems(prev => {
-      const idx = prev.findIndex(i => i.ean === ean || (i as any).id === ean)
+      const idx = prev.findIndex(i => (i.id || i.ean) === itemKey || (!i.store && !store && i.ean === ean))
       if (idx >= 0) {
         return prev.map((it, i) =>
           i === idx
             ? {
                 ...it,
-                qty: it.qty + addQty,
+                qty: it.qty + Math.max(1, addQty),
                 store: store !== undefined ? store : it.store,
                 link: extra?.link !== undefined ? extra.link : it.link,
                 precio: extra?.precio !== undefined ? extra.precio : it.precio,
@@ -74,6 +81,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [
         ...prev,
         {
+          id: itemKey,
           ean,
           nombre: g.nombre,
           imagen: g.imagen,
@@ -103,17 +111,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
     )
   }
 
-  const remove = (ean: string) =>
-    setItems(prev => prev.filter(i => i.ean !== ean && (i as any).id !== ean))
+  const remove = (keyOrEan: string) =>
+    setItems(prev => {
+      if (keyOrEan.includes('::')) {
+        return prev.filter(i => (i.id || i.ean) !== keyOrEan)
+      }
+      return prev.filter(i => (i.id || i.ean) !== keyOrEan && i.ean !== keyOrEan)
+    })
 
-  const setQty = (ean: string, qty: number) => {
+  const setQty = (keyOrEan: string, qty: number) => {
     if (qty <= 0) {
-      remove(ean)
+      remove(keyOrEan)
       return
     }
-    setItems(prev =>
-      prev.map(i => (i.ean === ean || (i as any).id === ean ? { ...i, qty: Math.max(1, qty) } : i)),
-    )
+    setItems(prev => {
+      const hasExact = prev.some(i => (i.id || i.ean) === keyOrEan)
+      if (hasExact) {
+        return prev.map(i =>
+          (i.id || i.ean) === keyOrEan ? { ...i, qty: Math.max(1, qty) } : i,
+        )
+      }
+      return prev.map(i =>
+        i.ean === keyOrEan ? { ...i, qty: Math.max(1, qty) } : i,
+      )
+    })
   }
 
   const clear = () => {
@@ -122,13 +143,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(STORAGE_KEY)
     } catch {}
   }
-  const has = (ean: string) => items.some(i => i.ean === ean)
-  const qtyOf = (ean: string) => items.find(i => i.ean === ean)?.qty || 0
-  const itemOf = (ean: string) => items.find(i => i.ean === ean || (i as any).id === ean)
+  const has = (keyOrEan: string) =>
+    items.some(
+      i =>
+        (i.id || i.ean) === keyOrEan ||
+        i.ean === keyOrEan ||
+        (i.id && i.id.startsWith(`${keyOrEan}::`)),
+    )
+
+  const qtyOf = (keyOrEan: string) => {
+    const exact = items.find(i => (i.id || i.ean) === keyOrEan)
+    if (exact && keyOrEan.includes('::')) return exact.qty
+    const matching = items.filter(i => i.ean === keyOrEan || (i.id && i.id.startsWith(`${keyOrEan}::`)))
+    if (matching.length > 0) {
+      return matching.reduce((sum, i) => sum + i.qty, 0)
+    }
+    return exact?.qty || 0
+  }
+
+  const itemOf = (keyOrEan: string) =>
+    items.find(i => (i.id || i.ean) === keyOrEan) ||
+    items.find(i => i.ean === keyOrEan || (i.id && i.id.startsWith(`${keyOrEan}::`)))
 
   const replaceItems = (newItems: ListItem[]) => {
     setItems(
       newItems.map(i => ({
+        id: i.id || getItemKey(i.ean, i.store, i.sku_id),
         ean: i.ean,
         nombre: i.nombre || `Producto ${i.ean}`,
         imagen: i.imagen || '',
@@ -145,12 +185,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(prev => {
       const map = new Map<string, ListItem>()
       for (const item of prev) {
-        map.set(item.ean, { ...item })
+        const k = item.id || getItemKey(item.ean, item.store, item.sku_id)
+        map.set(k, { ...item, id: k })
       }
       for (const item of newItems) {
-        if (map.has(item.ean)) {
-          const existing = map.get(item.ean)!
-          map.set(item.ean, {
+        const k = item.id || getItemKey(item.ean, item.store, item.sku_id)
+        if (map.has(k)) {
+          const existing = map.get(k)!
+          map.set(k, {
             ...existing,
             qty: existing.qty + Math.max(1, item.qty),
             store: item.store || existing.store,
@@ -159,7 +201,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             sku_id: item.sku_id || existing.sku_id,
           })
         } else {
-          map.set(item.ean, {
+          map.set(k, {
+            id: k,
             ean: item.ean,
             nombre: item.nombre || `Producto ${item.ean}`,
             imagen: item.imagen || '',

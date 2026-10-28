@@ -91,7 +91,7 @@ describe('OffersSheet Store Selection and Cart Binding', () => {
 
     // The bottom bar must now explicitly state Mercado Libre is in the cart, NOT Dia!
     expect(screen.getByText(/En changuito:/)).toBeTruthy()
-    expect(screen.getByText(/en Mercado Libre/)).toBeTruthy()
+    expect(screen.getByText(/En Mercado Libre/i)).toBeTruthy()
 
     // The Mercado Libre row must show the En changuito badge
     expect(screen.getAllByText(/En changuito/).length).toBeGreaterThan(0)
@@ -123,7 +123,7 @@ describe('OffersSheet Store Selection and Cart Binding', () => {
     expect(screen.getByText(/1 un\./)).toBeTruthy()
   })
 
-  it('4. Switching store from Mercado Libre to Dia switches active store and updates bottom bar', () => {
+  it('4. Adding multiple distinct offers (Dia and Mercado Libre) retains both without replacing or overwriting', () => {
     render(
       <CartProvider>
         <OffersSheet open={true} onClose={vi.fn()} group={mockGroup} rows={mockRows} />
@@ -133,13 +133,91 @@ describe('OffersSheet Store Selection and Cart Binding', () => {
     // 1. Add to Mercado Libre
     const meliAddBtn = screen.getByTitle('Agregar oferta de Mercado Libre al carrito')
     fireEvent.click(meliAddBtn)
-    expect(screen.getByText(/en Mercado Libre/)).toBeTruthy()
+    expect(screen.getByText(/En Mercado Libre/i)).toBeTruthy()
 
-    // 2. Click "Elegir este" on Dia
-    const diaChooseBtn = screen.getByTitle('Agregar oferta de Día al carrito')
-    fireEvent.click(diaChooseBtn)
+    // 2. Add to Dia
+    const diaAddBtn = screen.getByTitle('Agregar oferta de Día al carrito')
+    fireEvent.click(diaAddBtn)
 
-    // Now active store is Dia
-    expect(screen.getByText(/en Día/)).toBeTruthy()
+    // Now both stores have items in cart, showing total 2 units and 2 distinct offers added
+    expect(screen.getByText(/2 un\./)).toBeTruthy()
+    expect(screen.getByText(/2 ofertas distintas agregadas/)).toBeTruthy()
+
+    // Both steppers are visible
+    expect(screen.getByLabelText('Sumar una unidad de Mercado Libre')).toBeTruthy()
+    expect(screen.getByLabelText('Sumar una unidad de Día')).toBeTruthy()
+  })
+
+  it('5. Sub-options of Mercado Libre can be added independently with their own steppers', () => {
+    const mockMeliRowWithSubOptions: OfferRow[] = [
+      {
+        o: {
+          supermercado: 'MercadoLibre',
+          ean: '7790070412345',
+          sku_id: 'meli-main',
+          nombre: 'Aceite en aerosol Cañuelas',
+          marca: 'Cañuelas',
+          precio: 4934,
+          precio_base: 4934,
+          line_total: 4934,
+          seller_name: 'TIENDAMIPAÑAL',
+          meli_options: [
+            {
+              item_id: 'MLA-SELLER-1',
+              title: 'Aceite Cañuelas TIENDAMIPAÑAL',
+              price: 4934,
+              seller_name: 'TIENDAMIPAÑAL',
+              link: 'https://articulo.mercadolibre.com.ar/MLA-1',
+            },
+            {
+              item_id: 'MLA-SELLER-2',
+              title: 'Aceite Cañuelas OTRO VENDEDOR',
+              price: 5100,
+              seller_name: 'OTROVENDEDOR',
+              link: 'https://articulo.mercadolibre.com.ar/MLA-2',
+            },
+          ],
+        },
+        eff: 4934,
+        unit: 26387,
+        club: null,
+        promo: null,
+        minQty: 1,
+        noDelivery: false,
+      },
+    ]
+
+    render(
+      <CartProvider>
+        <OffersSheet
+          open={true}
+          onClose={vi.fn()}
+          group={mockGroup}
+          rows={mockMeliRowWithSubOptions}
+        />
+      </CartProvider>,
+    )
+
+    // Initially sub-options have their own Agregar buttons
+    const addSeller1Btn = screen.getByTitle('Agregar opción de TIENDAMIPAÑAL')
+    const addSeller2Btn = screen.getByTitle('Agregar opción de OTROVENDEDOR')
+    expect(addSeller1Btn).toBeTruthy()
+    expect(addSeller2Btn).toBeTruthy()
+
+    // Add first seller option
+    fireEvent.click(addSeller1Btn)
+    expect(screen.getByText(/1 un\./)).toBeTruthy()
+
+    // Now seller 1 shows stepper
+    expect(screen.getByLabelText('Sumar una unidad de TIENDAMIPAÑAL')).toBeTruthy()
+
+    // Add second seller option
+    fireEvent.click(addSeller2Btn)
+    expect(screen.getByText(/2 un\./)).toBeTruthy()
+    expect(screen.getByText(/2 ofertas distintas agregadas/)).toBeTruthy()
+
+    // Both seller options now have their own steppers!
+    expect(screen.getByLabelText('Sumar una unidad de TIENDAMIPAÑAL')).toBeTruthy()
+    expect(screen.getByLabelText('Sumar una unidad de OTROVENDEDOR')).toBeTruthy()
   })
 })

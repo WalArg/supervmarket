@@ -385,59 +385,74 @@ const ListScreen: React.FC<{ onGoSearch: () => void; onGoProfile: () => void }> 
                 </button>
               </div>
 
-              {items.map(i => (
-                <div key={i.ean} className="flex items-center gap-3 p-3">
-                  {i.imagen ? (
-                    <img
-                      src={i.imagen}
-                      alt=""
-                      className="w-12 h-12 object-contain rounded-lg bg-slate-50 p-1 shrink-0 border border-slate-100"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
-                      <ShoppingBasket size={20} />
+              {items.map(i => {
+                const itemKey = i.id || i.ean
+                return (
+                  <div key={itemKey} className="flex items-center gap-3 p-3">
+                    {i.imagen ? (
+                      <img
+                        src={i.imagen}
+                        alt=""
+                        className="w-12 h-12 object-contain rounded-lg bg-slate-50 p-1 shrink-0 border border-slate-100"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
+                        <ShoppingBasket size={20} />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[13px] font-semibold text-slate-900 leading-snug line-clamp-2">
+                        {i.nombre}
+                      </span>
+                      {i.store && (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/60 inline-flex items-center">
+                            {storeLabel(i.store)}
+                          </span>
+                          {i.precio !== undefined && i.precio > 0 && (
+                            <span className="text-[11px] font-semibold text-slate-500">
+                              {formatPrice(i.precio)} c/u
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[13px] font-semibold text-slate-900 leading-snug line-clamp-2">
-                      {i.nombre}
-                    </span>
-                  </div>
 
-                  {/* Stepper táctil accesible >= 44x44px */}
-                  <div className="flex items-center h-11 rounded-xl border border-slate-200 shrink-0 bg-slate-50">
+                    {/* Stepper táctil accesible >= 44x44px */}
+                    <div className="flex items-center h-11 rounded-xl border border-slate-200 shrink-0 bg-slate-50">
+                      <button
+                        type="button"
+                        onClick={() => setQty(itemKey, i.qty - 1)}
+                        className="w-11 h-11 flex items-center justify-center text-slate-600 hover:bg-slate-200/60 rounded-l-xl active:scale-90 transition-transform"
+                        aria-label={`Restar una unidad de ${i.nombre}`}
+                      >
+                        <Minus size={15} />
+                      </button>
+                      <span className="w-7 text-center text-[13px] font-extrabold text-slate-900">
+                        {i.qty}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setQty(itemKey, i.qty + 1)}
+                        className="w-11 h-11 flex items-center justify-center text-slate-600 hover:bg-slate-200/60 rounded-r-xl active:scale-90 transition-transform"
+                        aria-label={`Sumar una unidad de ${i.nombre}`}
+                      >
+                        <Plus size={15} />
+                      </button>
+                    </div>
+
+                    {/* Botón eliminar táctil accesible >= 44x44px con separación */}
                     <button
                       type="button"
-                      onClick={() => setQty(i.ean, i.qty - 1)}
-                      className="w-11 h-11 flex items-center justify-center text-slate-600 hover:bg-slate-200/60 rounded-l-xl active:scale-90 transition-transform"
-                      aria-label={`Restar una unidad de ${i.nombre}`}
+                      onClick={() => remove(itemKey)}
+                      aria-label={`Quitar ${i.nombre} de la lista`}
+                      className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-red-600 active:scale-90 transition-colors shrink-0 rounded-xl hover:bg-red-50 ml-1.5"
                     >
-                      <Minus size={15} />
-                    </button>
-                    <span className="w-7 text-center text-[13px] font-extrabold text-slate-900">
-                      {i.qty}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setQty(i.ean, i.qty + 1)}
-                      className="w-11 h-11 flex items-center justify-center text-slate-600 hover:bg-slate-200/60 rounded-r-xl active:scale-90 transition-transform"
-                      aria-label={`Sumar una unidad de ${i.nombre}`}
-                    >
-                      <Plus size={15} />
+                      <Trash2 size={17} />
                     </button>
                   </div>
-
-                  {/* Botón eliminar táctil accesible >= 44x44px con separación */}
-                  <button
-                    type="button"
-                    onClick={() => remove(i.ean)}
-                    aria-label={`Quitar ${i.nombre} de la lista`}
-                    className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-red-600 active:scale-90 transition-colors shrink-0 rounded-xl hover:bg-red-50 ml-1.5"
-                  >
-                    <Trash2 size={17} />
-                  </button>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </section>

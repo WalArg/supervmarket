@@ -207,6 +207,7 @@ export interface BenefitsCatalog {
 }
 
 export interface ListItem {
+  id?: string
   ean: string
   nombre: string
   imagen: string
