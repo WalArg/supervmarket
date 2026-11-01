@@ -62,6 +62,61 @@ CLUB_KEYWORDS = (
     "anses", "jubilado", "modo", "bna", "cuenta dni", "mp ", "mercadopago",
 )
 
+NON_GROCERY_MARKETPLACE_KEYWORDS = (
+    "aspiradora",
+    "soporte fijo",
+    "soporte tv",
+    "soporte movil",
+    "colchon",
+    "sommier",
+    "auriculares",
+    "camara hibrida",
+    "pesas rusas",
+    "kettlebell",
+    "soga de salto",
+    "powerband",
+    "engrampadora",
+    "basurero con pedal",
+    "limpiafondo",
+    "espatula la planchetta",
+    "planchetta",
+    "smart tv",
+    "aire acondicionado",
+    "heladera",
+    "lavarropas",
+    "microondas",
+    "freidora de aire",
+    "notebook",
+    "impresora",
+    "bicicleta",
+    "mancuerna",
+    "colchoneta",
+    "taladro",
+    "amoladora",
+    "hidrolavadora",
+    "neumatico",
+    "cubierta auto",
+)
+
+NON_GROCERY_CATEGORY_KEYWORDS = (
+    "electro y tecnologia",
+    "electrodomesticos",
+    "audio y video",
+    "tv y video",
+    "informatica",
+    "celulares",
+    "climatizacion",
+    "colchones y sommiers",
+    "muebles",
+    "deportes y fitness",
+    "automotor",
+    "ferreteria",
+    "herramientas",
+    "rodados",
+    "jugueteria",
+    "tiempo libre",
+)
+
 
 def _strip_accents(s: str) -> str:
     return "".join(
@@ -304,19 +359,39 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
 
     sku = None
     comm = None
+    selected_seller = None
     for candidate_sku in items:
         sellers = candidate_sku.get("sellers") or []
         if not sellers:
             continue
-        c_offer = sellers[0].get("commertialOffer") or {}
-        avail = int(c_offer.get("AvailableQuantity") or 0)
-        price = float(c_offer.get("Price") or 0)
-        if avail > 0 and price > 0:
-            sku = candidate_sku
-            comm = c_offer
+        ordered_sellers = sorted(
+            sellers,
+            key=lambda s: not (str(s.get("sellerId") or "") == "1" or s.get("sellerDefault") is True),
+        )
+        for s in ordered_sellers:
+            c_offer = s.get("commertialOffer") or {}
+            avail = int(c_offer.get("AvailableQuantity") or 0)
+            price = float(c_offer.get("Price") or 0)
+            if avail > 0 and price > 0:
+                sku = candidate_sku
+                comm = c_offer
+                selected_seller = s
+                break
+        if sku and comm:
             break
 
     if not sku or not comm:
+        return None
+
+    nombre = prod.get("productName") or sku.get("nameComplete") or sku.get("name") or ""
+    cats = prod.get("categories") or []
+    cats_str = ", ".join(c.strip("/") for c in cats) if cats else ""
+
+    norm_nombre = _strip_accents(nombre)
+    norm_cats = _strip_accents(cats_str)
+    if any(kw in norm_nombre or kw in norm_cats for kw in NON_GROCERY_MARKETPLACE_KEYWORDS):
+        return None
+    if any(ck in norm_cats for ck in NON_GROCERY_CATEGORY_KEYWORDS):
         return None
 
     ean = sku.get("ean")
@@ -331,23 +406,32 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
     if not ean:
         return None
 
-    # En VTEX Intelligent Search, priceRange.sellingPrice refleja el precio retail real
-    # de vidriera de la tienda, mientras que commertialOffer a veces contiene listas
-    # de costo mayorista regional o desactualizadas por segmentación.
+    # Precio de góndola unitario oficial (commertialOffer.Price), con fallback a priceRange.sellingPrice
     pr_selling = (
         prod.get("priceRange", {})
         .get("sellingPrice", {})
         .get("lowPrice")
     )
-    if pr_selling is not None and float(pr_selling) > 0:
+    comm_price = float(comm.get("Price") or 0)
+    if comm_price > 0:
+        base_price = comm_price
+    elif pr_selling is not None and float(pr_selling) > 0:
         base_price = float(pr_selling)
     else:
-        base_price = float(comm.get("Price") or 0)
+        base_price = 0.0
 
     if base_price <= 0:
         return None
 
     raw_list_price = float(comm.get("ListPrice") or base_price)
+    seller_id = str((selected_seller or {}).get("sellerId") or "1")
+    if (
+        seller_id != "1"
+        and store_name.lower() in ("carrefour", "masonline", "mas online", "más online")
+        and raw_list_price > base_price * 3.5
+    ):
+        return None
+
     if raw_list_price > base_price * 4.0 or raw_list_price < base_price:
         list_price = base_price
     else:
@@ -386,7 +470,6 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
                     and cand["precio_promo_unit"] < best_promo["precio_promo_unit"])):
             best_promo = cand
 
-    nombre = prod.get("productName") or sku.get("nameComplete") or sku.get("name") or ""
     precio_unidad, unidad = precio_venta, "un"
     cant, u_tit = extraer_unidad_titulo(nombre)
     if cant > 0 and (u_tit != "un" or cant > 1):
@@ -394,8 +477,6 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
     p_unidad_norm, unidad_norm = normalizar_unidad(precio_unidad, unidad)
     p_unidad_norm = sanity_precio_unidad(precio_venta, p_unidad_norm, unidad_norm)
 
-    cats = prod.get("categories") or []
-    cats_str = ", ".join(c.strip("/") for c in cats) if cats else ""
     link = prod.get("link") or fallback_url
     if link and link.startswith("/"):
         link = f"https://www.{store_name.lower()}.com.ar{link}"

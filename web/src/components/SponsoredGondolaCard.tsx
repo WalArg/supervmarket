@@ -1,5 +1,5 @@
-import React from 'react'
-import { Flame, Zap, ExternalLink } from 'lucide-react'
+import React, { useState, useMemo, useEffect } from 'react'
+import { Flame, Zap, ExternalLink, Package } from 'lucide-react'
 import type { ProductGroup, Offer } from '../types'
 import { formatPrice } from '../lib/pricing'
 import { decorateOutboundUrl, trackOutboundAffiliateClick } from '../lib/affiliate'
@@ -12,14 +12,43 @@ interface SponsoredGondolaCardProps {
 export const SponsoredGondolaCard: React.FC<SponsoredGondolaCardProps> = ({ product, offer }) => {
   const store = offer.supermercado || 'MercadoLibre'
   const decoratedUrl = decorateOutboundUrl(offer.link, store, 'item')
+  const [imgIdx, setImgIdx] = useState(0)
+  const [imgFailed, setImgFailed] = useState(false)
+
+  const candidateImages = useMemo(() => {
+    const raw = [
+      product.imagen,
+      offer.imagen,
+      ...(product.gallery_images || []),
+      ...(product.offers || []).map(o => o.imagen),
+    ].filter((u): u is string => Boolean(u && u.startsWith('http')))
+    return Array.from(new Set(raw))
+  }, [product.imagen, offer.imagen, product.gallery_images, product.offers])
+
+  useEffect(() => {
+    setImgIdx(0)
+    setImgFailed(false)
+  }, [product.ean, product.imagen, offer.imagen])
+
+  const handleImgError = () => {
+    if (imgIdx + 1 < candidateImages.length) {
+      setImgIdx(prev => prev + 1)
+    } else {
+      setImgFailed(true)
+    }
+  }
+
+  const brandInitials = (product.marca || product.nombre || 'ML')
+    .trim()
+    .slice(0, 2)
+    .toUpperCase()
 
   const handleClick = () => {
     trackOutboundAffiliateClick(
-      product.nombre,
       store,
+      'item',
       decoratedUrl,
       offer.precio,
-      'sponsored_carousel_card',
     )
     window.open(decoratedUrl, '_blank', 'noopener,noreferrer')
   }
@@ -27,11 +56,10 @@ export const SponsoredGondolaCard: React.FC<SponsoredGondolaCardProps> = ({ prod
   const handleLinkClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     trackOutboundAffiliateClick(
-      product.nombre,
       store,
+      'item',
       decoratedUrl,
       offer.precio,
-      'sponsored_carousel_card',
     )
   }
 
@@ -63,15 +91,27 @@ export const SponsoredGondolaCard: React.FC<SponsoredGondolaCardProps> = ({ prod
         </span>
       </div>
 
-      {/* Imagen del producto patrocinado */}
+      {/* Imagen del producto patrocinado con fallback inteligente */}
       <div className="w-full h-24 flex items-center justify-center py-1 bg-white rounded-xl border border-amber-100/80 p-1">
-        <img
-          src={product.imagen}
-          alt={product.nombre}
-          loading="lazy"
-          className="max-h-full max-w-full object-contain"
-          onError={e => ((e.target as HTMLImageElement).style.visibility = 'hidden')}
-        />
+        {!imgFailed && candidateImages.length > 0 ? (
+          <img
+            src={candidateImages[imgIdx]}
+            alt={product.nombre}
+            loading="lazy"
+            className="max-h-full max-w-full object-contain"
+            onError={handleImgError}
+          />
+        ) : (
+          <div
+            className="w-20 h-20 rounded-xl bg-amber-50/60 border border-amber-100 flex flex-col items-center justify-center text-amber-600/70 select-none"
+            aria-label={product.nombre}
+          >
+            <Package size={22} className="text-amber-400 mb-0.5" />
+            <span className="text-[10px] font-extrabold tracking-wider text-amber-700/70">
+              {brandInitials}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Tienda Mercado Libre y badge FULL */}

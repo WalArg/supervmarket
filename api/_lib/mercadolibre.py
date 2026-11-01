@@ -470,3 +470,261 @@ async def fetch_mercadolibre_live(
         return [r for r in results if isinstance(r, dict) and r]
     except Exception:
         return []
+
+
+# Pool curado de candidatos de Catálogo Supermercado de Mercado Libre por nivel de oferta
+SPONSORED_TIER_CANDIDATES: dict[str, list[dict]] = {
+    "tier-70-80": [
+        {
+            "pid": "MLA45978933",
+            "ean": "7793704000913",
+            "nombre": "Yerba Mate Playadito Despalada Bajo Polvo 500g",
+            "marca": "Playadito",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_636867-MLA99433947676_112025-F.jpg",
+            "seller_name": "Tienda Oficial Playadito",
+            "unit_measure": "kg",
+            "unit_qty": 0.5,
+            "ref_list_price": 5490,
+        },
+        {
+            "pid": "MLA20657924",
+            "ean": "7790387010459",
+            "nombre": "Yerba Mate Taragüi Sin Palo 500g",
+            "marca": "Taragüi",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_888343-MLM26482906592_122017-F.jpg",
+            "seller_name": "Mercado Libre Supermercado",
+            "unit_measure": "kg",
+            "unit_qty": 0.5,
+            "ref_list_price": 4500,
+        },
+        {
+            "pid": "MLA20018623",
+            "ean": "7613035847811",
+            "nombre": "Café Instantáneo Nescafé Dolca Suave Frasco 100g",
+            "marca": "Nescafé Dolca",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_771925-MLA99844219579_112025-F.jpg",
+            "seller_name": "Mercado Libre Supermercado",
+            "unit_measure": "kg",
+            "unit_qty": 0.1,
+            "ref_list_price": 6900,
+        },
+    ],
+    "tier-60": [
+        {
+            "pid": "MLA27822874",
+            "ean": "7790990003220",
+            "nombre": "Jabón Líquido Para Ropa Ariel Platinum 2.7 Lt",
+            "marca": "Ariel",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_965238-MLA99857152273_112025-F.jpg",
+            "seller_name": "Tienda Oficial P&G",
+            "unit_measure": "lt",
+            "unit_qty": 2.7,
+            "ref_list_price": 19929,
+        },
+        {
+            "pid": "MLA19858406",
+            "ean": "7791290790254",
+            "nombre": "Jabón Líquido Skip Bio-Enzimas Doypack 3 Lt",
+            "marca": "Skip",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_770064-MLA99929778933_112025-F.jpg",
+            "seller_name": "Mercado Libre Supermercado",
+            "unit_measure": "lt",
+            "unit_qty": 3.0,
+            "ref_list_price": 15900,
+        },
+        {
+            "pid": "MLA39135485",
+            "ean": "7794000960084",
+            "nombre": "Pack X2u Mayonesa Hellmanns Clásica Sin Tacc 475g",
+            "marca": "Hellmann's",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_907717-MLU78240726305_082024-F.jpg",
+            "seller_name": "Mercado Libre Supermercado",
+            "unit_measure": "kg",
+            "unit_qty": 0.95,
+            "ref_list_price": 5990,
+        },
+    ],
+    "tier-50": [
+        {
+            "pid": "MLA20028685",
+            "ean": "7790580112341",
+            "nombre": "Chocolate Águila Clásico Semi Amargo 100g",
+            "marca": "Águila",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_799008-MLA99335082066_112025-F.jpg",
+            "seller_name": "Mercado Libre Supermercado",
+            "unit_measure": "kg",
+            "unit_qty": 0.1,
+            "ref_list_price": 7387,
+        },
+        {
+            "pid": "MLA28569658",
+            "ean": "7790070318152",
+            "nombre": "Fideos Matarazzo Bucattini 500g",
+            "marca": "Matarazzo",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_963996-MLA99341176610_112025-F.jpg",
+            "seller_name": "Mercado Libre Supermercado",
+            "unit_measure": "kg",
+            "unit_qty": 0.5,
+            "ref_list_price": 2400,
+        },
+        {
+            "pid": "MLA45978933",
+            "ean": "7793704000913",
+            "nombre": "Yerba Mate Playadito Despalada Bajo Polvo 500g",
+            "marca": "Playadito",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_636867-MLA99433947676_112025-F.jpg",
+            "seller_name": "Tienda Oficial Playadito",
+            "unit_measure": "kg",
+            "unit_qty": 0.5,
+            "ref_list_price": 5490,
+        },
+    ],
+    "tier-40": [
+        {
+            "pid": "MLA19779083",
+            "ean": "7790070228147",
+            "nombre": "Aceite Cocinero Girasol 1.5 Lt",
+            "marca": "Cocinero",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_698462-MLA99441253166_112025-F.jpg",
+            "seller_name": "Tienda Oficial Cocinero",
+            "unit_measure": "lt",
+            "unit_qty": 1.5,
+            "ref_list_price": 8500,
+        },
+        {
+            "pid": "MLA28569658",
+            "ean": "7790070318152",
+            "nombre": "Fideos Matarazzo Bucattini 500g",
+            "marca": "Matarazzo",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_963996-MLA99341176610_112025-F.jpg",
+            "seller_name": "Mercado Libre Supermercado",
+            "unit_measure": "kg",
+            "unit_qty": 0.5,
+            "ref_list_price": 2400,
+        },
+        {
+            "pid": "MLA20657924",
+            "ean": "7790387010459",
+            "nombre": "Yerba Mate Taragüi Sin Palo 500g",
+            "marca": "Taragüi",
+            "imagen": "https://http2.mlstatic.com/D_NQ_NP_888343-MLM26482906592_122017-F.jpg",
+            "seller_name": "Mercado Libre Supermercado",
+            "unit_measure": "kg",
+            "unit_qty": 0.5,
+            "ref_list_price": 4500,
+        },
+    ],
+}
+
+
+async def fetch_live_sponsored_tiers(client: httpx.AsyncClient) -> dict[str, dict]:
+    """Refresca dinámicamente en vivo las 4 ofertas patrocinadas de Mercado Libre Supermercado.
+
+    Si la API no está disponible o tiene rate-limit, retorna {} para que deals.py
+    mantenga el fallback verificado en BASELINE_TIERS.
+    """
+    try:
+        token = await get_meli_token(client)
+        if not token:
+            return {}
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json",
+            "User-Agent": "SuperVmarket/2.0",
+        }
+
+        async def _resolve_tier_sponsored(tier_id: str, candidates: list[dict]) -> tuple[str, dict | None]:
+            for cand in candidates:
+                pid = cand.get("pid")
+                if not pid:
+                    continue
+                try:
+                    r = await client.get(
+                        f"https://api.mercadolibre.com/products/{pid}/items",
+                        headers=headers,
+                        timeout=3.0,
+                    )
+                    if r.status_code != 200:
+                        continue
+                    items = [
+                        it for it in (r.json().get("results") or [])
+                        if float(it.get("price") or 0) > 0
+                    ]
+                    if not items:
+                        continue
+
+                    # Priorizar envíos FULL (fulfillment) y menor precio
+                    items.sort(
+                        key=lambda x: (
+                            not ((x.get("shipping") or {}).get("logistic_type") == "fulfillment"),
+                            float(x.get("price") or 999999),
+                        )
+                    )
+                    best = items[0]
+                    raw_price = float(best.get("price") or 0)
+                    if raw_price <= 0:
+                        continue
+
+                    precio = int(round(raw_price))
+                    raw_orig = best.get("original_price")
+                    ref_lp = float(cand.get("ref_list_price") or precio)
+                    if raw_orig and float(raw_orig) > raw_price:
+                        precio_lista = int(round(float(raw_orig)))
+                    elif ref_lp > raw_price:
+                        precio_lista = int(round(ref_lp))
+                    else:
+                        precio_lista = precio
+
+                    discount = (
+                        int(round((1.0 - precio / precio_lista) * 100))
+                        if precio_lista > precio
+                        else 0
+                    )
+                    promo_label = f"{discount}% OFF" if discount >= 5 else "⚡ Envío FULL"
+
+                    unit_qty = float(cand.get("unit_qty") or 1.0)
+                    unit_price = int(round(precio / unit_qty)) if unit_qty > 0 else precio
+
+                    sponsored_entry = {
+                        "product": {
+                            "ean": cand["ean"],
+                            "nombre": cand["nombre"],
+                            "marca": cand["marca"],
+                            "imagen": cand["imagen"],
+                            "offers": [],
+                        },
+                        "offer": {
+                            "supermercado": "MercadoLibre",
+                            "precio": precio,
+                            "precio_lista": max(precio_lista, precio),
+                            "stock": 100,
+                            "link": f"https://www.mercadolibre.com.ar/p/{pid}",
+                            "seller_name": cand.get("seller_name") or "Mercado Libre Supermercado",
+                            "is_full": True,
+                            "discount": discount,
+                            "promo_label": promo_label,
+                            "unit_measure": cand.get("unit_measure") or "u",
+                            "unit_price": unit_price,
+                        },
+                    }
+                    return tier_id, sponsored_entry
+                except Exception:
+                    continue
+            return tier_id, None
+
+        tasks = [
+            _resolve_tier_sponsored(t_id, cands)
+            for t_id, cands in SPONSORED_TIER_CANDIDATES.items()
+        ]
+        resolved = await asyncio.gather(*tasks, return_exceptions=True)
+
+        out: dict[str, dict] = {}
+        for item in resolved:
+            if isinstance(item, tuple) and len(item) == 2:
+                t_id, entry = item
+                if t_id and isinstance(entry, dict):
+                    out[t_id] = entry
+        return out
+    except Exception:
+        return {}

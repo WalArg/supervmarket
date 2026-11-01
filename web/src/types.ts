@@ -14,9 +14,13 @@ export interface Offer {
   supermercado: string
   precio: number
   precio_lista: number
-  stock: boolean
+  precio_promo_unit?: number
+  imagen?: string
+  ean?: string
+  stock: boolean | number
   link: string
-  sku_id: string
+  sku_id?: string
+  sku?: string
   unit_price: number | null
   unit_measure: string | null
   discount: number
@@ -25,7 +29,7 @@ export interface Offer {
   promo_min_qty?: number
   promo_unit_price?: number
   requires_club?: boolean
-  supports_cart: boolean
+  supports_cart?: boolean
   // Marketplace / Mercado Libre transparency
   seller_name?: string | null
   seller_reputation?: string | null
@@ -37,11 +41,15 @@ export interface Offer {
   meli_options?: MeliOption[]
 }
 
+export type SupermarketOffer = Offer
+
 export interface ProductGroup {
+  id?: string
   ean: string
   nombre: string
   marca: string
   imagen: string
+  gallery_images?: string[]
   offers: Offer[]
   all_names?: string[]
 }

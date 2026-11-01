@@ -107,6 +107,65 @@ async def offers(cp: str | None = None, force: bool = False):
     return await deals.get_live_discount_tiers(cp=cp, force=force)
 
 
+@app.get("/api/health/audit")
+async def health_audit(cp: str | None = None):
+    """Auditoría de salud e integridad de ofertas, enlaces, precios e imágenes."""
+    if hasattr(deals, "audit_deals_health"):
+        return await deals.audit_deals_health(cp=cp)
+
+    data = await deals.get_live_discount_tiers(cp=cp)
+    tiers = data.get("tiers", []) if isinstance(data, dict) else []
+    bad_patterns = getattr(
+        deals,
+        "BAD_IMAGE_PATTERNS",
+        ["607590", "879659", "843734", "ids/314352", "ids/345227"],
+    )
+    issues: list[str] = []
+    total_products = 0
+
+    for tier in tiers:
+        tier_id = tier.get("id", "unknown")
+        sponsored = tier.get("meliSponsored") or {}
+        sp_prod = sponsored.get("product") or {}
+        sp_offer = sponsored.get("offer") or {}
+        sp_price = float(sp_offer.get("precio") or 0)
+        sp_list = float(sp_offer.get("precio_lista") or sp_price)
+        sp_link = str(sp_offer.get("link") or "")
+        sp_img = str(sp_prod.get("imagen") or "")
+
+        if sp_price <= 0 or sp_list < sp_price:
+            issues.append(f"{tier_id}: meliSponsored invalid price ({sp_price} / {sp_list})")
+        if not sp_link.startswith("https://") or (
+            "/p/MLA" not in sp_link and "MLA-" not in sp_link
+        ):
+            issues.append(f"{tier_id}: meliSponsored invalid link ({sp_link})")
+        if not sp_img.startswith("https://"):
+            issues.append(f"{tier_id}: meliSponsored invalid image ({sp_img})")
+
+        prods = tier.get("products") or []
+        total_products += len(prods)
+        for p in prods:
+            p_name = p.get("nombre", "unknown")
+            p_img = str(p.get("imagen") or "")
+            if not p_img.startswith("https://") or any(b in p_img for b in bad_patterns):
+                issues.append(f"{tier_id}: product '{p_name}' has invalid/blacklisted image")
+            for off in p.get("offers") or []:
+                o_price = float(off.get("precio") or 0)
+                o_list = float(off.get("precio_lista") or o_price)
+                o_link = str(off.get("link") or "")
+                if o_price <= 0 or o_list < o_price:
+                    issues.append(f"{tier_id}: product '{p_name}' invalid offer price ({o_price})")
+                if not o_link.startswith("https://"):
+                    issues.append(f"{tier_id}: product '{p_name}' invalid offer link ({o_link})")
+
+    return {
+        "status": "healthy" if not issues else "degraded",
+        "tiers_count": len(tiers),
+        "total_products": total_products,
+        "issues": issues,
+    }
+
+
 @app.get("/api/mcp/search")
 async def mcp_live_search(q: str, limit_per_store: int = 18):
     """Endpoint directo del conector MCP VTEX + Coto para diagnóstico e integración."""

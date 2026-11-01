@@ -6,6 +6,8 @@ Soporta dos backends según DATABASE_URL:
 """
 import os
 import sys
+import time
+import json
 import sqlite3
 import asyncio
 import unicodedata
@@ -14,6 +16,7 @@ from .parsers import extraer_unidad_titulo, normalizar_unidad, sanity_precio_uni
 
 _DSN = os.environ.get("DATABASE_URL", "sqlite:///./supervmarket.db")
 IS_SQLITE = _DSN.startswith("sqlite")
+_SNAPSHOT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "verified_offers_snapshot.json")
 
 SQLITE_MIGRATIONS = [
     "ALTER TABLE precios ADD COLUMN promo_etiqueta TEXT",
@@ -47,6 +50,7 @@ def _sqlite_path() -> str:
 _pg_pool = None
 _pg_loop = None
 _sqlite_conn: sqlite3.Connection | None = None
+_sqlite_is_memory: bool = False
 
 
 async def get_pool():
@@ -61,16 +65,19 @@ async def get_pool():
 
 
 def _get_sqlite() -> sqlite3.Connection:
-    global _sqlite_conn
+    global _sqlite_conn, _sqlite_is_memory
     if _sqlite_conn is None:
         path = _sqlite_path()
         try:
             if not os.path.exists(path):
                 _sqlite_conn = sqlite3.connect(":memory:", check_same_thread=False)
+                _sqlite_is_memory = True
             else:
                 _sqlite_conn = sqlite3.connect(path, check_same_thread=False, timeout=30)
+                _sqlite_is_memory = False
         except Exception:
             _sqlite_conn = sqlite3.connect(":memory:", check_same_thread=False)
+            _sqlite_is_memory = True
         _sqlite_conn.row_factory = sqlite3.Row
         _sqlite_conn.create_function("unaccent", 1, _py_unaccent)
         for stmt in SQLITE_MIGRATIONS:
@@ -78,7 +85,13 @@ def _get_sqlite() -> sqlite3.Connection:
                 _sqlite_conn.execute(stmt)
             except Exception:
                 pass
-        _sqlite_conn.commit()
+        try:
+            _sqlite_conn.execute(
+                "CREATE TABLE IF NOT EXISTS verified_deals_cache (cp TEXT PRIMARY KEY, updated_at REAL, payload_json TEXT)"
+            )
+            _sqlite_conn.commit()
+        except Exception:
+            pass
     return _sqlite_conn
 
 
@@ -304,3 +317,131 @@ async def stats_summary() -> dict:
         "promociones_activas": r_pr[0]["c"] if r_pr else 0,
         "tiendas": [{"supermercado": r["supermercado"], "productos": r["c"]} for r in r_st],
     }
+
+
+async def save_verified_deals_snapshot(cp: str, payload: dict) -> bool:
+    """Guarda un snapshot verificado de ofertas en SQLite/Postgres con fallback local en JSON."""
+    cp_key = str(cp or "global").strip() or "global"
+    now = time.time()
+    saved = False
+
+    try:
+        payload_str = json.dumps(payload, ensure_ascii=False)
+    except Exception:
+        return False
+
+    if IS_SQLITE:
+        try:
+            conn = _get_sqlite()
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS verified_deals_cache (cp TEXT PRIMARY KEY, updated_at REAL, payload_json TEXT)"
+            )
+            conn.execute(
+                "INSERT OR REPLACE INTO verified_deals_cache (cp, updated_at, payload_json) VALUES (?, ?, ?)",
+                (cp_key, now, payload_str),
+            )
+            conn.commit()
+            saved = True
+        except Exception:
+            pass
+    else:
+        try:
+            pool = await get_pool()
+            async with pool.acquire() as conn:
+                await conn.execute(
+                    "CREATE TABLE IF NOT EXISTS verified_deals_cache (cp TEXT PRIMARY KEY, updated_at DOUBLE PRECISION, payload_json TEXT)"
+                )
+                await conn.execute(
+                    "INSERT INTO verified_deals_cache (cp, updated_at, payload_json) VALUES ($1, $2, $3) "
+                    "ON CONFLICT (cp) DO UPDATE SET updated_at = EXCLUDED.updated_at, payload_json = EXCLUDED.payload_json",
+                    cp_key,
+                    now,
+                    payload_str,
+                )
+                saved = True
+        except Exception:
+            pass
+
+    if (IS_SQLITE and _sqlite_is_memory) or not saved:
+        try:
+            existing: dict = {}
+            if os.path.exists(_SNAPSHOT_FILE):
+                with open(_SNAPSHOT_FILE, "r", encoding="utf-8") as f:
+                    loaded = json.load(f)
+                    if isinstance(loaded, dict) and "tiers" not in loaded:
+                        existing = loaded
+            existing[cp_key] = {
+                "updated_at": now,
+                "payload": payload,
+            }
+            with open(_SNAPSHOT_FILE, "w", encoding="utf-8") as f:
+                json.dump(existing, f, ensure_ascii=False)
+            saved = True
+        except Exception:
+            pass
+
+    return saved
+
+
+async def load_verified_deals_snapshot(cp: str, max_age_seconds: float = 43200.0) -> dict | None:
+    """Carga un snapshot verificado de ofertas desde SQLite/Postgres o el fallback local en JSON."""
+    cp_key = str(cp or "global").strip() or "global"
+    now = time.time()
+
+    if IS_SQLITE:
+        try:
+            conn = _get_sqlite()
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS verified_deals_cache (cp TEXT PRIMARY KEY, updated_at REAL, payload_json TEXT)"
+            )
+            cur = conn.execute(
+                "SELECT updated_at, payload_json FROM verified_deals_cache WHERE cp = ?",
+                (cp_key,),
+            )
+            row = cur.fetchone()
+            cur.close()
+            if row and row["payload_json"]:
+                updated_at = float(row["updated_at"] or 0.0)
+                if max_age_seconds <= 0 or (now - updated_at) <= max_age_seconds:
+                    data = json.loads(row["payload_json"])
+                    if isinstance(data, dict):
+                        return data
+        except Exception:
+            pass
+    else:
+        try:
+            pool = await get_pool()
+            async with pool.acquire() as conn:
+                await conn.execute(
+                    "CREATE TABLE IF NOT EXISTS verified_deals_cache (cp TEXT PRIMARY KEY, updated_at DOUBLE PRECISION, payload_json TEXT)"
+                )
+                row = await conn.fetchrow(
+                    "SELECT updated_at, payload_json FROM verified_deals_cache WHERE cp = $1",
+                    cp_key,
+                )
+                if row and row["payload_json"]:
+                    updated_at = float(row["updated_at"] or 0.0)
+                    if max_age_seconds <= 0 or (now - updated_at) <= max_age_seconds:
+                        data = json.loads(row["payload_json"])
+                        if isinstance(data, dict):
+                            return data
+        except Exception:
+            pass
+
+    try:
+        if os.path.exists(_SNAPSHOT_FILE):
+            with open(_SNAPSHOT_FILE, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+            if isinstance(raw, dict):
+                entry = raw.get(cp_key) or (raw.get("global") if cp_key != "global" else None) or (raw if "tiers" in raw else None)
+                if isinstance(entry, dict):
+                    if "payload" in entry and isinstance(entry["payload"], dict):
+                        updated_at = float(entry.get("updated_at") or 0.0)
+                        if max_age_seconds <= 0 or (now - updated_at) <= max_age_seconds:
+                            return entry["payload"]
+                    elif "tiers" in entry:
+                        return entry
+    except Exception:
+        pass
+
+    return None

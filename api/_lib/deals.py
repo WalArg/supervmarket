@@ -13,13 +13,14 @@ descarte automático de imágenes erróneas y fallback continuo a ofertas base c
 """
 
 import asyncio
+import copy
 import time
 from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
 
-from . import parsers
+from . import parsers, mercadolibre
 
 # Imágenes de VTEX erróneas o descontinuadas conocidas
 BAD_IMAGE_PATTERNS = ["607590", "879659", "843734", "ids/314352", "ids/345227"]
@@ -186,7 +187,7 @@ BASELINE_TIERS = [
                 "ean": "7790990003220",
                 "nombre": "Jabón Líquido Para Ropa Ariel Platinum 2.7 Lt",
                 "marca": "Ariel",
-                "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/362701/Jabon-Liquido-Para-Ropa-Ariel-Platinum-Doypack-3-Lt-_1.jpg?v=639003522645770000",
+                "imagen": "https://http2.mlstatic.com/D_NQ_NP_965238-MLA99857152273_112025-F.jpg",
                 "offers": [],
             },
             "offer": {
@@ -525,7 +526,7 @@ def _format_live_product(p: dict) -> dict:
     price = float(p.get("precio_venta") or 0)
     list_p = float(p.get("precio_lista") or price)
     disc = int(round(float(p.get("descuento") or 0)))
-    promo = p.get("promo_etiqueta") or (f"{disc}% OFF Directo" if disc > 0 else "")
+    promo = p.get("promo_etiqueta") or (f"{disc}% OFF Directo" if disc > 0 else "Precio Ahorro")
     promo_unit = float(p.get("precio_promo_unit") or price)
     min_qty = int(p.get("promo_min_qty") or 1)
 
@@ -599,6 +600,159 @@ async def _fetch_category_deals(
     return []
 
 
+def _has_real_discount_or_promo(prod: dict) -> bool:
+    for off in prod.get("offers") or []:
+        disc = float(off.get("discount") or 0)
+        min_qty = int(off.get("promo_min_qty") or 1)
+        label = str(off.get("promo_label") or "")
+        if disc >= 10 or min_qty > 1 or "%" in label:
+            return True
+    return False
+
+
+async def _revalidate_baseline_products(
+    client: httpx.AsyncClient,
+    baseline_tiers: list[dict],
+) -> list[dict]:
+    """Revalida en lote todos los productos del baseline contra Carrefour y Día en vivo.
+
+    Actualiza precio de góndola, precio de lista, descuento y etiqueta promocional,
+    descarta ofertas sin stock y desaloja productos sin descuento real si el nivel
+    ya cuenta con al menos 4 productos válidos.
+    """
+    tiers_copy = copy.deepcopy(baseline_tiers)
+    eans: list[str] = []
+    seen_eans: set[str] = set()
+    for t in tiers_copy:
+        for p in t.get("products") or []:
+            ean = str(p.get("ean") or "").strip()
+            if ean and ean not in seen_eans:
+                seen_eans.add(ean)
+                eans.append(ean)
+
+    if not eans:
+        return tiers_copy
+
+    fq_query = "&".join(f"fq=alternateIds_Ean:{e}" for e in eans)
+    stores_cfg = [
+        ("Carrefour", f"https://www.carrefour.com.ar/api/catalog_system/pub/products/search?{fq_query}&_from=0&_to=49"),
+        ("Dia", f"https://diaonline.supermercadosdia.com.ar/api/catalog_system/pub/products/search?{fq_query}&_from=0&_to=49"),
+    ]
+
+    async def _fetch_store_batch(store_name: str, url: str) -> tuple[str, list[dict]]:
+        try:
+            r = await client.get(url, headers={"User-Agent": "Mozilla/5.0 SuperVmarket/2.0"}, timeout=4.5)
+            if r.status_code in (200, 206):
+                data = r.json()
+                if isinstance(data, list):
+                    return store_name, data
+        except Exception:
+            pass
+        return store_name, []
+
+    batch_results = await asyncio.gather(
+        *[_fetch_store_batch(s, u) for s, u in stores_cfg],
+        return_exceptions=True,
+    )
+
+    live_map: dict[tuple[str, str], dict] = {}
+    oos_set: set[tuple[str, str]] = set()
+
+    for res in batch_results:
+        if not isinstance(res, tuple) or len(res) != 2:
+            continue
+        store_name, raw_list = res
+        for raw in raw_list:
+            if not isinstance(raw, dict):
+                continue
+            parsed = parsers.parse_vtex_product(raw, store_name)
+            if parsed and parsed.get("ean"):
+                p_ean = str(parsed["ean"]).strip()
+                if int(parsed.get("stock") or 0) > 0 and float(parsed.get("precio_venta") or 0) > 0:
+                    live_map[(p_ean, store_name)] = parsed
+                else:
+                    oos_set.add((p_ean, store_name))
+            else:
+                # Extraer EAN del raw cuando fue descartado por falta de stock
+                raw_items = raw.get("items") or []
+                for sku in raw_items:
+                    c_ean = str(sku.get("ean") or "").replace("~", "").strip()
+                    if c_ean:
+                        oos_set.add((c_ean, store_name))
+
+    for t in tiers_copy:
+        revalidated_prods: list[dict] = []
+        for prod in t.get("products") or []:
+            ean = str(prod.get("ean") or "").strip()
+            new_offers: list[dict] = []
+            seen_stores: set[str] = set()
+
+            for off in prod.get("offers") or []:
+                store = str(off.get("supermercado") or "").strip()
+                seen_stores.add(store)
+                if (ean, store) in oos_set and (ean, store) not in live_map:
+                    continue
+                if (ean, store) in live_map:
+                    live_p = live_map[(ean, store)]
+                    if int(live_p.get("stock") or 0) <= 0:
+                        continue
+                    fmt = _format_live_product(live_p)
+                    live_off = fmt["offers"][0]
+                    new_offers.append(live_off)
+                    live_img = fmt.get("imagen") or ""
+                    if live_img.startswith("https://") and not any(b in live_img for b in BAD_IMAGE_PATTERNS):
+                        if not str(prod.get("imagen") or "").startswith("https://") or any(
+                            b in str(prod.get("imagen") or "") for b in BAD_IMAGE_PATTERNS
+                        ):
+                            prod["imagen"] = live_img
+                else:
+                    if int(off.get("stock") or 0) > 0 and float(off.get("precio") or 0) > 0:
+                        if float(off.get("precio_lista") or 0) < float(off.get("precio") or 0):
+                            off["precio_lista"] = off["precio"]
+                        if not off.get("promo_label"):
+                            disc_v = int(round(float(off.get("discount") or 0)))
+                            off["promo_label"] = f"{disc_v}% OFF Directo" if disc_v > 0 else "Precio Ahorro"
+                        new_offers.append(off)
+
+            # Si la otra cadena también tiene oferta con descuento activo para este EAN en vivo, sumarla
+            for candidate_store in ("Carrefour", "Dia"):
+                if candidate_store not in seen_stores and (ean, candidate_store) in live_map:
+                    live_p = live_map[(ean, candidate_store)]
+                    if int(live_p.get("stock") or 0) > 0:
+                        fmt = _format_live_product(live_p)
+                        cand_off = fmt["offers"][0]
+                        if (
+                            float(cand_off.get("discount") or 0) >= 10
+                            or int(cand_off.get("promo_min_qty") or 1) > 1
+                            or "%" in str(cand_off.get("promo_label") or "")
+                        ):
+                            new_offers.append(cand_off)
+
+            if not new_offers:
+                continue
+
+            # Si hay ofertas con descuento real y otras sin descuento, conservar solo las que tienen promo real
+            disc_offers = [
+                o for o in new_offers
+                if float(o.get("discount") or 0) >= 10
+                or int(o.get("promo_min_qty") or 1) > 1
+                or "%" in str(o.get("promo_label") or "")
+            ]
+            prod["offers"] = disc_offers if disc_offers else new_offers
+            revalidated_prods.append(prod)
+
+        discounted = [p for p in revalidated_prods if _has_real_discount_or_promo(p)]
+        non_discounted = [p for p in revalidated_prods if not _has_real_discount_or_promo(p)]
+
+        if len(discounted) >= 4:
+            t["products"] = discounted
+        else:
+            needed = 4 - len(discounted)
+            t["products"] = discounted + non_discounted[: max(0, needed)]
+
+    return tiers_copy
+
+
 async def get_live_discount_tiers(
     cp: Optional[str] = None,
     force: bool = False,
@@ -625,17 +779,34 @@ async def get_live_discount_tiers(
     live_t60: list[dict] = []
     live_t50: list[dict] = []
     live_t40: list[dict] = []
+    revalidated_baseline: list[dict] = copy.deepcopy(BASELINE_TIERS)
+    live_sponsored: dict[str, dict] = {}
 
     try:
         async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
-            tasks = []
+            cat_tasks = []
             for cat in categories:
-                tasks.append(_fetch_category_deals(client, "Dia", cat, limit=15))
-                tasks.append(_fetch_category_deals(client, "Carrefour", cat, limit=15))
+                cat_tasks.append(_fetch_category_deals(client, "Dia", cat, limit=15))
+                cat_tasks.append(_fetch_category_deals(client, "Carrefour", cat, limit=15))
 
-            results = await asyncio.gather(*tasks, return_exceptions=True)
+            all_results = await asyncio.gather(
+                *cat_tasks,
+                _revalidate_baseline_products(client, BASELINE_TIERS),
+                mercadolibre.fetch_live_sponsored_tiers(client),
+                return_exceptions=True,
+            )
+
+            cat_results = all_results[:-2]
+            reval_res = all_results[-2]
+            spons_res = all_results[-1]
+
+            if isinstance(reval_res, list) and reval_res:
+                revalidated_baseline = reval_res
+            if isinstance(spons_res, dict):
+                live_sponsored = spons_res
+
             flat_parsed: list[dict] = []
-            for r in results:
+            for r in cat_results:
                 if isinstance(r, list):
                     flat_parsed.extend(r)
 
@@ -662,8 +833,26 @@ async def get_live_discount_tiers(
     except Exception:
         pass
 
-    # Ensamblar los 4 niveles combinando ofertas en vivo con el baseline curado
-    # (las ofertas vivas van primero, garantizando frescura y completitud)
+    is_live_fetch = (len(live_t70) + len(live_t60) + len(live_t50) + len(live_t40) > 0) or bool(live_sponsored)
+
+    # Si las fuentes en vivo fallaron por completo, intentar recuperar snapshot verificado de DB
+    if not is_live_fetch:
+        try:
+            from . import db
+            if hasattr(db, "load_verified_deals_snapshot"):
+                try:
+                    snap = db.load_verified_deals_snapshot(cp=cache_key)
+                except TypeError:
+                    snap = db.load_verified_deals_snapshot()
+                if asyncio.iscoroutine(snap):
+                    snap = await snap
+                if isinstance(snap, dict) and snap.get("tiers"):
+                    _DEALS_CACHE[cache_key] = (now, snap)
+                    return snap
+        except Exception:
+            pass
+
+    # Ensamblar los 4 niveles combinando ofertas en vivo con el baseline revalidado
     def _merge_tier(live_items: list[dict], baseline_products: list[dict]) -> list[dict]:
         merged = []
         seen = set()
@@ -677,10 +866,15 @@ async def get_live_discount_tiers(
             if key not in seen:
                 seen.add(key)
                 merged.append(it)
+
+        # Desalojar productos sin descuento real si el tier ya tiene >= 4 productos con descuento
+        valid_disc = [p for p in merged if _has_real_discount_or_promo(p)]
+        if len(valid_disc) >= 4:
+            return valid_disc
         return merged
 
     final_tiers = []
-    for b_tier in BASELINE_TIERS:
+    for b_tier in revalidated_baseline:
         t_id = b_tier["id"]
         if t_id == "tier-70-80":
             prods = _merge_tier(live_t70, b_tier["products"])
@@ -691,17 +885,101 @@ async def get_live_discount_tiers(
         else:
             prods = _merge_tier(live_t40, b_tier["products"])
 
+        sponsored = live_sponsored.get(t_id) or b_tier.get("meliSponsored")
+
         final_tiers.append({
             **b_tier,
+            "meliSponsored": sponsored,
             "products": prods,
         })
 
     data_payload = {
         "tiers": final_tiers,
         "updated_at": datetime.now(timezone.utc).isoformat(),
-        "is_live": len(live_t70) + len(live_t60) + len(live_t50) + len(live_t40) > 0,
+        "is_live": is_live_fetch,
         "total_deals": sum(len(t["products"]) for t in final_tiers),
     }
 
+    try:
+        from . import db
+        if hasattr(db, "save_verified_deals_snapshot"):
+            try:
+                res_save = db.save_verified_deals_snapshot(data_payload, cp=cache_key)
+            except TypeError:
+                res_save = db.save_verified_deals_snapshot(data_payload)
+            if asyncio.iscoroutine(res_save):
+                await res_save
+    except Exception:
+        pass
+
     _DEALS_CACHE[cache_key] = (now, data_payload)
     return data_payload
+
+
+async def audit_deals_health(cp: Optional[str] = None) -> dict:
+    """Audita en vivo la integridad de todos los niveles de ofertas y patrocinados de Mercado Libre."""
+    data = await get_live_discount_tiers(cp=cp, force=False)
+    tiers = data.get("tiers") or []
+    issues: list[dict] = []
+    total_products = 0
+
+    for tier in tiers:
+        t_id = str(tier.get("id") or "unknown")
+
+        # 1. Auditar meliSponsored
+        sp = tier.get("meliSponsored") or {}
+        sp_prod = sp.get("product") or {}
+        sp_off = sp.get("offer") or {}
+        if not sp_prod or not sp_off:
+            issues.append({"tier": t_id, "target": "meliSponsored", "issue": "missing_sponsored_block"})
+        else:
+            sp_price = float(sp_off.get("precio") or 0)
+            sp_list = float(sp_off.get("precio_lista") or 0)
+            sp_link = str(sp_off.get("link") or "")
+            sp_img = str(sp_prod.get("imagen") or "")
+            sp_promo = str(sp_off.get("promo_label") or "").strip()
+
+            if sp_price <= 0:
+                issues.append({"tier": t_id, "target": "meliSponsored", "issue": "invalid_precio", "value": sp_price})
+            if sp_list < sp_price:
+                issues.append({"tier": t_id, "target": "meliSponsored", "issue": "precio_lista_lt_precio", "value": (sp_list, sp_price)})
+            if not sp_link.startswith("https://"):
+                issues.append({"tier": t_id, "target": "meliSponsored", "issue": "invalid_link", "value": sp_link})
+            if not sp_img.startswith("https://") or any(bad in sp_img for bad in BAD_IMAGE_PATTERNS):
+                issues.append({"tier": t_id, "target": "meliSponsored", "issue": "invalid_image", "value": sp_img})
+            if not sp_promo:
+                issues.append({"tier": t_id, "target": "meliSponsored", "issue": "missing_promo_label"})
+
+        # 2. Auditar productos del tier
+        prods = tier.get("products") or []
+        for prod in prods:
+            total_products += 1
+            p_name = str(prod.get("nombre") or prod.get("ean") or "unknown")
+            p_img = str(prod.get("imagen") or "")
+            if not p_img.startswith("https://") or any(bad in p_img for bad in BAD_IMAGE_PATTERNS):
+                issues.append({"tier": t_id, "product": p_name, "issue": "invalid_image", "value": p_img})
+
+            offers = prod.get("offers") or []
+            if not offers:
+                issues.append({"tier": t_id, "product": p_name, "issue": "no_offers"})
+            for off in offers:
+                o_price = float(off.get("precio") or 0)
+                o_list = float(off.get("precio_lista") or 0)
+                o_link = str(off.get("link") or "")
+                o_promo = str(off.get("promo_label") or "").strip()
+                if o_price <= 0:
+                    issues.append({"tier": t_id, "product": p_name, "issue": "invalid_precio", "value": o_price})
+                if o_list < o_price:
+                    issues.append({"tier": t_id, "product": p_name, "issue": "precio_lista_lt_precio", "value": (o_list, o_price)})
+                if not o_link.startswith("https://"):
+                    issues.append({"tier": t_id, "product": p_name, "issue": "invalid_link", "value": o_link})
+                if not o_promo:
+                    issues.append({"tier": t_id, "product": p_name, "issue": "missing_promo_label"})
+
+    return {
+        "status": "healthy" if not issues else "degraded",
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "tiers_count": len(tiers),
+        "total_products": total_products,
+        "issues": issues,
+    }

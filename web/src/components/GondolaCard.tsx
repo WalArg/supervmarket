@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react'
-import { Plus, Bookmark, Flame, Check } from 'lucide-react'
+import React, { useState, useMemo, useEffect } from 'react'
+import { Plus, Bookmark, Flame, Check, Package } from 'lucide-react'
 import type { ProductGroup } from '../types'
 import { useCart } from '../cart/CartContext'
 import { useSaved, getCanonicalProductId } from '../saved/SavedContext'
@@ -17,6 +17,35 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
   const { isSaved, toggleSave } = useSaved()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [justAdded, setJustAdded] = useState(false)
+  const [imgIdx, setImgIdx] = useState(0)
+  const [imgFailed, setImgFailed] = useState(false)
+
+  const candidateImages = useMemo(() => {
+    const raw = [
+      group.imagen,
+      ...(group.gallery_images || []),
+      ...(group.offers || []).map(o => o.imagen),
+    ].filter((u): u is string => Boolean(u && u.startsWith('http')))
+    return Array.from(new Set(raw))
+  }, [group.imagen, group.gallery_images, group.offers])
+
+  useEffect(() => {
+    setImgIdx(0)
+    setImgFailed(false)
+  }, [group.ean, group.imagen])
+
+  const handleImgError = () => {
+    if (imgIdx + 1 < candidateImages.length) {
+      setImgIdx(prev => prev + 1)
+    } else {
+      setImgFailed(true)
+    }
+  }
+
+  const brandInitials = (group.marca || group.nombre || 'SV')
+    .trim()
+    .slice(0, 2)
+    .toUpperCase()
 
   const prodId = getCanonicalProductId(group)
   const saved = isSaved(prodId)
@@ -40,6 +69,13 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
 
   const best = rows[0]
   if (!best) return null
+
+  const promoUnitText =
+    best.o.promo_label && best.o.promo_label.includes('(')
+      ? best.o.promo_label.split('(')[1].replace(')', '').trim()
+      : best.o.precio_promo_unit && best.o.precio_promo_unit < best.eff
+      ? `${formatPrice(best.o.precio_promo_unit)} c/u${best.minQty > 1 ? ` x${best.minQty}` : ''}`
+      : null
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -97,15 +133,27 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
           </button>
         </div>
 
-        {/* Imagen del producto */}
+        {/* Imagen del producto con fallback inteligente */}
         <div className="w-full h-24 flex items-center justify-center py-1">
-          <img
-            src={group.imagen}
-            alt={group.nombre}
-            loading="lazy"
-            className="max-h-full max-w-full object-contain"
-            onError={e => ((e.target as HTMLImageElement).style.visibility = 'hidden')}
-          />
+          {!imgFailed && candidateImages.length > 0 ? (
+            <img
+              src={candidateImages[imgIdx]}
+              alt={group.nombre}
+              loading="lazy"
+              className="max-h-full max-w-full object-contain"
+              onError={handleImgError}
+            />
+          ) : (
+            <div
+              className="w-20 h-20 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center text-slate-400 select-none"
+              aria-label={group.nombre}
+            >
+              <Package size={22} className="text-slate-300 mb-0.5" />
+              <span className="text-[10px] font-extrabold tracking-wider text-slate-400">
+                {brandInitials}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Información textual */}
@@ -130,16 +178,22 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
         {/* Precio y Botón Agregar al Carrito */}
         <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
           <div className="min-w-0">
-            <span className="text-[15px] font-black tracking-tight text-slate-900 block leading-tight">
-              {formatPrice(best.eff)}
-            </span>
-            {best.o.promo_label && best.o.promo_label.includes('(') ? (
-              <span className="text-[10px] font-bold text-rose-600 block truncate max-w-[95px]" title={best.o.promo_label}>
-                {best.o.promo_label.split('(')[1].replace(')', '')}
+            <div className="flex items-baseline gap-1 flex-wrap">
+              <span className="text-[15px] font-black tracking-tight text-slate-900 leading-tight">
+                {formatPrice(best.eff)}
               </span>
-            ) : best.o.precio_lista && best.o.precio_lista > best.eff ? (
-              <span className="text-[10px] text-slate-400 line-through block">
-                {formatPrice(best.o.precio_lista)}
+              {best.o.precio_lista && best.o.precio_lista > best.eff ? (
+                <span className="text-[10px] text-slate-400 line-through">
+                  {formatPrice(best.o.precio_lista)}
+                </span>
+              ) : null}
+            </div>
+            {promoUnitText ? (
+              <span
+                className="mt-0.5 inline-block text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200/70 px-1.5 py-0.2 rounded truncate max-w-[95px]"
+                title={best.o.promo_label || promoUnitText}
+              >
+                {promoUnitText}
               </span>
             ) : null}
           </div>

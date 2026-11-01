@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react'
-import { ChevronUp, CreditCard, Flame, Bookmark } from 'lucide-react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { ChevronUp, CreditCard, Flame, Bookmark, Package } from 'lucide-react'
 import type { Offer, ProductGroup } from '../types'
 import { useBenefits } from '../benefits/BenefitsContext'
 import { useLocation } from '../location/LocationContext'
@@ -32,6 +32,35 @@ const ProductCard: React.FC<{
   const { cp, coverage } = useLocation()
   const { isSaved, toggleSave } = useSaved()
   const [sheet, setSheet] = useState(false)
+  const [imgIdx, setImgIdx] = useState(0)
+  const [imgFailed, setImgFailed] = useState(false)
+
+  const candidateImages = useMemo(() => {
+    const raw = [
+      group.imagen,
+      ...(group.gallery_images || []),
+      ...(group.offers || []).map(o => o.imagen),
+    ].filter((u): u is string => Boolean(u && u.startsWith('http')))
+    return Array.from(new Set(raw))
+  }, [group.imagen, group.gallery_images, group.offers])
+
+  useEffect(() => {
+    setImgIdx(0)
+    setImgFailed(false)
+  }, [group.ean, group.imagen])
+
+  const handleImgError = () => {
+    if (imgIdx + 1 < candidateImages.length) {
+      setImgIdx(prev => prev + 1)
+    } else {
+      setImgFailed(true)
+    }
+  }
+
+  const brandInitials = (group.marca || group.nombre || 'SV')
+    .trim()
+    .slice(0, 2)
+    .toUpperCase()
 
   const prodId = getCanonicalProductId(group)
   const saved = isSaved(prodId)
@@ -100,13 +129,22 @@ const ProductCard: React.FC<{
           className="w-14 h-14 shrink-0 rounded-xl bg-white border border-slate-100 p-1 flex items-center justify-center"
           aria-label="Ver ofertas"
         >
-          <img
-            src={group.imagen}
-            alt=""
-            loading="lazy"
-            className="max-w-full max-h-full object-contain"
-            onError={e => ((e.target as HTMLImageElement).style.visibility = 'hidden')}
-          />
+          {!imgFailed && candidateImages.length > 0 ? (
+            <img
+              src={candidateImages[imgIdx]}
+              alt=""
+              loading="lazy"
+              className="max-w-full max-h-full object-contain"
+              onError={handleImgError}
+            />
+          ) : (
+            <div className="w-full h-full rounded-lg bg-slate-50 flex flex-col items-center justify-center text-slate-400 select-none">
+              <Package size={16} className="text-slate-300" />
+              <span className="text-[9px] font-extrabold tracking-wider text-slate-400">
+                {brandInitials}
+              </span>
+            </div>
+          )}
         </button>
 
         {/* Info del producto */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Flame, MapPin, ChevronDown, Plus, Search, RefreshCw } from 'lucide-react'
 import { DISCOUNT_TIERS, type DiscountTier } from '../data/gondolasData'
 import { getLiveOffers } from '../api'
@@ -19,10 +19,12 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
   const [selectedFilter, setSelectedFilter] = useState<string>('all')
   // Cantidad de productos visibles por nivel de carrusel (inicialmente 3, expandible con "Cargar más")
   const [visibleCountByTier, setVisibleCountByTier] = useState<Record<string, number>>({})
+  const lastFetchTimeRef = useRef<number>(Date.now())
 
   useEffect(() => {
     let mounted = true
     const fetchOffers = async () => {
+      lastFetchTimeRef.current = Date.now()
       try {
         const data = await getLiveOffers(cp)
         if (mounted && data?.tiers?.length) {
@@ -42,9 +44,41 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
     }
   }, [cp])
 
+  useEffect(() => {
+    const handleVisibilityOrFocus = async () => {
+      if (typeof document !== 'undefined' && document.visibilityState && document.visibilityState !== 'visible') {
+        return
+      }
+      if (Date.now() - lastFetchTimeRef.current <= 600_000) {
+        return
+      }
+      lastFetchTimeRef.current = Date.now()
+      try {
+        const data = await getLiveOffers(cp, false)
+        if (data?.tiers?.length) {
+          setTiers(data.tiers)
+          setIsLive(!!data.is_live)
+          if (data.updated_at) {
+            setLastUpdated(data.updated_at)
+          }
+        }
+      } catch {
+        // Silencioso en auto-refresh de fondo
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus)
+    window.addEventListener('focus', handleVisibilityOrFocus)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus)
+      window.removeEventListener('focus', handleVisibilityOrFocus)
+    }
+  }, [cp])
+
   const handleRefresh = async () => {
     if (isRefreshing) return
     setIsRefreshing(true)
+    lastFetchTimeRef.current = Date.now()
     try {
       const data = await getLiveOffers(cp, true)
       if (data?.tiers?.length) {
@@ -158,9 +192,12 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
         {tiers.filter(
           tier => selectedFilter === 'all' || selectedFilter === tier.id,
         ).map((tier, idx) => {
+          const validProducts = (tier.products || []).filter(
+            p => Array.isArray(p?.offers) && p.offers.length > 0 && p.offers[0].precio > 0,
+          )
           const visibleLimit = getVisibleCount(tier.id)
-          const visibleProducts = tier.products.slice(0, visibleLimit)
-          const hasMore = tier.products.length > visibleLimit
+          const visibleProducts = validProducts.slice(0, visibleLimit)
+          const hasMore = validProducts.length > visibleLimit
 
           return (
             <section
@@ -203,7 +240,7 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
                   <div className="snap-start shrink-0 flex items-stretch">
                     <button
                       type="button"
-                      onClick={() => handleLoadMore(tier.id, tier.products.length)}
+                      onClick={() => handleLoadMore(tier.id, validProducts.length)}
                       aria-label={`Cargar más ofertas en ${tier.title}`}
                       className="w-[140px] rounded-2xl border-2 border-dashed border-rose-300 hover:border-rose-500 bg-rose-50/60 hover:bg-rose-100/70 p-4 flex flex-col items-center justify-center text-center transition-all group active:scale-95 shadow-2xs cursor-pointer"
                     >
@@ -214,7 +251,7 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
                         Cargar más ofertas
                       </span>
                       <span className="text-[10px] text-rose-600 font-bold mt-1.5 bg-white/90 px-2 py-0.5 rounded-full border border-rose-200">
-                        +{tier.products.length - visibleLimit} más
+                        +{validProducts.length - visibleLimit} más
                       </span>
                     </button>
                   </div>

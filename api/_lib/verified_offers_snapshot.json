@@ -1,0 +1,3205 @@
+{
+  "tiers": [
+    {
+      "id": "tier-70-80",
+      "title": "2da Unidad al 70% y 80% OFF — Promociones en Pareja",
+      "subtitle": "Llevando 2 unidades: la 2da al 70% y 80% OFF en súper (precio unitario efectivo)",
+      "badge": "2da al 70% y 80%",
+      "percentLabel": "70% y 80% OFF",
+      "icon": "flame",
+      "meliSponsored": {
+        "product": {
+          "ean": "7793704000913",
+          "nombre": "Yerba Mate Playadito Despalada Bajo Polvo 500g",
+          "marca": "Playadito",
+          "imagen": "https://http2.mlstatic.com/D_NQ_NP_636867-MLA99433947676_112025-F.jpg",
+          "offers": []
+        },
+        "offer": {
+          "supermercado": "MercadoLibre",
+          "precio": 3489,
+          "precio_lista": 5490,
+          "stock": 100,
+          "link": "https://www.mercadolibre.com.ar/p/MLA45978933",
+          "seller_name": "Tienda Oficial Playadito",
+          "is_full": true,
+          "discount": 36,
+          "promo_label": "36% OFF",
+          "unit_measure": "kg",
+          "unit_price": 6978
+        }
+      },
+      "products": [
+        {
+          "ean": "7790310985571",
+          "nombre": "Nachos sabor a queso Doritos 200 g.",
+          "marca": "Doritos",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904460/7790310985571_E01.jpg?v=639199033551530000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 5699.4,
+              "precio_lista": 9499.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/nachos-sabor-a-queso-doritos-200-g-721960/p",
+              "discount": 40,
+              "promo_label": "2do al 70% ($3.705 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "kg",
+              "unit_price": 28497.0
+            }
+          ]
+        },
+        {
+          "ean": "8445292042543",
+          "nombre": "Bolsa para Horno Maggi Finas Hierbas 24 grs",
+          "marca": "Maggi",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904598/8445292042543_01.jpg?v=639201503633270000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1841.4,
+              "precio_lista": 3069.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/bolsa-para-horno-maggi-finas-hierbas-24-grs-777257/p",
+              "discount": 40,
+              "promo_label": "2do al 70% ($1.197 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "kg",
+              "unit_price": 76725.0
+            }
+          ]
+        },
+        {
+          "ean": "7460123477814",
+          "nombre": "Sazonador Maggi Completisimo 180 grs",
+          "marca": "Maggi",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904623/7460123477814_01.jpg?v=639201512203000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4319.4,
+              "precio_lista": 7199.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/sazonador-maggi-completisimo-180-grs-777264/p",
+              "discount": 40,
+              "promo_label": "2do al 70% ($2.808 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "kg",
+              "unit_price": 23996.67
+            }
+          ]
+        },
+        {
+          "ean": "7460123477616",
+          "nombre": "Sazonador Maggi Completisimo con Pimienta 180 grs",
+          "marca": "Maggi",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904626/7460123477616_01.jpg?v=639201513085470000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4323.0,
+              "precio_lista": 7205.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/sazonador-maggi-completisimo-con-pimienta-180-grs-777263/p",
+              "discount": 40,
+              "promo_label": "2do al 70% ($2.810 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "kg",
+              "unit_price": 24016.67
+            }
+          ]
+        },
+        {
+          "ean": "7798134193752",
+          "nombre": "Whisky Petakon en petaca 380 ml",
+          "marca": "Petakon",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/871496/7798134193752_02.jpg?v=639140991134370000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 690.0,
+              "precio_lista": 2529.0,
+              "stock": 10,
+              "link": "https://www.carrefour.com.ar/whisky-petakon-en-petaca-380-ml-720918/p",
+              "discount": 73,
+              "promo_label": "73% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 1815.79
+            }
+          ]
+        },
+        {
+          "ean": "7891024034767",
+          "nombre": "Jabón de tocador barra Palmolive Naturals aloe y oliva 85 grs",
+          "marca": "Palmolive",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/766776/7891024034767_02.jpg?v=638987420957370000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 979.0,
+              "precio_lista": 979.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/jabon-de-tocador-barra-palmolive-naturals-aloe-y-oliva-85-grs-747993/p",
+              "discount": 0,
+              "promo_label": "2do al 70% ($636 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "un",
+              "unit_price": 979.0
+            }
+          ]
+        },
+        {
+          "ean": "7509546683393",
+          "nombre": "Jabón De Tocador Palmolive Naturals Frambuesa Y Mora x3 90 grs",
+          "marca": "Palmolive",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/878478/7509546683393_01.jpg?v=639149653547530000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 3739.0,
+              "precio_lista": 3739.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/jabon-de-tocador-palmolive-naturals-frambuesa-y-mora-x3-90-grs-710183/p",
+              "discount": 0,
+              "promo_label": "2do al 70% ($2.430 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "un",
+              "unit_price": 3739.0
+            }
+          ]
+        },
+        {
+          "ean": "7509546683379",
+          "nombre": "Jabón de tocador Palmolive Naturals Karité y Vitamina E Nutrición Intensiva x3 90 grs",
+          "marca": "Palmolive",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/878464/7509546683379_01.jpg?v=639149652334330000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 3739.0,
+              "precio_lista": 3739.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/jabon-de-tocador-palmolive-naturals-kerite-y-vitamina-e-nutricion-intensiva-x3-980-grs-713803/p",
+              "discount": 0,
+              "promo_label": "2do al 70% ($2.430 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "un",
+              "unit_price": 3739.0
+            }
+          ]
+        },
+        {
+          "ean": "7622201735296",
+          "nombre": "Galletitas Oreo x 118 g",
+          "marca": "Oreo",
+          "imagen": "https://farmacityar.vteximg.com.br/arquivos/ids/298494/251535_galletitas-oreo-x-118-g_imagen-1.jpg?v=639229342479300000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2639.0,
+              "precio_lista": 2639.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/galletitas-dulce-oreo-rellenas-con-crema-118-g-715949/p",
+              "discount": 0,
+              "promo_label": "2do al 70% ($1.715 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "kg",
+              "unit_price": 22364.41
+            },
+            {
+              "supermercado": "Dia",
+              "precio": 2639.0,
+              "precio_lista": 2639.0,
+              "stock": 959,
+              "link": "https://diaonline.supermercadosdia.com.ar/galletitas-oreo-rellenas-con-crema-sabor-original-menos-sodio-118-gr-271629/p",
+              "discount": 0,
+              "promo_label": "2do al 50% ($1.979 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "kg",
+              "unit_price": 22364.41
+            }
+          ]
+        },
+        {
+          "ean": "7791290796430",
+          "nombre": "Jabón Líquido Skip Limpieza Activa Doypack 800ml",
+          "marca": "Skip",
+          "imagen": "https://farmaonline.vteximg.com.br/arquivos/ids/1458225/8144165_0.jpg?v=639252564197900000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 7337.85,
+              "precio_lista": 11289.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/jabon-liquido-concentrado-skip-para-ciclo-corto-limpieza-activa-doypack-800-ml-762873/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 9172.31
+            }
+          ]
+        },
+        {
+          "ean": "8480017006529",
+          "nombre": "Huevo de Pascua De Chocolate Delicious 30 Gr",
+          "marca": "Delicious",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/294248/Huevo-de-Pascua-De-Chocolate-Delicious-30-Gr-_1.jpg",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1393,
+              "precio_lista": 1990,
+              "stock": 45,
+              "link": "https://diaonline.supermercadosdia.com.ar/huevo-de-pascua-de-chocolate-delicious-30-gr-6529/p",
+              "discount": 30,
+              "promo_label": "30% OFF Liquidación",
+              "unit_measure": "kg",
+              "unit_price": 46433
+            }
+          ]
+        },
+        {
+          "ean": "7790040133464",
+          "nombre": "Galletitas Pepitos Con Chips De Chocolate 119 Gr",
+          "marca": "Pepitos",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/353536/Galletitas-Pepitos-Con-Chips-De-Chocolate-119-Gr-_1.jpg?v=638913145488400000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 2480,
+              "precio_lista": 2480,
+              "stock": 90,
+              "link": "https://diaonline.supermercadosdia.com.ar/galletitas-pepitos-con-chips-de-chocolate-119-gr-271628/p",
+              "discount": 25,
+              "promo_label": "2do al 50% ($1.860 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "kg",
+              "unit_price": 20840
+            }
+          ]
+        },
+        {
+          "ean": "8480017311238",
+          "nombre": "Repelente para Insectos en Aerosol Bonté 170 Ml",
+          "marca": "Bonté",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/343110/Repelente-para-Insectos-en-Aerosol-Bonte-170-Ml-_1.jpg?v=638727039719730000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 890,
+              "precio_lista": 4490,
+              "stock": 120,
+              "link": "https://diaonline.supermercadosdia.com.ar/repelente-para-insectos-en-aerosol-bonte-170-ml-210739/p",
+              "discount": 80,
+              "promo_label": "80% OFF Liquidación",
+              "unit_measure": "ml",
+              "unit_price": 5235
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tier-60",
+      "title": "Liquidaciones Directas y Bombas de Ahorro (Hasta 75% OFF)",
+      "subtitle": "Grandes rebajas y liquidaciones directas de stock en bebidas y limpieza",
+      "badge": "Hasta 75% OFF",
+      "percentLabel": "35% a 75%",
+      "icon": "zap",
+      "meliSponsored": {
+        "product": {
+          "ean": "7790990003220",
+          "nombre": "Jabón Líquido Para Ropa Ariel Platinum 2.7 Lt",
+          "marca": "Ariel",
+          "imagen": "https://http2.mlstatic.com/D_NQ_NP_965238-MLA99857152273_112025-F.jpg",
+          "offers": []
+        },
+        "offer": {
+          "supermercado": "MercadoLibre",
+          "precio": 15000,
+          "precio_lista": 19929,
+          "stock": 100,
+          "link": "https://www.mercadolibre.com.ar/p/MLA27822874",
+          "seller_name": "Tienda Oficial P&G",
+          "is_full": true,
+          "discount": 25,
+          "promo_label": "25% OFF",
+          "unit_measure": "lt",
+          "unit_price": 5556
+        }
+      },
+      "products": [
+        {
+          "ean": "7794000008526",
+          "nombre": "Caldo Gallina Balance Knorr 12 Ud.",
+          "marca": "KNORR",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/309315/Caldo-Gallina-Balance-Knorr-12-Ud-_1.jpg?v=638822372391670000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1685.25,
+              "precio_lista": 3210.0,
+              "stock": 288,
+              "link": "https://diaonline.supermercadosdia.com.ar/caldo-gallina-balance-knorr-12-ud-54922/p",
+              "discount": 48,
+              "promo_label": "48% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 140.44
+            }
+          ]
+        },
+        {
+          "ean": "7792590001064",
+          "nombre": "Harina Leudante Caserita 1 Kg.",
+          "marca": "CASERITA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/355073/Harina-Leudante-Caserita-1-Kg-_1.jpg?v=639280535965030000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 890.25,
+              "precio_lista": 1695.0,
+              "stock": 98,
+              "link": "https://diaonline.supermercadosdia.com.ar/harina-leudante-caserita-1-kg-74146/p",
+              "discount": 48,
+              "promo_label": "48% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 890.25
+            }
+          ]
+        },
+        {
+          "ean": "7790070336118",
+          "nombre": "Fideos Tallarin N5 Luchetti 500 Gr.",
+          "marca": "LUCCHETTI",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/377019/Fideos-Tallarin-N5-Luchetti-500-Gr-_1.jpg?v=639222971123570000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1050.0,
+              "precio_lista": 1850.0,
+              "stock": 206,
+              "link": "https://diaonline.supermercadosdia.com.ar/fideos-tallarin-n5-luchetti-500-gr-299670/p",
+              "discount": 43,
+              "promo_label": "43% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 2100.0
+            }
+          ]
+        },
+        {
+          "ean": "7790070336149",
+          "nombre": "Fideos Mostachol N51 Luchetti 500 Gr.",
+          "marca": "LUCCHETTI",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/377018/Fideos-Mostachol-N51-Luchetti-500-Gr-_1.jpg?v=639222971105870000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1050.0,
+              "precio_lista": 1850.0,
+              "stock": 326,
+              "link": "https://diaonline.supermercadosdia.com.ar/fideos-mostachol-n51-luchetti-500-gr-299669/p",
+              "discount": 43,
+              "promo_label": "43% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 2100.0
+            }
+          ]
+        },
+        {
+          "ean": "7790070336026",
+          "nombre": "Tirabuzon N 34 Luchetti 500 Gr.",
+          "marca": "LUCCHETTI",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/376949/Tirabuzon-N-34-Luchetti-500-Gr-_1.jpg?v=639222970288770000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1050.0,
+              "precio_lista": 1850.0,
+              "stock": 313,
+              "link": "https://diaonline.supermercadosdia.com.ar/tirabuzon-n-34-luchetti-500-gr-144397/p",
+              "discount": 43,
+              "promo_label": "43% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 2100.0
+            }
+          ]
+        },
+        {
+          "ean": "7790070336385",
+          "nombre": "Fideos Spaghetti N7 Luchetti 500 Gr.",
+          "marca": "LUCCHETTI",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/376937/Fideos-Spaghetti-N7-Luchetti-500-Gr-_1.jpg?v=639222970088400000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1050.0,
+              "precio_lista": 1850.0,
+              "stock": 276,
+              "link": "https://diaonline.supermercadosdia.com.ar/fideos-spaghetti-n7-luchetti-500-gr-40877/p",
+              "discount": 43,
+              "promo_label": "43% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 2100.0
+            }
+          ]
+        },
+        {
+          "ean": "7790070336361",
+          "nombre": "Fideos Penne Rigate N45 Luchetti 500 Gr.",
+          "marca": "LUCCHETTI",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/376938/Fideos-Penne-Rigate-N45-Luchetti-500-Gr-_1.jpg?v=639222970107070000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1050.0,
+              "precio_lista": 1850.0,
+              "stock": 198,
+              "link": "https://diaonline.supermercadosdia.com.ar/fideos-penne-rigate-n45-luchetti-500-gr-40878/p",
+              "discount": 43,
+              "promo_label": "43% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 2100.0
+            }
+          ]
+        },
+        {
+          "ean": "7790070318398",
+          "nombre": "Fideos Lucchetti Dedalitos 500 Gr.",
+          "marca": "LUCCHETTI",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/377002/Fideos-Lucchetti-Dedalitos-500-Gr-_1.jpg?v=639222970896230000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1050.0,
+              "precio_lista": 1850.0,
+              "stock": 103,
+              "link": "https://diaonline.supermercadosdia.com.ar/fideos-lucchetti-dedalitos-500-gr-287522/p",
+              "discount": 43,
+              "promo_label": "43% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 2100.0
+            }
+          ]
+        },
+        {
+          "ean": "7790070318381",
+          "nombre": "Fideos Letritas Lucchetti 500 Gr.",
+          "marca": "LUCCHETTI",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/376942/Fideos-Letritas-Lucchetti-500-Gr-_1.jpg?v=639222970171670000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1050.0,
+              "precio_lista": 1850.0,
+              "stock": 100,
+              "link": "https://diaonline.supermercadosdia.com.ar/fideos-letritas-lucchetti-500-gr-66085/p",
+              "discount": 43,
+              "promo_label": "43% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 2100.0
+            }
+          ]
+        },
+        {
+          "ean": "7790199603214",
+          "nombre": "Polenta Morixe 1 Kg.",
+          "marca": "MORIXE",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/322788/Polenta-Morixe-1-Kg-_1.jpg?v=638893983282200000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1049.0,
+              "precio_lista": 1749.0,
+              "stock": 15,
+              "link": "https://diaonline.supermercadosdia.com.ar/polenta-morixe-1-kg-274328/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 1049.0
+            }
+          ]
+        },
+        {
+          "ean": "7798224212530",
+          "nombre": "Bicarbonato La Parmesana 50 Gr.",
+          "marca": "LA PARMESANA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/390962/Bicarbonato-La-Parmesana-50-Gr-_1.jpg?v=639268813873200000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 739.0,
+              "precio_lista": 1232.0,
+              "stock": 31,
+              "link": "https://diaonline.supermercadosdia.com.ar/bicarbonato-la-parmesana-50-gr-301982/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 14780.0
+            }
+          ]
+        },
+        {
+          "ean": "7790070432490",
+          "nombre": "Gelatina Frutilla Regular Exquisita 40 Gr.",
+          "marca": "EXQUISITA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/390923/Gelatina-Frutilla-Regular-Exquisita-40-Gr-_1.jpg?v=639268813198600000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 756.0,
+              "precio_lista": 1260.0,
+              "stock": 47,
+              "link": "https://diaonline.supermercadosdia.com.ar/gelatina-frutilla-regular-exquisita-40-gr-300381/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 18900.0
+            }
+          ]
+        },
+        {
+          "ean": "7790070432537",
+          "nombre": "Gelatina Frambuesa Exquisita 40 Gr.",
+          "marca": "EXQUISITA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/390921/Gelatina-Frambuesa-Exquisita-40-Gr-_1.jpg?v=639268813160430000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 756.0,
+              "precio_lista": 1260.0,
+              "stock": 129,
+              "link": "https://diaonline.supermercadosdia.com.ar/gelatina-frambuesa-exquisita-40-gr-300345/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 18900.0
+            }
+          ]
+        },
+        {
+          "ean": "7790580132293",
+          "nombre": "Bizcochuelo Águila Vainilla 500 Gr.",
+          "marca": "AGUILA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/390670/Bizcochuelo-Aguila-Vainilla-500-Gr-_1.png?v=639268809098230000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 2730.0,
+              "precio_lista": 4550.0,
+              "stock": 43,
+              "link": "https://diaonline.supermercadosdia.com.ar/bizcochuelo-aguila-vainilla-500-gr-283184/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 5460.0
+            }
+          ]
+        },
+        {
+          "ean": "7790070432575",
+          "nombre": "Gelatina Regular Naranja Forti Exquisita 40 Gr.",
+          "marca": "EXQUISITA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/389876/Gelatina-Regular-Naranja-Forti-Exquisita-40-Gr-_1.jpg?v=639268792055630000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 756.0,
+              "precio_lista": 1260.0,
+              "stock": 146,
+              "link": "https://diaonline.supermercadosdia.com.ar/gelatina-regular-naranja-forti-exquisita-40-gr-58253/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 18900.0
+            }
+          ]
+        },
+        {
+          "ean": "7790310985588",
+          "nombre": "Papas fritas Lays clásicas 330 g.",
+          "marca": "Lays",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904216/7790310985588_E01.jpg?v=639198960895970000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 6299.4,
+              "precio_lista": 10499.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/papas-fritas-lays-clasicas-330-g-721964/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 19089.09
+            }
+          ]
+        },
+        {
+          "ean": "7798131061511",
+          "nombre": "Kétchup Pampagourmet orgánico botella 285 g.",
+          "marca": "Pampagourmet",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/898676/7798131061511_E02.jpg?v=639186192041000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4893.0,
+              "precio_lista": 8155.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/ketchup-pampagourmet-organico-botella-285-g/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 17168.42
+            }
+          ]
+        },
+        {
+          "ean": "7791720048092",
+          "nombre": "Aceite mezcla Carrefour Classic 2 lts",
+          "marca": "Carrefour",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/884052/7791720048092_02.jpg?v=639159334644770000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 15291.0,
+              "precio_lista": 24890.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/aceite-mezcla-carrefour-classic-2-lts-770487/p",
+              "discount": 39,
+              "promo_label": "39% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 7645.5
+            }
+          ]
+        },
+        {
+          "ean": "7798119220183",
+          "nombre": "Bebida energizante Speed 473 ml",
+          "marca": "Speed",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/822753/7798119220183_02.jpg?v=639126406532200000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1979.25,
+              "precio_lista": 3045.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/bebida-energizante-speed-473-ml-630100/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 4184.46
+            }
+          ]
+        },
+        {
+          "ean": "7798119220015",
+          "nombre": "Bebida energizante Speed 250 ml",
+          "marca": "Speed",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/823115/7798119220015_02.jpg?v=639083181897270000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1322.75,
+              "precio_lista": 2035.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/bebida-energizante-speed-250-ml-347656/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 5291.0
+            }
+          ]
+        },
+        {
+          "ean": "7798119220367",
+          "nombre": "Bebida energizante Speed Zero en lata 250 ml",
+          "marca": "Speed",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/823653/7798119220367_02.jpg?v=639083182080900000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1300.0,
+              "precio_lista": 2000.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/bebida-energizante-speed-zero-en-lata-250-ml-768203/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 5200.0
+            }
+          ]
+        },
+        {
+          "ean": "7798119220381",
+          "nombre": "Bebida energizante Speed Zero Sugar 473 ml",
+          "marca": "Speed",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/823490/7798119220381_02.jpg?v=639083182069570000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1979.25,
+              "precio_lista": 3045.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/bebida-energizante-speed-zero-sugar-473-ml-736175/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 4184.46
+            }
+          ]
+        },
+        {
+          "ean": "8480017116208",
+          "nombre": "Bolsa Sin Impresión Dia X 1 Ud.",
+          "marca": "DIA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/354136/Bolsa-Sin-Impresion-Dia-X-1-Ud-_1.jpg?v=638912948870470000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 11.0,
+              "precio_lista": 21.0,
+              "stock": 7997,
+              "link": "https://diaonline.supermercadosdia.com.ar/bolsa-sin-impresion-dia-x-1-ud-167895/p",
+              "discount": 48,
+              "promo_label": "48% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 11.0
+            }
+          ]
+        },
+        {
+          "ean": "8480017277992",
+          "nombre": "Jabon Liquido Para Ropa Botella Dia 1,5 Lt",
+          "marca": "DIA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/341853/Jabon-Liquido-Para-Ropa-Botella-Dia-15-Lt-_1.jpg?v=638768684276800000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3590.0,
+              "precio_lista": 5990.0,
+              "stock": 108,
+              "link": "https://diaonline.supermercadosdia.com.ar/jabon-liquido-para-ropa-botella-dia-1-5-lt-291590/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 2393.33
+            }
+          ]
+        },
+        {
+          "ean": "7790990003947",
+          "nombre": "Antigrasa Magistral Concentrado Limón Doy Pack 450 Ml.",
+          "marca": "MAGISTRAL",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/394214/Antigrasa-Magistral-Concentrado-Limon-Doy-Pack-450-Ml-_1.jpg?v=639289501634930000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1900.0,
+              "precio_lista": 2950.0,
+              "stock": 18,
+              "link": "https://diaonline.supermercadosdia.com.ar/antigrasa-magistral-concentrado-limon-doy-pack-450-ml-314124/p",
+              "discount": 36,
+              "promo_label": "36% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 4222.22
+            }
+          ]
+        },
+        {
+          "ean": "7790990003220",
+          "nombre": "Jabon Liquido Para Ropa Ariel Platinum Doypack 3 Lt.",
+          "marca": "ARIEL",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/362701/Jabon-Liquido-Para-Ropa-Ariel-Platinum-Doypack-3-Lt-_1.jpg?v=639003522645770000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 11290.0,
+              "precio_lista": 17490.0,
+              "stock": 13,
+              "link": "https://diaonline.supermercadosdia.com.ar/jabon-liquido-para-ropa-ariel-platinum-doypack-3-lt-309641/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 3763.33
+            }
+          ]
+        },
+        {
+          "ean": "7791290792814",
+          "nombre": "Jabon Liquido Skip Bio Enzimas Doypack 800 Ml.",
+          "marca": "SKIP",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/359335/Jabon-Liquido-Skip-Bio-Enzimas-Doypack-800-Ml-_1.jpg?v=638955134604830000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3081.0,
+              "precio_lista": 4740.0,
+              "stock": 82,
+              "link": "https://diaonline.supermercadosdia.com.ar/jabon-liquido-skip-bio-enzimas-doypack-800-ml-213543/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 3851.25
+            }
+          ]
+        },
+        {
+          "ean": "7790990003022",
+          "nombre": "Detergente Magistral Ultra Limon Botella 300 Ml.",
+          "marca": "MAGISTRAL",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/375033/Detergente-Magistral-Ultra-Limon-Botella-300-Ml-_1.jpg?v=639280376154730000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 2210.0,
+              "precio_lista": 3400.0,
+              "stock": 129,
+              "link": "https://diaonline.supermercadosdia.com.ar/detergente-magistral-ultra-limon-botella-300-ml-8171/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 7366.67
+            }
+          ]
+        },
+        {
+          "ean": "7791290793446",
+          "nombre": "Jabon En Polvo Skip Bio Enzimas Baja Espuma 600 Gr.",
+          "marca": "SKIP",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/359360/Jabon-En-Polvo-Skip-Bio-Enzimas-Baja-Espuma-600-Gr-_1.jpg?v=638955134914630000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 2821.0,
+              "precio_lista": 4340.0,
+              "stock": 83,
+              "link": "https://diaonline.supermercadosdia.com.ar/jabon-en-polvo-skip-bio-enzimas-baja-espuma-600-gr-292038/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 4701.67
+            }
+          ]
+        },
+        {
+          "ean": "7791290792791",
+          "nombre": "Jabon Liquido Skip Bio Enzimas Doypack 3 Lt.",
+          "marca": "SKIP",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/359342/Jabon-Liquido-Skip-Bio-Enzimas-Doypack-3-Lt-_1.jpg?v=638955134697070000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 10848.5,
+              "precio_lista": 16690.0,
+              "stock": 46,
+              "link": "https://diaonline.supermercadosdia.com.ar/jabon-liquido-skip-bio-enzimas-doypack-3-lt-215147/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 3616.17
+            }
+          ]
+        },
+        {
+          "ean": "7501843503480",
+          "nombre": "Encendedor Bic Ez Reach 1 uni",
+          "marca": "Bic",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/872259/7501843503480_01.jpg?v=639141906871000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 3300.0,
+              "precio_lista": 5500.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/encendedor-bic-ez-reach-1-uni-778799/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 3300.0
+            }
+          ]
+        },
+        {
+          "ean": "7793260000462",
+          "nombre": "Mopa Green House algodón blanca",
+          "marca": "Green House",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/542056/7793260000462_01.jpg?v=638568263271370000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2400.0,
+              "precio_lista": 4000.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/mopa-green-house-algodon-blanca-742273/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 2400.0
+            }
+          ]
+        },
+        {
+          "ean": "7793260000455",
+          "nombre": "Mopa Carrefour Essential algodón blanca",
+          "marca": "Carrefour Essential",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/625337/7793260000455_01.jpg?v=638755702009870000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2400.0,
+              "precio_lista": 4000.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/mopa-carrefour-essential-algodon-blanca-754983/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 2400.0
+            }
+          ]
+        },
+        {
+          "ean": "70330605282",
+          "nombre": "Encendedor Bic mini 1 u.",
+          "marca": "Bic",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/180508/70330605282_02.jpg?v=637468585164900000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2040.0,
+              "precio_lista": 3400.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/encendedor-bic-mini-1-u/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 2040.0
+            }
+          ]
+        },
+        {
+          "ean": "70330609723",
+          "nombre": "Encendedor Bic classic 1 u.",
+          "marca": "Bic",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/180510/70330609723_02.jpg?v=637468585170700000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2880.0,
+              "precio_lista": 4800.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/encendedor-bic-classic-1-u/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 2880.0
+            }
+          ]
+        },
+        {
+          "ean": "7793260000851",
+          "nombre": "Mopa Green House algodón gris",
+          "marca": "Green House",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/542057/7793260000851_01.jpg?v=638568263281370000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2400.0,
+              "precio_lista": 4000.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/mopa-green-house-algodon-gris-742275/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 2400.0
+            }
+          ]
+        },
+        {
+          "ean": "3616182375774",
+          "nombre": "Trapeador spray mop gsa",
+          "marca": "Carrefour Home",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/237982/3616182375774_01.jpg?v=637830525778000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 15594.0,
+              "precio_lista": 25990.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/trapeador-spray-mop-gsa-675689/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 15594.0
+            }
+          ]
+        },
+        {
+          "ean": "7792459790207",
+          "nombre": "Repuesto de mopa La Gauchita microfibra",
+          "marca": "La gauchita",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/792507/7792459790207_01.jpg?v=639046155853300000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 7380.0,
+              "precio_lista": 12300.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/repuesto_la_gauchita_mopa_microfibra_773248/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 7380.0
+            }
+          ]
+        },
+        {
+          "ean": "4023103147737",
+          "nombre": "Mopa giratoria Vileda 360° easy wring con balde pedal centrífugo para todo tipo de pisos",
+          "marca": "Vileda",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/668736/4023103147737_01.jpg?v=638845581754530000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 105600.0,
+              "precio_lista": 176000.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/mopa-giratoria-vileda-360-easy-wring-con-balde-pedal-centrifugo-para-todo-tipo-de-pisos-590625/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 105600.0
+            }
+          ]
+        },
+        {
+          "ean": "7792459790191",
+          "nombre": "Repuesto de mopa chenille La Gauchita",
+          "marca": "La gauchita",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/792457/7792459790191_01.jpg?v=639046152936500000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 6840.0,
+              "precio_lista": 11400.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/repuesto-de-mopa-chenille-la-gauchita-773247/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 6840.0
+            }
+          ]
+        },
+        {
+          "ean": "7792459790184",
+          "nombre": "Set mopa plana La Gauchita Chenille",
+          "marca": "La gauchita",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/792516/7792459790184_01.jpg?v=639046165857870000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 19260.0,
+              "precio_lista": 32100.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/set-mopa-plana-la-gauchita-chenille-773245/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 19260.0
+            }
+          ]
+        },
+        {
+          "ean": "4023103263277",
+          "nombre": "Set mopa Vileda con balde escurridor 2 en 1",
+          "marca": "Vileda",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/941315/4023103263277_01.jpg?v=639263106057800000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 63095.4,
+              "precio_lista": 105159.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/set-mopa-vileda-con-balde-escurridor-2-en-1-774194/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 63095.4
+            }
+          ]
+        },
+        {
+          "ean": "4023103199217",
+          "nombre": "Repuesto Vileda promist 1-2 spray max",
+          "marca": "Vileda",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/669743/4023103199217_01.jpg?v=638847300961030000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 13080.0,
+              "precio_lista": 21800.0,
+              "stock": 10,
+              "link": "https://www.carrefour.com.ar/repuesto-vileda-promist-1-2-spray-max-743880/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 13080.0
+            }
+          ]
+        },
+        {
+          "ean": "7791720044568",
+          "nombre": "Jamón crudo feteado Bulnez 150 grs",
+          "marca": "Bulnez",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/882033/7791720044568_E02.jpg?v=639154992286900000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4500.0,
+              "precio_lista": 8700.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/jamon-crudo-feteado-bulnez-150-grs-759618/p",
+              "discount": 48,
+              "promo_label": "48% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 30000.0
+            }
+          ]
+        },
+        {
+          "ean": "2509912000002",
+          "nombre": "Queso provoleta Vaquero fraccionado",
+          "marca": "Vaquero",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/843395/2509912000002_02.jpg?v=639106701465500000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 22900.0,
+              "precio_lista": 43999.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/queso-provoleta-vaquro-fraccionado-749834/p",
+              "discount": 48,
+              "promo_label": "48% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 22900.0
+            }
+          ]
+        },
+        {
+          "ean": "3412290011685",
+          "nombre": "Queso roquefort Paysan Breton portion 100 grs",
+          "marca": "Paysan Breton",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/843449/3412290011685_02.jpg?v=639106708835300000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 5249.0,
+              "precio_lista": 8990.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/queso-roquefort-paysan-breton-portion-100-grs-769167/p",
+              "discount": 42,
+              "promo_label": "42% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 52490.0
+            }
+          ]
+        },
+        {
+          "ean": "7791720047019",
+          "nombre": "Paleta de cerdo feteado Bulnez 150 grs",
+          "marca": "Bulnez",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/882039/7791720047019_E02.jpg?v=639155003530930000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1890.0,
+              "precio_lista": 3140.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/paleta-de-cerdo-feteado-bulnez-150-grs-763281/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 12600.0
+            }
+          ]
+        },
+        {
+          "ean": "2920901300000",
+          "nombre": "Queso reggianito Puyehué 200 g.",
+          "marca": "Puyehué",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/847249/2920901300000_02.jpg?v=639116904507030000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 5900.0,
+              "precio_lista": 9719.0,
+              "stock": 10,
+              "link": "https://www.carrefour.com.ar/queso-reggianito-puyehue-200-g-720929/p",
+              "discount": 39,
+              "promo_label": "39% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 29500.0
+            }
+          ]
+        },
+        {
+          "ean": "7792335000543",
+          "nombre": "Huevos blancos Avicoper 30 uni",
+          "marca": "Avicoper",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/838116/7792335000543_02.jpg?v=639106525648500000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 5899.0,
+              "precio_lista": 9499.0,
+              "stock": 10,
+              "link": "https://www.carrefour.com.ar/huevos-blancos-avicoper-30-uni-336472/p",
+              "discount": 38,
+              "promo_label": "38% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 196.63
+            }
+          ]
+        },
+        {
+          "ean": "7891150097124",
+          "nombre": "Oleo + Serum DOVE Bond Repair + Peptido 110 Ml.",
+          "marca": "DOVE",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/392481/Oleo---Serum-DOVE-Bond-Repair---Peptido-110-Ml-_1.jpg?v=639275694520130000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 9614.0,
+              "precio_lista": 17480.0,
+              "stock": 20,
+              "link": "https://diaonline.supermercadosdia.com.ar/oleo--serum-dove-bond-repair--peptido-110-ml-304138/p",
+              "discount": 45,
+              "promo_label": "45% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 87400.0
+            }
+          ]
+        },
+        {
+          "ean": "7791293048659",
+          "nombre": "Mascara de Tratamiento DOVE Regeneracion + Retinol 300 Gr.",
+          "marca": "DOVE",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/392422/Mascara-de-Tratamiento-DOVE-Regeneracion---Retinol-300-Gr-_1.jpg?v=639275693812030000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 4504.5,
+              "precio_lista": 8190.0,
+              "stock": 20,
+              "link": "https://diaonline.supermercadosdia.com.ar/mascara-de-tratamiento-dove-regeneracion--retinol-300-gr-300170/p",
+              "discount": 45,
+              "promo_label": "45% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 15015.0
+            }
+          ]
+        },
+        {
+          "ean": "7791293048635",
+          "nombre": "Mascara de Tratamiento DOVE Reconstruccion + Aminoacido 300 Gr.",
+          "marca": "DOVE",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/391563/Mascara-de-Tratamiento-DOVE-Reconstruccion---Aminoacido-300-Gr-_1.jpg?v=639275683109900000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 4504.5,
+              "precio_lista": 8190.0,
+              "stock": 18,
+              "link": "https://diaonline.supermercadosdia.com.ar/mascara-de-tratamiento-dove-reconstruccion--aminoacido-300-gr-47330/p",
+              "discount": 45,
+              "promo_label": "45% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 15015.0
+            }
+          ]
+        },
+        {
+          "ean": "7791293050508",
+          "nombre": "Crema de Peinar TRESEMME Antifrizz Leave 300 Ml.",
+          "marca": "TRESEMME",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/391396/Crema-de-Peinar-TRESEMME-Antifrizz-Leave-300-Ml-_1.jpg?v=639287913573970000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 4851.0,
+              "precio_lista": 8820.0,
+              "stock": 88,
+              "link": "https://diaonline.supermercadosdia.com.ar/crema-de-peinar-tresemme-antifrizz-leave-300-ml-15762/p",
+              "discount": 45,
+              "promo_label": "45% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 16170.0
+            }
+          ]
+        },
+        {
+          "ean": "7891150097131",
+          "nombre": "Mascara de Tratamiento DOVE Bond Repair + Peptido 250 Gr.",
+          "marca": "DOVE",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/391381/Mascara-de-Tratamiento-DOVE-Bond-Repair---Peptido-250-Gr-_1.jpg?v=639275681138700000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 7694.5,
+              "precio_lista": 13990.0,
+              "stock": 37,
+              "link": "https://diaonline.supermercadosdia.com.ar/mascara-de-tratamiento-dove-bond-repair--peptido-250-gr-15759/p",
+              "discount": 45,
+              "promo_label": "45% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 30778.0
+            }
+          ]
+        },
+        {
+          "ean": "7791293050485",
+          "nombre": "Máscara De Tratamiento Tresemme Hidratación Pro Activa 300 Ml.",
+          "marca": "TRESEMME",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/348518/Mascara-De-Tratamiento-Tresemme-Hidratacion-Pro-Activa-300-Ml-_1.jpg?v=639287913658070000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3826.35,
+              "precio_lista": 6957.0,
+              "stock": 23,
+              "link": "https://diaonline.supermercadosdia.com.ar/mascara-de-tratamiento-tresemme-hidratacion-pro-activa-300-ml-22009/p",
+              "discount": 45,
+              "promo_label": "45% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 12754.5
+            }
+          ]
+        },
+        {
+          "ean": "7891150197879",
+          "nombre": "Mascara Tratamiento Hydra Micro Molec Tresemme 300 Gr.",
+          "marca": "TRESEMME",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/378082/Mascara-Tratamiento-Hydra-Micro-Molec-Tresemme-300-Gr-_1.jpg?v=639287914462400000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 7515.75,
+              "precio_lista": 13665.0,
+              "stock": 19,
+              "link": "https://diaonline.supermercadosdia.com.ar/mascara-tratamiento-hydra-micro-molec-tresemme-300-gr-314296/p",
+              "discount": 45,
+              "promo_label": "45% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 25052.5
+            }
+          ]
+        },
+        {
+          "ean": "7891150103504",
+          "nombre": "Oleo Uv Repair Dove 110 Ml.",
+          "marca": "DOVE",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/367251/Oleo-Uv-Repair-Dove-110-Ml-_1.jpg?v=639107198750270000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 9614.0,
+              "precio_lista": 17480.0,
+              "stock": 10,
+              "link": "https://diaonline.supermercadosdia.com.ar/oleo-uv-repair-dove-110-ml-310149/p",
+              "discount": 45,
+              "promo_label": "45% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 87400.0
+            }
+          ]
+        },
+        {
+          "ean": "7791293050492",
+          "nombre": "Máscara de Tratamiento Reparación Intra Capilar Tresemme 300 Ml.",
+          "marca": "TRESEMME",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/393803/Mascara-de-Tratamiento-Reparacion-Intra-Capilar-Tresemme-300-Ml-_1.jpg?v=639287913749630000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 6377.25,
+              "precio_lista": 11595.0,
+              "stock": 15,
+              "link": "https://diaonline.supermercadosdia.com.ar/mascara-de-tratamiento-reparacion-intra-capilar-tresemme-300-ml-300039/p",
+              "discount": 45,
+              "promo_label": "45% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 6377.25
+            }
+          ]
+        },
+        {
+          "ean": "8480017134028",
+          "nombre": "Quitaesmalte Humectante Fortalecedor Bonte 120 Ml.",
+          "marca": "BONTE",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/372436/Quitaesmalte-Humectante-Fortalecedor-Bonte-120-Ml-_1.jpg?v=639165951034570000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1950.0,
+              "precio_lista": 3500.0,
+              "stock": 69,
+              "link": "https://diaonline.supermercadosdia.com.ar/quitaesmalte-humectante-fortalecedor-bonte-120-ml-179562/p",
+              "discount": 44,
+              "promo_label": "44% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 16250.0
+            }
+          ]
+        },
+        {
+          "ean": "7798364400552",
+          "nombre": "Cepillo de Dientes Plastico Reciclado Merak 2 Ud.",
+          "marca": "MERAKI",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/368904/Cepillo-de-Dientes-Plastico-Reciclado-Merak-2-Ud-_1.jpg?v=639136575014200000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3760.0,
+              "precio_lista": 6280.0,
+              "stock": 46,
+              "link": "https://diaonline.supermercadosdia.com.ar/cepillo-de-dientes-plastico-reciclado-merak-2-ud-309549/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 1880.0
+            }
+          ]
+        },
+        {
+          "ean": "7791293047072",
+          "nombre": "Acondicionador Regeneración Extrema Dove 200 Ml.",
+          "marca": "DOVE",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/370107/Acondicionador-Regeneracion-Extrema-Dove-200-Ml-_1.jpg?v=639147808681500000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3970.0,
+              "precio_lista": 6620.0,
+              "stock": 85,
+              "link": "https://diaonline.supermercadosdia.com.ar/acondicionador-regeneracion-extrema-dove-200-ml-293993/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 19850.0
+            }
+          ]
+        },
+        {
+          "ean": "7791293047003",
+          "nombre": "Shampoo Regeneracion Extrema Dove 200 Ml.",
+          "marca": "DOVE",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/370099/Shampoo-Regeneracion-Extrema-Dove-200-Ml-_1.jpg?v=639147808610830000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3970.0,
+              "precio_lista": 6620.0,
+              "stock": 47,
+              "link": "https://diaonline.supermercadosdia.com.ar/shampoo-regeneracion-extrema-dove-200-ml-293992/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 19850.0
+            }
+          ]
+        },
+        {
+          "ean": "7791293050126",
+          "nombre": "Acondicionador Liso Efecto Botox Tresemme 500 Ml.",
+          "marca": "TRESEMME",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/353779/Acondicionador-Liso-Efecto-Botox-Tresemme-500-Ml-_1.jpg?v=638871335827170000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3887.4,
+              "precio_lista": 6479.0,
+              "stock": 55,
+              "link": "https://diaonline.supermercadosdia.com.ar/acondicionador-liso-efecto-botox-tresemme-500-ml-300048/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 7774.8
+            }
+          ]
+        },
+        {
+          "ean": "7791293050119",
+          "nombre": "Shampoo TRESEMME Liso Efecto Profesional 500 Ml.",
+          "marca": "TRESEMME",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/392408/Shampoo-TRESEMME-Liso-Efecto-Profesional-500-Ml-_1.jpg?v=639275693611500000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3887.4,
+              "precio_lista": 6479.0,
+              "stock": 29,
+              "link": "https://diaonline.supermercadosdia.com.ar/shampoo-tresemme-liso-efecto-profesional-500-ml-300044/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 7774.8
+            }
+          ]
+        },
+        {
+          "ean": "5900273001566",
+          "nombre": "Cepillo de Dientes Colgate Extra Clean Medio 1 uni",
+          "marca": "Colgate",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/509151/5900273001566_01.jpg?v=638490413829500000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1885.0,
+              "precio_lista": 2900.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-colgate-extra-clean-medio-1-uni-294735/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 1885.0
+            }
+          ]
+        },
+        {
+          "ean": "7509546690315",
+          "nombre": "Cepillo de Dientes Colgate Max White Charcoal Cerdas Medianas Blanqueamiento 2 uni",
+          "marca": "Colgate",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/795262/7509546690315_01.jpg?v=639047685788730000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4845.75,
+              "precio_lista": 7455.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-colgate-max-white-charcoal-cerdas-medianas-blanqueamiento-2-uni-742696/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 2422.88
+            }
+          ]
+        },
+        {
+          "ean": "7509546673042",
+          "nombre": "Cepillo De Dientes Colgate Zig Zag Charcoal Medio 2 uni",
+          "marca": "Colgate",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/914206/7509546673042_01.jpg?v=639222300352100000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4036.5,
+              "precio_lista": 6210.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-colgate-zig-zag-charcoal-medio-2-uni-710192/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 2018.25
+            }
+          ]
+        },
+        {
+          "ean": "7509546074399",
+          "nombre": "Cepillo de dientes Colgate Slim Soft charcoal 3 uni",
+          "marca": "Colgate",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/571812/7509546074399_01.jpg?v=638634098835070000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 9902.75,
+              "precio_lista": 15235.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-colgate-slim-soft-charcoal-3-uni-623927/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 3300.92
+            }
+          ]
+        },
+        {
+          "ean": "99176369226",
+          "nombre": "Cepillo de dientes Colgate triple acción 3 uni",
+          "marca": "Colgate",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/549788/99176369226_01.jpg?v=638597798838100000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 5538.0,
+              "precio_lista": 8520.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-colgate-triple-accion-3-uni-612621/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 1846.0
+            }
+          ]
+        },
+        {
+          "ean": "7793100151224",
+          "nombre": "Cepillo de dientes Colgate Kids 1 uni",
+          "marca": "Colgate",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/348146/7793100151224_01.jpg?v=638237437848900000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1530.75,
+              "precio_lista": 2355.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-colgate-kids-1-uni-563169/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 1530.75
+            }
+          ]
+        },
+        {
+          "ean": "7753442000390",
+          "nombre": "Cepillo de dientes Kolynos master plus 1 uni",
+          "marca": "Kolynos",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/477728/7753442000390_01.jpg?v=638441171476030000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1526.85,
+              "precio_lista": 2349.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-kolynos-master-plus-1-uni-727090/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 1526.85
+            }
+          ]
+        },
+        {
+          "ean": "7509546693712",
+          "nombre": "Cepillo de dientes Colgate total single 1 uni",
+          "marca": "Colgate",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/552474/7509546693712_01.jpg?v=638610599533800000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4738.5,
+              "precio_lista": 7290.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-colgate-total-single-1-uni-745028/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 4738.5
+            }
+          ]
+        },
+        {
+          "ean": "7702010130632",
+          "nombre": "Cepillo De dientes Colgate Twister medio 2 uni",
+          "marca": "Colgate",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/727399/7702010130632_01.jpg?v=638948399754900000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4306.25,
+              "precio_lista": 6625.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-colgate-twister-medio-2-uni-710191/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 2153.12
+            }
+          ]
+        },
+        {
+          "ean": "7591083011081",
+          "nombre": "Cepillo de dientes Colgate Smiles 1 uni",
+          "marca": "Colgate",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/516109/7591083011081_01.jpg?v=638503373076870000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2696.85,
+              "precio_lista": 4149.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-colgate-smiles-1-uni-355311/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 2696.85
+            }
+          ]
+        },
+        {
+          "ean": "7591083011098",
+          "nombre": "Cepillo de dientes Colgate Smiles Minions/Barbie 1 uni",
+          "marca": "Colgate",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/766790/7591083011098_01.jpg?v=638987422895000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2696.85,
+              "precio_lista": 4149.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-colgate-smiles-minions-barbie-1-uni-352487/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 2696.85
+            }
+          ]
+        },
+        {
+          "ean": "7891024073070",
+          "nombre": "Cepillo de dientes Colgate Slimsoft charcoal 1 uni",
+          "marca": "Colgate",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/578550/7891024073070_01.jpg?v=638639040063330000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4516.85,
+              "precio_lista": 6949.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/cepillo-de-dientes-colgate-slimsoft-charcoal-1-uni-742695/p",
+              "discount": 35,
+              "promo_label": "35% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 4516.85
+            }
+          ]
+        },
+        {
+          "ean": "7798134193752",
+          "nombre": "Whisky Petakon en Petaca 380 Ml",
+          "marca": "Petakon",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/871496/7798134193752_02.jpg?v=639140991134370000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 690.0,
+              "precio_lista": 2529.0,
+              "stock": 10,
+              "link": "https://www.carrefour.com.ar/whisky-petakon-en-petaca-380-ml-720918/p",
+              "discount": 73,
+              "promo_label": "73% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 1815.79
+            }
+          ]
+        },
+        {
+          "ean": "7798138555999",
+          "nombre": "Bolsa de residuos Trash 45x60 x 10 uni",
+          "marca": "Trash",
+          "imagen": "https://carrefourar.vtexassets.com/arquivos/ids/444211/7798138555999_02.jpg",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 300,
+              "precio_lista": 800,
+              "stock": 80,
+              "link": "https://www.carrefour.com.ar/bolsa-de-residuos-trash-45x60-x-10-uni-748411/p",
+              "discount": 62,
+              "promo_label": "62% OFF Directo",
+              "unit_measure": "u",
+              "unit_price": 30
+            }
+          ]
+        },
+        {
+          "ean": "7790520023027",
+          "nombre": "Insecticida Raid Mata Moscas y Mosquitos 370 ml",
+          "marca": "Raid",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/896173/7790520023027_02.jpg",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 3119,
+              "precio_lista": 7409,
+              "stock": 45,
+              "link": "https://www.carrefour.com.ar/insecticida-raid-mata-moscas-y-mosquitos-nueva-formula-x2-mas-rapido-en-aerosol-370-ml-703700/p",
+              "discount": 58,
+              "promo_label": "58% OFF Directo",
+              "unit_measure": "lt",
+              "unit_price": 8430
+            }
+          ]
+        },
+        {
+          "ean": "7794450000781",
+          "nombre": "Vino Tinto Álamos Malbec 750 Ml",
+          "marca": "Álamos",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/314458/Vino-Tinto-Alamos-Malbec-750-Ml-_1.jpg?v=638599428555500000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 11265.0,
+              "precio_lista": 11265.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/vino-tinto-malbec-seleccion-alamos-750-cc/p",
+              "discount": 0,
+              "promo_label": "3x2 ($7.510 c/u x3)",
+              "promo_min_qty": 3,
+              "unit_measure": "l",
+              "unit_price": 15020.0
+            },
+            {
+              "supermercado": "Dia",
+              "precio": 7990.0,
+              "precio_lista": 11265.0,
+              "stock": 37,
+              "link": "https://diaonline.supermercadosdia.com.ar/vino-tinto-alamos-malbec-750-ml-180721/p",
+              "discount": 29,
+              "promo_label": "29% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 10653.33
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tier-50",
+      "title": "50% OFF y 2x1 — Mitad de Precio",
+      "subtitle": "Promociones 2x1 y 50% directo para duplicar tu changuito al 50%",
+      "badge": "50% OFF (2x1)",
+      "percentLabel": "50% (2x1)",
+      "icon": "percent",
+      "meliSponsored": {
+        "product": {
+          "ean": "7790580112341",
+          "nombre": "Chocolate Águila Clásico Semi Amargo 100g",
+          "marca": "Águila",
+          "imagen": "https://http2.mlstatic.com/D_NQ_NP_799008-MLA99335082066_112025-F.jpg",
+          "offers": []
+        },
+        "offer": {
+          "supermercado": "MercadoLibre",
+          "precio": 5385,
+          "precio_lista": 7388,
+          "stock": 100,
+          "link": "https://www.mercadolibre.com.ar/p/MLA20028685",
+          "seller_name": "Mercado Libre Supermercado",
+          "is_full": true,
+          "discount": 27,
+          "promo_label": "27% OFF",
+          "unit_measure": "kg",
+          "unit_price": 53850
+        }
+      },
+      "products": [
+        {
+          "ean": "7799037070058",
+          "nombre": "Premezcla Para Pan y Pizza Sin Gluten Chacacubo 400 Gr.",
+          "marca": "CHACABUCO",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/355119/Premezcla-Para-Pan-y-Pizza-Sin-Gluten-Chacacubo-400-Gr-_1.jpg?v=638893886246500000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1542.75,
+              "precio_lista": 3429.0,
+              "stock": 20,
+              "link": "https://diaonline.supermercadosdia.com.ar/premezcla-para-pan-y-pizza-sin-gluten-chacacubo-400-gr-308191/p",
+              "discount": 55,
+              "promo_label": "55% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 3856.88
+            }
+          ]
+        },
+        {
+          "ean": "8445290883858",
+          "nombre": "Nestlé leche condensada descremada orgánica 395 grs",
+          "marca": "Nestlé",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/903869/8445290883858_E01.jpg?v=639198118737200000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2837.5,
+              "precio_lista": 5675.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/nestle-leche-condensada-descremada-organica-395-grs-727277/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 7183.54
+            }
+          ]
+        },
+        {
+          "ean": "8445291171138",
+          "nombre": "Leche condensada Nestlé tetra 395 grs",
+          "marca": "Nestlé",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/921385/8445291171138_E02.jpg?v=639238008308730000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2837.65,
+              "precio_lista": 5675.3,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/leche-condensada-nestle-tetra-395-grs-783851/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 7183.92
+            }
+          ]
+        },
+        {
+          "ean": "8445290900630",
+          "nombre": "Nestlé Leche Condensada Sabor Limón 395 grs",
+          "marca": "Nestlé",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/911014/8445290900630_01.jpg?v=639216386337570000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2839.5,
+              "precio_lista": 5679.0,
+              "stock": 10,
+              "link": "https://www.carrefour.com.ar/nestle-leche-condensada-sabor-limon-395-grs-774578/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 7188.61
+            }
+          ]
+        },
+        {
+          "ean": "8445292346986",
+          "nombre": "Sopa Maggi de Pollo con Fideos 70 grs",
+          "marca": "Maggi",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904595/8445292346986_01.jpg?v=639201502838470000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1259.5,
+              "precio_lista": 2519.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/sopa-maggi-de-pollo-con-fideos-70-grs-777261/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 17992.86
+            }
+          ]
+        },
+        {
+          "ean": "7798332150038",
+          "nombre": "Cerveza Honey Lazybee Bierhaus 473 Ml.",
+          "marca": "BIERHAUS",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/371798/Cerveza-Honey-Lazybee-Bierhaus-473-Ml-_1.jpg?v=639156448571370000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1690.0,
+              "precio_lista": 3395.0,
+              "stock": 95,
+              "link": "https://diaonline.supermercadosdia.com.ar/cerveza-honey-lazybee-bierhaus-473-ml-313120/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 3572.94
+            }
+          ]
+        },
+        {
+          "ean": "7798332150724",
+          "nombre": "Cerveza Ipa Chalaland Bierhaus 473 Ml.",
+          "marca": "BIERHAUS",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/381208/Cerveza-Ipa-Chalaland-Bierhaus-473-Ml-_1.jpg?v=639262727021870000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 2630.0,
+              "precio_lista": 5265.0,
+              "stock": 26,
+              "link": "https://diaonline.supermercadosdia.com.ar/cerveza-ipa-chalaland-bierhaus-473-ml-313121/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 5560.25
+            }
+          ]
+        },
+        {
+          "ean": "7798332150762",
+          "nombre": "Cerveza Ipa Argent Bierhaus 473 Ml.",
+          "marca": "BIERHAUS",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/381209/Cerveza-Ipa-Argent-Bierhaus-473-Ml-_1.jpg?v=639262727042430000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 2170.0,
+              "precio_lista": 4340.0,
+              "stock": 162,
+              "link": "https://diaonline.supermercadosdia.com.ar/cerveza-ipa-argent-bierhaus-473-ml-313122/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 4587.74
+            }
+          ]
+        },
+        {
+          "ean": "7798332150014",
+          "nombre": "Cerveza Ipa Superstar Bierhaus 473 Ml.",
+          "marca": "BIERHAUS",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/381211/Cerveza-Ipa-Superstar-Bierhaus-473-Ml-_1.jpg?v=639262727076130000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 2170.0,
+              "precio_lista": 4340.0,
+              "stock": 39,
+              "link": "https://diaonline.supermercadosdia.com.ar/cerveza-ipa-superstar-bierhaus-473-ml-313286/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 4587.74
+            }
+          ]
+        },
+        {
+          "ean": "7798332150151",
+          "nombre": "Cerveza Red Ipa Timeless Bierhaus 473 Ml.",
+          "marca": "BIERHAUS",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/381210/Cerveza-Red-Ipa-Timeless-Bierhaus-473-Ml-_1.jpg?v=639262727058970000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 2170.0,
+              "precio_lista": 4340.0,
+              "stock": 37,
+              "link": "https://diaonline.supermercadosdia.com.ar/cerveza-red-ipa-timeless-bierhaus-473-ml-313123/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 4587.74
+            }
+          ]
+        },
+        {
+          "ean": "7790290101756",
+          "nombre": "Gin Spirito Blu 700 Ml.",
+          "marca": "BLU",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/381160/Gin-Spirito-Blu-700-Ml-_1.jpg?v=639262726234330000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 9950.0,
+              "precio_lista": 19900.0,
+              "stock": 46,
+              "link": "https://diaonline.supermercadosdia.com.ar/gin-spirito-blu-700-ml-301762/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 14214.29
+            }
+          ]
+        },
+        {
+          "ean": "7791540047855",
+          "nombre": "Vino Cabernet Sauvignon Dadá Art 750 ml.",
+          "marca": "DADA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/315260/Vino-Cabernet-Sauvignon-Dada-Art-750-ml-_1.jpg?v=638599439407230000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3996.0,
+              "precio_lista": 7992.0,
+              "stock": 47,
+              "link": "https://diaonline.supermercadosdia.com.ar/vino-cabernet-sauvignon-dada-art-750-ml-210847/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 5328.0
+            }
+          ]
+        },
+        {
+          "ean": "7798108834155",
+          "nombre": "Vino Blanco Dulce Callia Amable 750 Ml.",
+          "marca": "CALLIA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/312110/Vino-Blanco-Dulce-Callia-Amable-750-Ml-_1.jpg?v=638823139325800000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 2985.0,
+              "precio_lista": 5970.0,
+              "stock": 26,
+              "link": "https://diaonline.supermercadosdia.com.ar/vino-blanco-dulce-callia-amable-750-ml-135721/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 3980.0
+            }
+          ]
+        },
+        {
+          "ean": "7790314081279",
+          "nombre": "Vino Tinto Blend Eno Canciller 750 Ml.",
+          "marca": "CANCILLER",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/364270/Vino-Tinto-Blend-Eno-Canciller-750-Ml-_1.jpg?v=639048448011900000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1780.0,
+              "precio_lista": 3560.0,
+              "stock": 47,
+              "link": "https://diaonline.supermercadosdia.com.ar/vino-tinto-blend-eno-canciller-750-ml-310373/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 2373.33
+            }
+          ]
+        },
+        {
+          "ean": "7790703205224",
+          "nombre": "Vino Blanco Dulce Marlo 750 Ml.",
+          "marca": "MARLO",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/329582/Vino-Blanco-Dulce-Marlo-750-Ml-_1.jpg?v=638983965450470000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 2495.0,
+              "precio_lista": 4990.0,
+              "stock": 16,
+              "link": "https://diaonline.supermercadosdia.com.ar/vino-blanco-dulce-marlo-750-ml-298991/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 3326.67
+            }
+          ]
+        },
+        {
+          "ean": "7797942007206",
+          "nombre": "Vino Malbec Edición Estiba Finca Natalia 750 Ml.",
+          "marca": "FINCA NATALINA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/374206/Vino-Malbec-Edicion-Estiba-Finca-Natalia-750-Ml-_1.jpg?v=639168580736630000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 2470.0,
+              "precio_lista": 4940.0,
+              "stock": 118,
+              "link": "https://diaonline.supermercadosdia.com.ar/vino-malbec-edicion-estiba-finca-natalia-750-ml-298743/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 3293.33
+            }
+          ]
+        },
+        {
+          "ean": "7798141877362",
+          "nombre": "Vino Eugenio Bustos Malbec 750 Ml.",
+          "marca": "EUGENIO BUSTOS",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/341624/Vino-Eugenio-Bustos-Malbec-750-Ml-_1.jpg?v=638708908061770000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3645.0,
+              "precio_lista": 7290.0,
+              "stock": 89,
+              "link": "https://diaonline.supermercadosdia.com.ar/vino-eugenio-bustos-malbec-750-ml-259733/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 4860.0
+            }
+          ]
+        },
+        {
+          "ean": "7790717153931",
+          "nombre": "Vino Nave Robino Blend de Tintas Botella 750 Ml.",
+          "marca": "DANTE ROBINO",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/330192/Vino-Nave-Robino-Blend-de-Tintas-Botella-750-Ml-_1.jpg?v=638599645657100000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3315.0,
+              "precio_lista": 6630.0,
+              "stock": 49,
+              "link": "https://diaonline.supermercadosdia.com.ar/vino-nave-robino-blend-de-tintas-botella-750-ml-300173/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 4420.0
+            }
+          ]
+        },
+        {
+          "ean": "7790240098976",
+          "nombre": "Vino Tinto Cabernet Sauvignon Origen Trapiche 750 ml.",
+          "marca": "BEEFEATER",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/314991/Vino-Tinto-Cabernet-Sauvignon-Origen-Trapiche-750-ml-_1.jpg?v=638599435604230000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 4291.0,
+              "precio_lista": 8581.0,
+              "stock": 42,
+              "link": "https://diaonline.supermercadosdia.com.ar/vino-tinto-cabernet-sauvignon-origen-trapiche-750-ml-203706/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 5721.33
+            }
+          ]
+        },
+        {
+          "ean": "7791728247732",
+          "nombre": "Vino Cabernet Sauvignon Santa Julia 750 Ml.",
+          "marca": "SANTA JULIA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/330366/Vino-Cabernet-Sauvignon-Santa-Julia-750-Ml-_1.jpg?v=638599648340170000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3419.0,
+              "precio_lista": 6837.0,
+              "stock": 31,
+              "link": "https://diaonline.supermercadosdia.com.ar/vino-cabernet-sauvignon-santa-julia-750-ml-300697/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 4558.67
+            }
+          ]
+        },
+        {
+          "ean": "7790762754138",
+          "nombre": "Vino Cabernet Sauvignon El Cazador 750 Ml.",
+          "marca": "EL CAZADOR",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/362921/Vino-Cabernet-Sauvignon-El-Cazador-750-Ml-_1.jpg?v=639011294137230000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 3384.0,
+              "precio_lista": 6767.0,
+              "stock": 19,
+              "link": "https://diaonline.supermercadosdia.com.ar/vino-cabernet-sauvignon-el-cazador-750-ml-310079/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 4512.0
+            }
+          ]
+        },
+        {
+          "ean": "8480017097453",
+          "nombre": "Bolsa Coleccion Producto Dia 1 Ud.",
+          "marca": "DIA",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/372433/Bolsa-Coleccion-Producto-Dia-1-Ud-_1.jpg?v=639165951001270000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 475.0,
+              "precio_lista": 950.0,
+              "stock": 997,
+              "link": "https://diaonline.supermercadosdia.com.ar/bolsa-coleccion-producto-dia-1-ud-146897/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 475.0
+            }
+          ]
+        },
+        {
+          "ean": "7798285030715",
+          "nombre": "Bolsa de residuos Trash 45x60 x 10 uni",
+          "marca": "Trash",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/619645/7798285030715_01.jpg?v=638744673114530000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 300.0,
+              "precio_lista": 800.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/bolsa-de-residuos-trash-45x60-x-10-uni-748411/p",
+              "discount": 62,
+              "promo_label": "62% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "un",
+              "unit_price": 30.0
+            }
+          ]
+        },
+        {
+          "ean": "7790520997623",
+          "nombre": "Insecticida Raid Mata Moscas y Mosquitos Nueva Fórmula x2 más rápido en Aerosol 370 ml",
+          "marca": "Raid",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/891977/7790520997623_01.jpg?v=639172202893400000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 3119.35,
+              "precio_lista": 7409.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/insecticida-raid-mata-moscas-y-mosquitos-nueva-formula-x2-mas-rapido-en-aerosol-370-ml-703700/p",
+              "discount": 58,
+              "promo_label": "58% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 8430.68
+            }
+          ]
+        },
+        {
+          "ean": "8445291395930",
+          "nombre": "Nesquik extra cacao chocolatada listo para tomar 200 ml",
+          "marca": "Nesquik",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/847537/8445291395930_01.jpg?v=639117684585170000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1095.0,
+              "precio_lista": 2190.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/nesquik-extra-cacao-chocolatada-listo-para-tomar-200-ml-776885/p",
+              "discount": 50,
+              "promo_label": "2x1 ($548 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "l",
+              "unit_price": 5475.0
+            }
+          ]
+        },
+        {
+          "ean": "8445291395961",
+          "nombre": "Leche Chocolatada Nesquik 200 ml",
+          "marca": "Nesquik",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/666991/8445291395961_E01.jpg?v=638839494493370000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1095.0,
+              "precio_lista": 2190.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/leche-chocolatada-nesquik-200-ml-756480/p",
+              "discount": 50,
+              "promo_label": "2x1 ($548 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "l",
+              "unit_price": 5475.0
+            }
+          ]
+        },
+        {
+          "ean": "8445291632660",
+          "nombre": "NESTLÉ Chocolatada Lista para Tomar 190 ml",
+          "marca": "Nestlé",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/756483/8445291632660_E01.jpg?v=638979494768000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1350.0,
+              "precio_lista": 2700.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/nestle-chocolatada-lista-para-tomar-190-ml-768623/p",
+              "discount": 50,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 7105.26
+            }
+          ]
+        },
+        {
+          "ean": "7790070336026",
+          "nombre": "Fideos Lucchetti Tirabuzón 500 G",
+          "marca": "Lucchetti",
+          "imagen": "https://masonlineprod.vteximg.com.br/arquivos/ids/334621/Fideos-Lucchetti-Tirabuzon-500-G-1-49865.jpg?v=638623893699570000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1050.0,
+              "precio_lista": 1850.0,
+              "stock": 313,
+              "link": "https://diaonline.supermercadosdia.com.ar/tirabuzon-n-34-luchetti-500-gr-144397/p",
+              "discount": 43,
+              "promo_label": "43% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 2100.0
+            },
+            {
+              "supermercado": "Carrefour",
+              "precio": 1746.15,
+              "precio_lista": 1746.15,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/fideos-tirabuzon-n28-lucchetti-500-g-726310/p",
+              "discount": 0,
+              "promo_label": "2do al 70% ($1.135 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "kg",
+              "unit_price": 3492.3
+            }
+          ]
+        },
+        {
+          "ean": "7798342410321",
+          "nombre": "Cerveza Honey Lazybee Bierhaus 473 Ml",
+          "marca": "Bierhaus",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/371798/Cerveza-Honey-Lazybee-Bierhaus-473-Ml-_1.jpg?v=639156448571370000",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1690,
+              "precio_lista": 3395,
+              "stock": 55,
+              "link": "https://diaonline.supermercadosdia.com.ar/cerveza-honey-lazybee-bierhaus-473-ml-313120/p",
+              "discount": 50,
+              "promo_label": "50% OFF Directo",
+              "unit_measure": "lt",
+              "unit_price": 3572
+            }
+          ]
+        },
+        {
+          "ean": "7798060850026",
+          "nombre": "Manteca Tonadita Calidad Extra 200 G",
+          "marca": "Tonadita",
+          "imagen": "https://static.cotodigital3.com.ar/sitios/fotos/large/00228600/00228676.jpg",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4399.0,
+              "precio_lista": 4399.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/manteca-tonadita-calidad-extra-200-g/p",
+              "discount": 0,
+              "promo_label": "15% Tarjeta Carrefour",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 21995.0
+            }
+          ]
+        },
+        {
+          "ean": "7798138555186",
+          "nombre": "Protector Diario Doncella Sin Perfume 20 Ud",
+          "marca": "Doncella",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/341793/Protector-Diario-Doncella-Sin-Perfume-Anatomicos-20-Ud-_1.jpg",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1290,
+              "precio_lista": 1290,
+              "stock": 90,
+              "link": "https://diaonline.supermercadosdia.com.ar/protector-diario-doncella-sin-perfume-anatomicos-20-ud-272890/p",
+              "discount": 0,
+              "promo_label": "Precio Ahorro Dia",
+              "unit_measure": "u",
+              "unit_price": 64
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tier-40",
+      "title": "Canasta Básica y Esenciales — Gran Ahorro (25% a 45% OFF)",
+      "subtitle": "Descuentos directos en aceites, detergentes, yerba y lácteos de consumo diario",
+      "badge": "Hasta 45% OFF",
+      "percentLabel": "25% - 45%",
+      "icon": "tag",
+      "meliSponsored": {
+        "product": {
+          "ean": "7790070228147",
+          "nombre": "Aceite Cocinero Girasol 1.5 Lt",
+          "marca": "Cocinero",
+          "imagen": "https://http2.mlstatic.com/D_NQ_NP_698462-MLA99441253166_112025-F.jpg",
+          "offers": []
+        },
+        "offer": {
+          "supermercado": "MercadoLibre",
+          "precio": 7299,
+          "precio_lista": 8500,
+          "stock": 100,
+          "link": "https://www.mercadolibre.com.ar/p/MLA19779083",
+          "seller_name": "Tienda Oficial Cocinero",
+          "is_full": true,
+          "discount": 14,
+          "promo_label": "14% OFF",
+          "unit_measure": "lt",
+          "unit_price": 4866
+        }
+      },
+      "products": [
+        {
+          "ean": "7896004009155",
+          "nombre": "Papas fritas Pringles original 104 g",
+          "marca": "Pringles",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904235/7896004009155_E02.jpg?v=639198971806730000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 3990.0,
+              "precio_lista": 6009.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/papas-fritas-pringles-original-104-g-730295/p",
+              "discount": 34,
+              "promo_label": "34% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 38365.38
+            }
+          ]
+        },
+        {
+          "ean": "7896004009162",
+          "nombre": "Papas fritas Pringles de crema y cebolla 109 g",
+          "marca": "Pringles",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904236/7896004009162_E02.jpg?v=639198972117000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 3990.0,
+              "precio_lista": 6009.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/papas-fritas-pringles-de-crema-y-cebolla-109-g-730296/p",
+              "discount": 34,
+              "promo_label": "34% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 36605.5
+            }
+          ]
+        },
+        {
+          "ean": "7896004009179",
+          "nombre": "Papas fritas Pringles de queso 109 g",
+          "marca": "Pringles",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904237/7896004009179_E02.jpg?v=639198972446000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 3990.0,
+              "precio_lista": 6009.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/papas-fritas-pringles-de-queso-109-g-730297/p",
+              "discount": 34,
+              "promo_label": "34% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 36605.5
+            }
+          ]
+        },
+        {
+          "ean": "7896004011790",
+          "nombre": "Papas fritas Pringles de chedar y bacon 105 grs",
+          "marca": "Pringles",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904325/7896004011790_E02.jpg?v=639198998785000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 3990.0,
+              "precio_lista": 6009.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/papas-fritas-pringles-de-chedar-y-bacon-105-grs-765265/p",
+              "discount": 34,
+              "promo_label": "34% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 38000.0
+            }
+          ]
+        },
+        {
+          "ean": "7791720048085",
+          "nombre": "Aceite mezcla Carrefour Classic 500 ml",
+          "marca": "Carrefour",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/884053/7791720048085_02.jpg?v=639159334824870000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4540.9,
+              "precio_lista": 6550.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/aceite-mezcla-carrefour-classic-500-ml-770486/p",
+              "discount": 31,
+              "promo_label": "31% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 9081.8
+            }
+          ]
+        },
+        {
+          "ean": "7791661000340",
+          "nombre": "Agua mineral sin gas Glaciar bajo sodio bidón 6.4 lts",
+          "marca": "Glaciar",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/901737/7791661000340_02.jpg?v=639195543993300000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 6838.3,
+              "precio_lista": 9769.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/agua-mineral-sin-gas-glaciar-bajo-sodio-bidon-6-4-lts-782415/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 1068.48
+            }
+          ]
+        },
+        {
+          "ean": "7791661000333",
+          "nombre": "Agua de mesa sin gas Nestlé bidón 6.40 lts",
+          "marca": "Nestlé",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/820714/7791661000333_01.jpg?v=639083136223730000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 5057.5,
+              "precio_lista": 7225.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/agua-de-mesa-sin-gas-nestle-bidon-6-40-lts-767822/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 790.23
+            }
+          ]
+        },
+        {
+          "ean": "7795930000543",
+          "nombre": "Agua de mesa sin gas Nestlé 2,25 lts",
+          "marca": "Nestlé",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/171447/7795930000543_01.jpg?v=637468539459000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1914.5,
+              "precio_lista": 2735.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/agua-de-mesa-sin-gas-nestle-225-lts-621525/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 850.89
+            }
+          ]
+        },
+        {
+          "ean": "7792799000011",
+          "nombre": "Agua mineral sin gas Eco de los Andes 500 ml",
+          "marca": "Eco De Los Andes",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/824033/7792799000011_01.jpg?v=639083329795900000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1204.0,
+              "precio_lista": 1720.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/agua-mineral-sin-gas-eco-de-los-andes-500-ml-45322/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 2408.0
+            }
+          ]
+        },
+        {
+          "ean": "7792931000022",
+          "nombre": "Agua mineralizada sin gas Glaciar bajo sodio 1,5 lts",
+          "marca": "Glaciar",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/171443/7792931000022_01.jpg?v=637468539447670000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2170.0,
+              "precio_lista": 3100.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/agua-mineralizada-sin-gas-glaciar-bajo-sodio-15-lts-6287/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 1446.67
+            }
+          ]
+        },
+        {
+          "ean": "7792799000035",
+          "nombre": "Agua mineral con gas Eco de los Andes 500 ml",
+          "marca": "Eco De Los Andes",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/824034/7792799000035_01.jpg?v=639083330391030000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1466.5,
+              "precio_lista": 2095.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/agua-mineral-con-gas-eco-de-los-andes-500-ml-45321/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 2933.0
+            }
+          ]
+        },
+        {
+          "ean": "7792931000015",
+          "nombre": "Agua mineralizada sin gas Glaciar bajo sodio 500 ml",
+          "marca": "Glaciar",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/171442/7792931000015_01.jpg?v=637468539444100000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1389.5,
+              "precio_lista": 1985.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/agua-mineralizada-sin-gas-glaciar-bajo-sodio-500-ml-37478/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 2779.0
+            }
+          ]
+        },
+        {
+          "ean": "7792799000073",
+          "nombre": "Agua mineral con gas Eco de los Andes 1,5 lts",
+          "marca": "Eco De Los Andes",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/171526/7792799000073_01_nuevopack.jpg?v=637468539760000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2114.0,
+              "precio_lista": 3020.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/agua-mineral-con-gas-eco-de-los-andes-15-lts-10141/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 1409.33
+            }
+          ]
+        },
+        {
+          "ean": "7792799000905",
+          "nombre": "Agua de mesa sin gas Nestlé 1,5 lts",
+          "marca": "Nestlé",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/171437/7792799000905_01.jpg?v=637468539434830000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1620.5,
+              "precio_lista": 2315.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/agua-de-mesa-sin-gas-nestle-15-lts-557757/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 1080.33
+            }
+          ]
+        },
+        {
+          "ean": "7792799000899",
+          "nombre": "Agua de mesa sin gas Nestlé 500 ml",
+          "marca": "Nestlé",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/171436/7792799000899_01.jpg?v=637468539431100000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1253.0,
+              "precio_lista": 1790.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/agua-de-mesa-sin-gas-nestle-500-ml-557750/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 2506.0
+            }
+          ]
+        },
+        {
+          "ean": "7792931001050",
+          "nombre": "Agua mineralizada con gas Glaciar bajo sodio 1,5 lts",
+          "marca": "Glaciar",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/824027/7792931001050_01.jpg?v=639083328622930000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2327.5,
+              "precio_lista": 3325.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/agua-mineralizada-con-gas-glaciar-bajo-sodio-15-lts-113861/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 1551.67
+            }
+          ]
+        },
+        {
+          "ean": "2505258000003",
+          "nombre": "Queso sardo Santa Rosa x kg.",
+          "marca": "Santa Rosa",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/181087/2505258000003_01.jpg?v=637468586504770000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 29900.0,
+              "precio_lista": 45645.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/queso-sardo-santa-rosa-x-kg/p",
+              "discount": 34,
+              "promo_label": "34% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 29900.0
+            }
+          ]
+        },
+        {
+          "ean": "7790079024177",
+          "nombre": "Jamón cocido feteado Espuña 200 g.",
+          "marca": "Espuña",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/843523/7790079024177_E02.jpg?v=639106719362400000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 6599.0,
+              "precio_lista": 10000.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/jamon-cocido-feteado-espuna-200-g-730495/p",
+              "discount": 34,
+              "promo_label": "34% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 32995.0
+            }
+          ]
+        },
+        {
+          "ean": "2506434000008",
+          "nombre": "Queso reggianito horma Santa Rosa x kg.",
+          "marca": "Santa Rosa",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/255904/2506434000008_01.jpg?v=637986088893730000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 31900.0,
+              "precio_lista": 46435.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/queso-reggianito-horma-santa-rosa-x-kg-683927/p",
+              "discount": 31,
+              "promo_label": "31% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 31900.0
+            }
+          ]
+        },
+        {
+          "ean": "2505311000001",
+          "nombre": "Queso cremoso La Paulina x kg.",
+          "marca": "La Paulina",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/832128/2505311000001_01.jpg?v=639100386981770000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 8990.0,
+              "precio_lista": 12999.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/queso-cremoso-la-paulina-x-kg-647989/p",
+              "discount": 31,
+              "promo_label": "31% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 8990.0
+            }
+          ]
+        },
+        {
+          "ean": "2509259000000",
+          "nombre": "Queso Port Salut Silvia fraccionado reducido en grasa x kg",
+          "marca": "Silvia",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/843346/2509259000000_02.jpg?v=639106500899930000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 12490.0,
+              "precio_lista": 17949.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/queso-port-salut-silvia-fraccionado-reducido-en-grasa-x-kg-730673/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 12490.0
+            }
+          ]
+        },
+        {
+          "ean": "8445290702302",
+          "nombre": "La Lechera Nutrifuerza 400 grs",
+          "marca": "La Lechera",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/854225/8445290702302_01.jpg?v=639122863815500000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 6132.0,
+              "precio_lista": 8760.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/la-lechera-nutrifuerza-400-grs-721596/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 15330.0
+            }
+          ]
+        },
+        {
+          "ean": "7791720049198",
+          "nombre": "Fideos con morrón El Mercado 500 grs",
+          "marca": "El Mercado",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/901014/7791720049198_02.jpg?v=639191389955800000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2390.0,
+              "precio_lista": 3390.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/fideos-con-morron-el-mercado-500-grs-776620/p",
+              "discount": 30,
+              "promo_label": "30% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 4780.0
+            }
+          ]
+        },
+        {
+          "ean": "7790742363008",
+          "nombre": "Leche La Serenísima Clásica Entera 1 L",
+          "marca": "La Serenísima",
+          "imagen": "https://static.cotodigital3.com.ar/sitios/fotos/large/00251800/00251875.jpg",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 2269.0,
+              "precio_lista": 3030.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/leche-la-serenisima-clasica-3-1l-720719/p",
+              "discount": 25,
+              "promo_label": "25% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "l",
+              "unit_price": 2269.0
+            }
+          ]
+        },
+        {
+          "ean": "7790310985571",
+          "nombre": "Nachos Sabor a Queso Doritos 200 G",
+          "marca": "Doritos",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904460/7790310985571_E01.jpg",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 5699.4,
+              "precio_lista": 9499.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/nachos-sabor-a-queso-doritos-200-g-721960/p",
+              "discount": 40,
+              "promo_label": "2do al 70% ($3.705 c/u x2)",
+              "promo_min_qty": 2,
+              "unit_measure": "kg",
+              "unit_price": 28497.0
+            }
+          ]
+        },
+        {
+          "ean": "7790310985588",
+          "nombre": "Papas Fritas Lays Clásicas 330 G",
+          "marca": "Lays",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904216/7790310985588_E01.jpg",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 6299.4,
+              "precio_lista": 10499.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/papas-fritas-lays-clasicas-330-g-721964/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 19089.09
+            }
+          ]
+        },
+        {
+          "ean": "7790717150857",
+          "nombre": "Cerveza 1890 Quilmes 354 Ml",
+          "marca": "Quilmes",
+          "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/393322/Cerveza-1890-Quilmes-354-Ml-_1.jpg",
+          "offers": [
+            {
+              "supermercado": "Dia",
+              "precio": 1090,
+              "precio_lista": 1890,
+              "stock": 90,
+              "link": "https://diaonline.supermercadosdia.com.ar/cerveza-1890-quilmes-354-ml-14806/p",
+              "discount": 42,
+              "promo_label": "42% OFF Directo",
+              "unit_measure": "lt",
+              "unit_price": 3079
+            }
+          ]
+        },
+        {
+          "ean": "7790310985793",
+          "nombre": "Chizitos de Maíz Queso Cheetos Original 140 G",
+          "marca": "Cheetos",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904233/7790310985793_E01.jpg",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 3509,
+              "precio_lista": 5849,
+              "stock": 50,
+              "link": "https://www.carrefour.com.ar/chizitos-de-maiz-sabor-a-queso-cheetos-original-140-g-729770-/p",
+              "discount": 40,
+              "promo_label": "40% OFF Directo",
+              "unit_measure": "kg",
+              "unit_price": 25064
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "updated_at": "2026-11-01T15:50:33.942753+00:00",
+  "is_live": true,
+  "total_deals": 152,
+  "audited_at": "2026-11-01T15:50:36.801055+00:00",
+  "audit_status": "healthy"
+}

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X, ExternalLink, Flame, CreditCard, MapPinOff, Plus, Minus, Check } from 'lucide-react'
+import { X, ExternalLink, Flame, CreditCard, MapPinOff, Plus, Minus, Check, Package } from 'lucide-react'
 import type { ProductGroup } from '../types'
 import { storeColor, storeLabel } from '../lib/stores'
 import { formatPrice } from '../lib/pricing'
@@ -16,6 +16,35 @@ const OffersSheet: React.FC<{
 }> = ({ open, onClose, group, rows }) => {
   const { add, setQty, qtyOf, items } = useCart()
   const [justAddedKey, setJustAddedKey] = useState<string | null>(null)
+  const [imgIdx, setImgIdx] = useState(0)
+  const [imgFailed, setImgFailed] = useState(false)
+
+  const candidateImages = useMemo(() => {
+    const raw = [
+      group.imagen,
+      ...(group.gallery_images || []),
+      ...(group.offers || []).map(o => o.imagen),
+    ].filter((u): u is string => Boolean(u && u.startsWith('http')))
+    return Array.from(new Set(raw))
+  }, [group.imagen, group.gallery_images, group.offers])
+
+  useEffect(() => {
+    setImgIdx(0)
+    setImgFailed(false)
+  }, [group.ean, group.imagen])
+
+  const handleImgError = () => {
+    if (imgIdx + 1 < candidateImages.length) {
+      setImgIdx(prev => prev + 1)
+    } else {
+      setImgFailed(true)
+    }
+  }
+
+  const brandInitials = (group.marca || group.nombre || 'SV')
+    .trim()
+    .slice(0, 2)
+    .toUpperCase()
 
   const ean = group.ean || group.offers?.[0]?.ean || (group as any).id || group.nombre
   const totalInCart = qtyOf(ean)
@@ -79,7 +108,21 @@ const OffersSheet: React.FC<{
             </div>
 
             <div className="px-4 pb-3 flex items-center gap-3 border-b border-slate-100">
-              <img src={group.imagen} alt="" className="w-12 h-12 object-contain shrink-0" />
+              {!imgFailed && candidateImages.length > 0 ? (
+                <img
+                  src={candidateImages[imgIdx]}
+                  alt={group.nombre}
+                  className="w-12 h-12 object-contain shrink-0"
+                  onError={handleImgError}
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center text-slate-400 shrink-0 select-none">
+                  <Package size={16} className="text-slate-300" />
+                  <span className="text-[9px] font-extrabold tracking-wider text-slate-400">
+                    {brandInitials}
+                  </span>
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Opciones de compra</p>
                 <h3 className="text-[14px] font-semibold text-slate-900 leading-snug line-clamp-2">{group.nombre}</h3>
@@ -98,6 +141,13 @@ const OffersSheet: React.FC<{
                 const rowKey = getItemKey(ean, r.o.supermercado, r.o.sku_id)
                 const rowQty = qtyOf(rowKey)
                 const isJustAdded = justAddedKey === rowKey
+                const promoLabelRaw = r.promo || r.o.promo_label || null
+                const comboUnitHighlight =
+                  promoLabelRaw && promoLabelRaw.includes('(')
+                    ? promoLabelRaw.split('(')[1].replace(')', '').trim()
+                    : r.o.precio_promo_unit && r.o.precio_promo_unit < r.eff
+                    ? `${formatPrice(r.o.precio_promo_unit)} c/u${r.minQty > 1 ? ` x${r.minQty}` : ''}`
+                    : null
 
                 return (
                   <li
@@ -179,10 +229,23 @@ const OffersSheet: React.FC<{
                           </div>
                         )}
 
-                        {r.promo && (
-                          <div className="text-[12px] text-orange-700 font-semibold flex items-center gap-1 mt-0.5">
-                            <Flame size={12} /> {r.promo}
-                            {r.minQty > 1 ? ` · llevando ${r.minQty}` : ''}
+                        {(promoLabelRaw || comboUnitHighlight) && (
+                          <div className="text-[12px] text-orange-700 font-semibold flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <span className="inline-flex items-center gap-1">
+                              <Flame size={12} className="shrink-0" />
+                              <span>{promoLabelRaw ? promoLabelRaw.split('(')[0].trim() : 'Promoción'}</span>
+                              {r.minQty > 1 ? ` · llevando ${r.minQty}` : ''}
+                            </span>
+                            {comboUnitHighlight && (
+                              <span className="text-[11px] font-extrabold text-rose-700 bg-rose-50 border border-rose-200/80 px-1.5 py-0.2 rounded">
+                                {comboUnitHighlight}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {r.minQty > 1 && (
+                          <div className="text-[11px] font-semibold text-slate-600 mt-0.5">
+                            {`Precio unitario en web: ${formatPrice(r.eff)}`}
                           </div>
                         )}
                         {r.club && (

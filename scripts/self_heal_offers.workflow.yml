@@ -1,0 +1,54 @@
+name: Self-Heal Live Offers & Integrity Audit
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit-and-heal:
+    name: Audit & Auto-Heal Live Supermarket Deals
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install httpx fastapi pydantic
+
+      - name: Run Live Offers Audit & Self-Healing
+        run: python scripts/audit_and_heal.py --heal
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install Frontend Dependencies & Run Integrity Tests
+        run: |
+          npm --prefix web ci
+          npm --prefix web test -- --run
+
+      - name: Commit and push updated verified offers snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain api/_lib/verified_offers_snapshot.json)" ]; then
+            git add api/_lib/verified_offers_snapshot.json
+            git commit -m "[skip ci] chore(offers): auto-heal live offers snapshot"
+            git push
+          else
+            echo "No changes in api/_lib/verified_offers_snapshot.json"
+          fi

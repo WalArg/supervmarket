@@ -574,6 +574,185 @@ async def fetch_woocommerce_live(
         return []
 
 
+BAD_VTEX_IMAGE_PATTERNS = (
+    "607590",
+    "879659",
+    "843734",
+    "ids/314352",
+    "ids/345227",
+)
+
+_IMAGE_STORE_RELIABILITY: dict[str, int] = {
+    "Carrefour": 0,
+    "Dia": 1,
+    "Jumbo": 2,
+    "Disco": 3,
+    "Vea": 4,
+    "Masonline": 5,
+    "Coto": 6,
+    "MercadoLibre": 7,
+}
+
+
+def _clean_image_url(url: str | None) -> str:
+    """Filtra URLs de imagen inválidas (no HTTPS) o en lista negra de IDs de VTEX rotos/erróneos."""
+    if not url or not isinstance(url, str):
+        return ""
+    u = url.strip()
+    if u.startswith("//"):
+        u = "https:" + u
+    if not u.startswith("https://"):
+        return ""
+    if any(bad in u for bad in BAD_VTEX_IMAGE_PATTERNS):
+        return ""
+    return u
+
+
+def _build_gallery_images(offers: list[dict], fallback_img: str = "") -> list[str]:
+    """Construye la galería de imágenes válidas HTTPS distintas ordenadas por confiabilidad de cadena."""
+    sorted_offers = sorted(
+        offers,
+        key=lambda o: _IMAGE_STORE_RELIABILITY.get(str(o.get("supermercado") or ""), 99),
+    )
+    gallery: list[str] = []
+    seen: set[str] = set()
+    for off in sorted_offers:
+        img = _clean_image_url(off.get("imagen"))
+        if img and img not in seen:
+            seen.add(img)
+            gallery.append(img)
+    fb = _clean_image_url(fallback_img)
+    if fb and fb not in seen:
+        gallery.append(fb)
+    return gallery
+
+
+_SEMANTIC_MUTUALLY_EXCLUSIVE_PAIRS: list[tuple[set[str], set[str]]] = [
+    # 1. Vinos y espumantes vs Lácteos / Quesos / Cremas / Leche
+    (
+        {
+            "vino", "vinos", "malbec", "cabernet", "merlot", "syrah", "bonarda",
+            "chardonnay", "sauvignon", "torrontes", "espumante", "champagne", "bodega",
+        },
+        {
+            "queso", "quesos", "crema", "yogur", "yogurt", "yogurisimo", "manteca",
+            "leche", "ricota", "muzzarella", "mozzarella", "casancrem", "mendicrim",
+            "finlandia", "untable", "postrecito",
+        },
+    ),
+    # 2. Galletitas vs Alfajores / Helados
+    (
+        {"galletita", "galletitas", "galleta", "galletas", "cracker", "crackers", "tostada", "tostadas"},
+        {"alfajor", "alfajores", "helado", "helados"},
+    ),
+    # 3. Limpieza / Desodorante vs Maquillaje / Cosmética
+    (
+        {
+            "detergente", "jabon liquido", "jabon en polvo", "lavandina", "desodorante",
+            "antitranspirante", "limpiador", "desinfectante", "suavizante", "quitamanchas",
+            "desengrasante", "insecticida", "lustramuebles", "papel higienico", "rollo de cocina",
+        },
+        {
+            "mascara de pestanas", "mascara pestanas", "mascara para pestanas", "pestanas",
+            "pestana", "rimel", "labial", "maquillaje", "esmalte", "delineador", "rubor",
+            "sombra", "corrector", "base fluida",
+        },
+    ),
+    # 4. Aceite comestible (girasol/oliva/maíz/cocina) vs Aceite motor / Lubricante / Automotor
+    (
+        {
+            "girasol", "oliva", "maiz", "canola", "soja", "comestible", "cocina",
+            "mezcla", "natura", "cocinero", "canuelas", "lira", "legitimo", "patito",
+            "molinos", "morixe", "pureza", "vinagre", "mayonesa", "ensalada",
+        },
+        {
+            "aceite motor", "aceite de motor", "aceite para motor", "motor", "lubricante",
+            "lubricantes", "auto", "autos", "automotor", "sintetico", "semisintetico",
+            "multigrado", "10w40", "15w40", "5w30", "5w40", "20w50", "4t", "2t",
+            "anticongelante", "refrigerante", "elaion", "motul", "castrol", "helix",
+        },
+    ),
+    # 5. Alimentos / Bebidas humanas vs Limpieza / Cosmética / Mascotas / Automotor
+    (
+        {
+            "vino", "malbec", "cabernet", "espumante", "cerveza", "gaseosa", "jugo",
+            "galletita", "galletitas", "alfajor", "helado", "fideos", "arroz", "harina",
+            "azucar", "yerba", "cafe", "pan", "manteca", "yogur", "queso", "mayonesa",
+            "ketchup", "mostaza", "atun", "mermelada", "dulce de leche",
+        },
+        {
+            "detergente", "lavandina", "limpiador", "desinfectante", "suavizante",
+            "quitamanchas", "desengrasante", "insecticida", "shampoo", "acondicionador",
+            "desodorante", "antitranspirante", "dentifrico", "mascara de pestanas",
+            "pestanas", "rimel", "labial", "maquillaje", "esmalte", "delineador",
+            "papel higienico", "rollo de cocina", "panal", "panales", "aceite motor",
+            "lubricante", "perro", "perros", "gato", "gatos", "mascota", "mascotas",
+        },
+    ),
+]
+
+_STRICT_SINGLE_TYPE_MARKERS: list[set[str]] = [
+    {"alfajor", "alfajores"},
+    {"helado", "helados"},
+    {"mascara de pestanas", "mascara pestanas", "pestanas", "pestana", "rimel"},
+    {"labial", "esmalte", "delineador", "maquillaje"},
+    {"detergente"},
+    {"lavandina"},
+    {"aceite motor", "aceite de motor", "lubricante", "lubricantes", "10w40", "15w40", "5w30", "5w40", "20w50"},
+]
+
+
+def _matches_kw_set(norm_str: str, tokens: set[str], kw_set: set[str]) -> bool:
+    for kw in kw_set:
+        if " " in kw:
+            if re.search(rf"\b{re.escape(kw)}\b", norm_str):
+                return True
+        elif kw in tokens:
+            return True
+    return False
+
+
+def _is_semantically_coherent(group_name: str, candidate_name: str) -> bool:
+    """Verifica coherencia semántica y de categoría entre el nombre del grupo y un candidato.
+    Previene que un supermercado con un EAN mal cargado mezcle categorías incompatibles
+    (ej: alfajor con galletitas Oreo, queso crema con vino, rímel con detergente, aceite comestible con aceite motor).
+    """
+    if not group_name or not candidate_name:
+        return True
+    n1 = " ".join(_norm_text(group_name).split())
+    n2 = " ".join(_norm_text(candidate_name).split())
+    if not n1 or not n2 or n1 == n2:
+        return True
+
+    t1 = set(n1.split())
+    t2 = set(n2.split())
+
+    # 1. Pares de conjuntos de palabras clave mutuamente excluyentes
+    for set_a, set_b in _SEMANTIC_MUTUALLY_EXCLUSIVE_PAIRS:
+        m1_a = _matches_kw_set(n1, t1, set_a)
+        m1_b = _matches_kw_set(n1, t1, set_b)
+        m2_a = _matches_kw_set(n2, t2, set_a)
+        m2_b = _matches_kw_set(n2, t2, set_b)
+        if (m1_a and m2_b and not m1_b) or (m1_b and m2_a and not m1_a):
+            return False
+
+    # 2. Caso especial: 'aceite' sin palabra automotriz vs 'aceite motor' / 'lubricante' / 'auto'
+    auto_kws = _SEMANTIC_MUTUALLY_EXCLUSIVE_PAIRS[3][1]
+    has_auto_1 = _matches_kw_set(n1, t1, auto_kws)
+    has_auto_2 = _matches_kw_set(n2, t2, auto_kws)
+    if has_auto_1 != has_auto_2:
+        return False
+
+    # 3. Marcadores estrictos de tipo de producto (ej. alfajor vs no-alfajor, helado vs no-helado, rímel vs no-rímel)
+    for marker_set in _STRICT_SINGLE_TYPE_MARKERS:
+        in_1 = _matches_kw_set(n1, t1, marker_set)
+        in_2 = _matches_kw_set(n2, t2, marker_set)
+        if in_1 != in_2:
+            return False
+
+    return True
+
+
 def _to_offer_dict(d: dict) -> dict:
     precio = float(d["precio_venta"])
     p_lista = float(d.get("precio_lista") or precio)
@@ -583,12 +762,15 @@ def _to_offer_dict(d: dict) -> dict:
     else:
         descuento = float(d.get("descuento") or 0.0)
     promo_unit = float(d.get("precio_promo_unit") or precio)
+    offer_imagen = _clean_image_url(d.get("imagen"))
     return {
         "supermercado": d["supermercado"],
         "precio": precio,
         "precio_lista": p_lista,
+        "precio_promo_unit": promo_unit,
         "stock": int(d.get("stock") or 0) > 0,
         "link": d.get("link") or "",
+        "imagen": offer_imagen,
         "sku_id": str(d.get("itemId") or d.get("sku") or ""),
         "unit_price": d.get("unit_price") or d.get("precio_por_unidad"),
         "unit_measure": d.get("unit_type") or d.get("unidad_medida") or "un",
@@ -947,12 +1129,17 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             d_marca = (d.get("marca") or "").strip()
 
         is_canonical_fresh = bool(prod_match or meat_match)
+        clean_d_img = _clean_image_url(d.get("imagen"))
+
+        if not is_canonical_fresh and ean in by_ean:
+            if not _is_semantically_coherent(by_ean[ean]["nombre"], d_nom):
+                ean = f"{ean}_{d['supermercado']}"
 
         g = by_ean.setdefault(ean, {
             "ean": ean,
             "nombre": d_nom if is_canonical_fresh else (d.get("nombre") or ""),
             "marca": d_marca if is_canonical_fresh else (d_marca if _is_valid_brand(d_marca) else "Genérico"),
-            "imagen": d.get("imagen") or "",
+            "imagen": clean_d_img,
             "offers_by_store": {},
             "all_names": set(),
         })
@@ -962,8 +1149,8 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             g["all_names"].add(orig_nom)
             if not is_canonical_fresh and ("24.7" in orig_nom or "24 7" in orig_nom) and not ("24.7" in g["nombre"] or "24 7" in g["nombre"]):
                 g["nombre"] = orig_nom
-        if not g["imagen"] and d.get("imagen"):
-            g["imagen"] = d["imagen"]
+        if not g["imagen"] and clean_d_img:
+            g["imagen"] = clean_d_img
         if not _is_valid_brand(g["marca"]) and _is_valid_brand(d_marca):
             g["marca"] = d_marca
 
@@ -1005,7 +1192,10 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             # 2. Prefijo de fabricante GS1 compatible
             if not _compatible_gs1_prefix(primary_ean, ean):
                 continue
-            # 3. Coherencia de precios (evitar unir un bulto mal rotulado con una unidad)
+            # 3. Coherencia semántica de categoría y tokens
+            if not _is_semantically_coherent(primary_g["nombre"], g["nombre"]):
+                continue
+            # 4. Coherencia de precios (evitar unir un bulto mal rotulado con una unidad)
             p_main = min(o["precio"] for o in primary_g["offers_by_store"].values())
             p_cand = min(o["precio"] for o in g["offers_by_store"].values())
             if not (0.45 <= (p_cand / p_main) <= 2.2):
@@ -1044,12 +1234,17 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
                     o["unit_price"] = sanity_precio_unidad(eff_p, p_u, u_norm)
                     o["unit_measure"] = u_norm
 
+        gallery_images = _build_gallery_images(offers, g.get("imagen") or "")
+        primary_img = gallery_images[0] if gallery_images else _clean_image_url(g.get("imagen"))
+        g["imagen"] = primary_img
+
         # Persistir en el catálogo en memoria de la sesión para el optimizador Smart Cart
         _LIVE_PRODUCTS_MEM[ean] = {
             "ean": ean,
             "nombre": g["nombre"],
             "marca": g["marca"],
-            "imagen": g["imagen"],
+            "imagen": primary_img,
+            "gallery_images": gallery_images,
         }
         mem_offers = _LIVE_OFFERS_MEM.setdefault(ean, {})
         for st, off in g["offers_by_store"].items():
@@ -1086,7 +1281,8 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             "ean": ean,
             "nombre": g["nombre"],
             "marca": g["marca"],
-            "imagen": g["imagen"],
+            "imagen": primary_img,
+            "gallery_images": gallery_images,
             "offers": offers,
             "all_names": list(g.get("all_names") or []),
         })
@@ -1261,13 +1457,21 @@ async def search_live_grouped(
     res = await live_search_and_sync(
         effective_q, limit_per_store=18, only_offers=only_offers, cp=cp
     )
-    raw_groups = [
-        {
+    raw_groups = []
+    for g in res.get("groups", []):
+        coherent_offers = [
+            o for o in g.get("offers", [])
+            if _is_semantically_coherent(g.get("nombre") or "", o.get("nombre") or g.get("nombre") or "")
+        ]
+        if not coherent_offers:
+            continue
+        gallery = _build_gallery_images(coherent_offers, g.get("imagen") or "")
+        raw_groups.append({
             **g,
-            "offers": list(g["offers"]),
-        }
-        for g in res.get("groups", [])
-    ]
+            "imagen": gallery[0] if gallery else _clean_image_url(g.get("imagen")),
+            "gallery_images": gallery,
+            "offers": coherent_offers,
+        })
 
     # 1. Filtro estricto por palabra completa (evita 'Pepsina' o 'Cerveza Imperial' al buscar 'Pepsi',
     #    o 'Bastones' al buscar 'Stones')
@@ -1457,7 +1661,10 @@ async def live_offers_for_eans(
             for mem_ean, offs in _LIVE_OFFERS_MEM.items():
                 if not offs:
                     continue
-                s_nom = _norm_text(list(offs.values())[0].get("nombre") or "")
+                cand_nom = list(offs.values())[0].get("nombre") or ""
+                if not _is_semantically_coherent(names_hint[e], cand_nom):
+                    continue
+                s_nom = _norm_text(cand_nom)
                 if all(w in s_nom for w in nom_words):
                     _LIVE_OFFERS_MEM[e] = offs
                     break
@@ -1470,7 +1677,14 @@ async def live_offers_for_eans(
             names[ean] = prod_info["nombre"]
         store_map = _resolve_mem(ean)
         if store_map:
-            out[ean] = list(store_map.values())
+            hint_name = names_hint.get(ean) or names.get(ean) or ""
+            raw_offs = list(store_map.values())
+            if hint_name:
+                raw_offs = [
+                    o for o in raw_offs
+                    if _is_semantically_coherent(hint_name, o.get("nombre") or hint_name)
+                ]
+            out[ean] = raw_offs
             if ean not in names and out[ean]:
                 names[ean] = out[ean][0].get("nombre") or ean
         if ean not in names and names_hint.get(ean):
