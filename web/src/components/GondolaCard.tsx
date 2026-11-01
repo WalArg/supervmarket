@@ -133,7 +133,11 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
             <span className="text-[15px] font-black tracking-tight text-slate-900 block leading-tight">
               {formatPrice(best.eff)}
             </span>
-            {best.o.precio_lista && best.o.precio_lista > best.eff ? (
+            {best.o.promo_label && best.o.promo_label.includes('(') ? (
+              <span className="text-[10px] font-bold text-rose-600 block truncate max-w-[95px]" title={best.o.promo_label}>
+                {best.o.promo_label.split('(')[1].replace(')', '')}
+              </span>
+            ) : best.o.precio_lista && best.o.precio_lista > best.eff ? (
               <span className="text-[10px] text-slate-400 line-through block">
                 {formatPrice(best.o.precio_lista)}
               </span>
