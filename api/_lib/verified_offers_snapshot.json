@@ -31,86 +31,6 @@
       },
       "products": [
         {
-          "ean": "7790310985571",
-          "nombre": "Nachos sabor a queso Doritos 200 g.",
-          "marca": "Doritos",
-          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904460/7790310985571_E01.jpg?v=639199033551530000",
-          "offers": [
-            {
-              "supermercado": "Carrefour",
-              "precio": 5699.4,
-              "precio_lista": 9499.0,
-              "stock": 99999,
-              "link": "https://www.carrefour.com.ar/nachos-sabor-a-queso-doritos-200-g-721960/p",
-              "discount": 40,
-              "promo_label": "2do al 70% ($3.705 c/u x2)",
-              "promo_min_qty": 2,
-              "unit_measure": "kg",
-              "unit_price": 28497.0
-            }
-          ]
-        },
-        {
-          "ean": "8445292042543",
-          "nombre": "Bolsa para Horno Maggi Finas Hierbas 24 grs",
-          "marca": "Maggi",
-          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904598/8445292042543_01.jpg?v=639201503633270000",
-          "offers": [
-            {
-              "supermercado": "Carrefour",
-              "precio": 1841.4,
-              "precio_lista": 3069.0,
-              "stock": 100,
-              "link": "https://www.carrefour.com.ar/bolsa-para-horno-maggi-finas-hierbas-24-grs-777257/p",
-              "discount": 40,
-              "promo_label": "2do al 70% ($1.197 c/u x2)",
-              "promo_min_qty": 2,
-              "unit_measure": "kg",
-              "unit_price": 76725.0
-            }
-          ]
-        },
-        {
-          "ean": "7460123477814",
-          "nombre": "Sazonador Maggi Completisimo 180 grs",
-          "marca": "Maggi",
-          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904623/7460123477814_01.jpg?v=639201512203000000",
-          "offers": [
-            {
-              "supermercado": "Carrefour",
-              "precio": 4319.4,
-              "precio_lista": 7199.0,
-              "stock": 99999,
-              "link": "https://www.carrefour.com.ar/sazonador-maggi-completisimo-180-grs-777264/p",
-              "discount": 40,
-              "promo_label": "2do al 70% ($2.808 c/u x2)",
-              "promo_min_qty": 2,
-              "unit_measure": "kg",
-              "unit_price": 23996.67
-            }
-          ]
-        },
-        {
-          "ean": "7460123477616",
-          "nombre": "Sazonador Maggi Completisimo con Pimienta 180 grs",
-          "marca": "Maggi",
-          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904626/7460123477616_01.jpg?v=639201513085470000",
-          "offers": [
-            {
-              "supermercado": "Carrefour",
-              "precio": 4323.0,
-              "precio_lista": 7205.0,
-              "stock": 99999,
-              "link": "https://www.carrefour.com.ar/sazonador-maggi-completisimo-con-pimienta-180-grs-777263/p",
-              "discount": 40,
-              "promo_label": "2do al 70% ($2.810 c/u x2)",
-              "promo_min_qty": 2,
-              "unit_measure": "kg",
-              "unit_price": 24016.67
-            }
-          ]
-        },
-        {
           "ean": "7798134193752",
           "nombre": "Whisky Petakon en petaca 380 ml",
           "marca": "Petakon",
@@ -382,7 +302,7 @@
               "supermercado": "Dia",
               "precio": 1050.0,
               "precio_lista": 1850.0,
-              "stock": 206,
+              "stock": 204,
               "link": "https://diaonline.supermercadosdia.com.ar/fideos-tallarin-n5-luchetti-500-gr-299670/p",
               "discount": 43,
               "promo_label": "43% OFF",
@@ -402,7 +322,7 @@
               "supermercado": "Dia",
               "precio": 1050.0,
               "precio_lista": 1850.0,
-              "stock": 326,
+              "stock": 323,
               "link": "https://diaonline.supermercadosdia.com.ar/fideos-mostachol-n51-luchetti-500-gr-299669/p",
               "discount": 43,
               "promo_label": "43% OFF",
@@ -422,7 +342,7 @@
               "supermercado": "Dia",
               "precio": 1050.0,
               "precio_lista": 1850.0,
-              "stock": 313,
+              "stock": 310,
               "link": "https://diaonline.supermercadosdia.com.ar/tirabuzon-n-34-luchetti-500-gr-144397/p",
               "discount": 43,
               "promo_label": "43% OFF",
@@ -462,7 +382,7 @@
               "supermercado": "Dia",
               "precio": 1050.0,
               "precio_lista": 1850.0,
-              "stock": 198,
+              "stock": 194,
               "link": "https://diaonline.supermercadosdia.com.ar/fideos-penne-rigate-n45-luchetti-500-gr-40878/p",
               "discount": 43,
               "promo_label": "43% OFF",
@@ -649,6 +569,86 @@
               "promo_min_qty": 1,
               "unit_measure": "kg",
               "unit_price": 19089.09
+            }
+          ]
+        },
+        {
+          "ean": "7790310985571",
+          "nombre": "Nachos sabor a queso Doritos 200 g.",
+          "marca": "Doritos",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904460/7790310985571_E01.jpg?v=639199033551530000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 5699.4,
+              "precio_lista": 9499.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/nachos-sabor-a-queso-doritos-200-g-721960/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 28497.0
+            }
+          ]
+        },
+        {
+          "ean": "8445292042543",
+          "nombre": "Bolsa para Horno Maggi Finas Hierbas 24 grs",
+          "marca": "Maggi",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904598/8445292042543_01.jpg?v=639201503633270000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 1841.4,
+              "precio_lista": 3069.0,
+              "stock": 100,
+              "link": "https://www.carrefour.com.ar/bolsa-para-horno-maggi-finas-hierbas-24-grs-777257/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 76725.0
+            }
+          ]
+        },
+        {
+          "ean": "7460123477814",
+          "nombre": "Sazonador Maggi Completisimo 180 grs",
+          "marca": "Maggi",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904623/7460123477814_01.jpg?v=639201512203000000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4319.4,
+              "precio_lista": 7199.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/sazonador-maggi-completisimo-180-grs-777264/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 23996.67
+            }
+          ]
+        },
+        {
+          "ean": "7460123477616",
+          "nombre": "Sazonador Maggi Completisimo con Pimienta 180 grs",
+          "marca": "Maggi",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904626/7460123477616_01.jpg?v=639201513085470000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 4323.0,
+              "precio_lista": 7205.0,
+              "stock": 99999,
+              "link": "https://www.carrefour.com.ar/sazonador-maggi-completisimo-con-pimienta-180-grs-777263/p",
+              "discount": 40,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 24016.67
             }
           ]
         },
@@ -862,7 +862,7 @@
               "supermercado": "Dia",
               "precio": 3081.0,
               "precio_lista": 4740.0,
-              "stock": 82,
+              "stock": 81,
               "link": "https://diaonline.supermercadosdia.com.ar/jabon-liquido-skip-bio-enzimas-doypack-800-ml-213543/p",
               "discount": 35,
               "promo_label": "35% OFF",
@@ -1289,26 +1289,6 @@
               "promo_min_qty": 1,
               "unit_measure": "kg",
               "unit_price": 29500.0
-            }
-          ]
-        },
-        {
-          "ean": "7792335000543",
-          "nombre": "Huevos blancos Avicoper 30 uni",
-          "marca": "Avicoper",
-          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/838116/7792335000543_02.jpg?v=639106525648500000",
-          "offers": [
-            {
-              "supermercado": "Carrefour",
-              "precio": 5899.0,
-              "precio_lista": 9499.0,
-              "stock": 10,
-              "link": "https://www.carrefour.com.ar/huevos-blancos-avicoper-30-uni-336472/p",
-              "discount": 38,
-              "promo_label": "38% OFF",
-              "promo_min_qty": 1,
-              "unit_measure": "un",
-              "unit_price": 196.63
             }
           ]
         },
@@ -2467,8 +2447,8 @@
               "stock": 99999,
               "link": "https://www.carrefour.com.ar/nesquik-extra-cacao-chocolatada-listo-para-tomar-200-ml-776885/p",
               "discount": 50,
-              "promo_label": "2x1 ($548 c/u x2)",
-              "promo_min_qty": 2,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
               "unit_measure": "l",
               "unit_price": 5475.0
             }
@@ -2487,8 +2467,8 @@
               "stock": 99999,
               "link": "https://www.carrefour.com.ar/leche-chocolatada-nesquik-200-ml-756480/p",
               "discount": 50,
-              "promo_label": "2x1 ($548 c/u x2)",
-              "promo_min_qty": 2,
+              "promo_label": "50% OFF",
+              "promo_min_qty": 1,
               "unit_measure": "l",
               "unit_price": 5475.0
             }
@@ -2524,7 +2504,7 @@
               "supermercado": "Dia",
               "precio": 1050.0,
               "precio_lista": 1850.0,
-              "stock": 313,
+              "stock": 310,
               "link": "https://diaonline.supermercadosdia.com.ar/tirabuzon-n-34-luchetti-500-gr-144397/p",
               "discount": 43,
               "promo_label": "43% OFF",
@@ -3097,6 +3077,26 @@
           ]
         },
         {
+          "ean": "2509262000004",
+          "nombre": "Salamín tandilero picado grueso Lario x kg.",
+          "marca": "Lario",
+          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/844704/2509262000004_01.jpg?v=639110879977530000",
+          "offers": [
+            {
+              "supermercado": "Carrefour",
+              "precio": 31630.0,
+              "precio_lista": 44069.0,
+              "stock": 10,
+              "link": "https://www.carrefour.com.ar/salamin-tandilero-picado-grueso-lario-x-kg-730908/p",
+              "discount": 28,
+              "promo_label": "28% OFF",
+              "promo_min_qty": 1,
+              "unit_measure": "kg",
+              "unit_price": 31630.0
+            }
+          ]
+        },
+        {
           "ean": "7790742363008",
           "nombre": "Leche La Serenísima Clásica Entera 1 L",
           "marca": "La Serenísima",
@@ -3129,8 +3129,8 @@
               "stock": 99999,
               "link": "https://www.carrefour.com.ar/nachos-sabor-a-queso-doritos-200-g-721960/p",
               "discount": 40,
-              "promo_label": "2do al 70% ($3.705 c/u x2)",
-              "promo_min_qty": 2,
+              "promo_label": "40% OFF",
+              "promo_min_qty": 1,
               "unit_measure": "kg",
               "unit_price": 28497.0
             }
@@ -3197,9 +3197,9 @@
       ]
     }
   ],
-  "updated_at": "2026-11-01T15:50:33.942753+00:00",
+  "updated_at": "2026-11-01T17:00:16.497075+00:00",
   "is_live": true,
   "total_deals": 152,
-  "audited_at": "2026-11-01T15:50:36.801055+00:00",
+  "audited_at": "2026-11-01T17:00:20.790446+00:00",
   "audit_status": "healthy"
 }

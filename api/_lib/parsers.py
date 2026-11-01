@@ -285,6 +285,12 @@ def _parse_active_teaser(text: str, base_price: float, list_price: float,
     low = clean.lower()
     is_club = force_club or any(k in low for k in CLUB_KEYWORDS)
 
+    # Las promociones por volumen (2do al X%, NxM) en los supermercados se calculan
+    # sobre el precio de lista regular (list_price), NUNCA sobre un precio de oferta ya rebajado (base_price).
+    # Si base_price < list_price, la promo por volumen sólo aplica si el precio unitario resultante
+    # desde list_price es estrictamente menor que el precio de oferta directa base_price.
+    ref_price = list_price if list_price and list_price > 0 else base_price
+
     m_2do = re.search(
         r"(?:2d[oa](?:\s+unidad)?\s+al\s*(\d+)\s*%)|(?:(\d+)\s*%\s*(?:off\s+)?.*?(?:2da|segunda)\s+unidad)",
         low,
@@ -293,7 +299,12 @@ def _parse_active_teaser(text: str, base_price: float, list_price: float,
         pct_val = int(m_2do.group(1) or m_2do.group(2))
         if 10 <= pct_val <= 95:
             d = pct_val / 100.0
-            eff_unit = round(base_price * (2.0 - d) / 2.0, 2)
+            eff_unit = round(ref_price * (2.0 - d) / 2.0, 2)
+            # Si el producto ya tiene un descuento directo (base_price) y ese precio ya es menor
+            # o igual al descuento por volumen sobre lista (eff_unit >= base_price),
+            # el supermercado aplica el descuento directo a cada unidad sin acumular.
+            if eff_unit >= base_price and base_price < list_price:
+                return None
             label = f"2do al {pct_val}%" + (" (Club/Tarjeta)" if is_club else "")
             return {
                 "promo_etiqueta": label,
@@ -307,7 +318,9 @@ def _parse_active_teaser(text: str, base_price: float, list_price: float,
     if m_nxm:
         n, m = int(m_nxm.group(1)), int(m_nxm.group(2))
         if n > m > 0:
-            eff_unit = round(base_price * (m / n), 2)
+            eff_unit = round(ref_price * (m / n), 2)
+            if eff_unit >= base_price and base_price < list_price:
+                return None
             label = f"{n}x{m}" + (" (Tu Farmacity/Club)" if is_club else "")
             return {
                 "promo_etiqueta": label,
@@ -321,7 +334,7 @@ def _parse_active_teaser(text: str, base_price: float, list_price: float,
     if m_pct:
         pct_val = int(m_pct.group(1))
         if 5 <= pct_val <= 70:
-            eff_unit = round(base_price * (1.0 - pct_val / 100.0), 2)
+            eff_unit = round(ref_price * (1.0 - pct_val / 100.0), 2)
             if is_club:
                 if "carrefour" in low:
                     tag = f"{pct_val}% Tarjeta Carrefour"
@@ -339,6 +352,8 @@ def _parse_active_teaser(text: str, base_price: float, list_price: float,
                     "requiere_club": True,
                 }
             else:
+                if eff_unit >= base_price and base_price < list_price:
+                    return None
                 return {
                     "promo_etiqueta": f"{pct_val}% OFF",
                     "promo_tipo": "DIRECT",
