@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
-import { Flame, MapPin, ChevronDown, Plus, Search } from 'lucide-react'
-import { DISCOUNT_TIERS } from '../data/gondolasData'
+import React, { useState, useEffect } from 'react'
+import { Flame, MapPin, ChevronDown, Plus, Search, RefreshCw } from 'lucide-react'
+import { DISCOUNT_TIERS, type DiscountTier } from '../data/gondolasData'
+import { getLiveOffers } from '../api'
 import { useLocation } from '../location/LocationContext'
 import GondolaCard from './GondolaCard'
 import SponsoredGondolaCard from './SponsoredGondolaCard'
@@ -11,9 +12,54 @@ interface OffersScreenProps {
 
 export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
   const { cp, locationLabel, openModal } = useLocation()
+  const [tiers, setTiers] = useState<DiscountTier[]>(DISCOUNT_TIERS)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isLive, setIsLive] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
   const [selectedFilter, setSelectedFilter] = useState<string>('all')
   // Cantidad de productos visibles por nivel de carrusel (inicialmente 3, expandible con "Cargar más")
   const [visibleCountByTier, setVisibleCountByTier] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    let mounted = true
+    const fetchOffers = async () => {
+      try {
+        const data = await getLiveOffers(cp)
+        if (mounted && data?.tiers?.length) {
+          setTiers(data.tiers)
+          setIsLive(!!data.is_live)
+          if (data.updated_at) {
+            setLastUpdated(data.updated_at)
+          }
+        }
+      } catch (err) {
+        // Fallback al baseline curado si la API no está disponible
+      }
+    }
+    fetchOffers()
+    return () => {
+      mounted = false
+    }
+  }, [cp])
+
+  const handleRefresh = async () => {
+    if (isRefreshing) return
+    setIsRefreshing(true)
+    try {
+      const data = await getLiveOffers(cp, true)
+      if (data?.tiers?.length) {
+        setTiers(data.tiers)
+        setIsLive(!!data.is_live)
+        if (data.updated_at) {
+          setLastUpdated(data.updated_at)
+        }
+      }
+    } catch (err) {
+      // Silencioso en error
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   const getVisibleCount = (tierId: string) => visibleCountByTier[tierId] ?? 3
 
@@ -38,21 +84,42 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
                 <h1 className="text-[19px] font-extrabold tracking-tight text-slate-900 leading-none">
                   Ofertas
                 </h1>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  Mayores descuentos del día comparados en vivo
-                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Mayores descuentos del día comparados en vivo
+                  </p>
+                  {isLive && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Hoy
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={openModal}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50/90 hover:bg-blue-100/80 border border-blue-200/80 text-blue-700 text-[11px] font-bold active:scale-95 transition-all max-w-[170px] shadow-2xs"
-            >
-              <MapPin size={12} className="text-blue-600 shrink-0" />
-              <span className="truncate">{locationLabel || (cp ? `CP ${cp}` : 'Elegir zona')}</span>
-              <ChevronDown size={11} className="text-blue-500 shrink-0" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                aria-label="Actualizar ofertas en vivo"
+                title="Actualizar ofertas de hoy en vivo"
+                className="w-7 h-7 rounded-full bg-slate-100/90 hover:bg-slate-200/90 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 shadow-2xs cursor-pointer"
+              >
+                <RefreshCw size={12} className={isRefreshing ? 'animate-spin text-rose-600' : ''} />
+              </button>
+
+              <button
+                type="button"
+                onClick={openModal}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50/90 hover:bg-blue-100/80 border border-blue-200/80 text-blue-700 text-[11px] font-bold active:scale-95 transition-all max-w-[145px] shadow-2xs"
+              >
+                <MapPin size={12} className="text-blue-600 shrink-0" />
+                <span className="truncate">{locationLabel || (cp ? `CP ${cp}` : 'Elegir zona')}</span>
+                <ChevronDown size={11} className="text-blue-500 shrink-0" />
+              </button>
+            </div>
           </div>
 
           {/* Filtros rápidos exclusivamente por rangos de descuentos grandes */}
@@ -68,7 +135,7 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
             >
               Todos los Descuentos
             </button>
-            {DISCOUNT_TIERS.map(tier => (
+            {tiers.map(tier => (
               <button
                 key={tier.id}
                 type="button"
@@ -88,7 +155,7 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
 
       <main className="px-4 pt-3 space-y-6">
         {/* SECCIONES POR RANGOS DE DESCUENTOS GRANDES (70%-80%, Liquidaciones, 50% y 2x1, Canasta Básica) */}
-        {DISCOUNT_TIERS.filter(
+        {tiers.filter(
           tier => selectedFilter === 'all' || selectedFilter === tier.id,
         ).map((tier, idx) => {
           const visibleLimit = getVisibleCount(tier.id)

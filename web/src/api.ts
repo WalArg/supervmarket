@@ -7,10 +7,28 @@ import type {
   StatsSummary,
   BenefitsCatalog,
 } from './types'
+import type { DiscountTier } from './data/gondolasData'
 
 // Mismo origen por defecto (/api en Vercel). VITE_API_URL para apuntar a otro host.
 const base = import.meta.env.VITE_API_URL || ''
 const http = axios.create({ baseURL: base })
+
+export interface LiveOffersResponse {
+  tiers: DiscountTier[]
+  updated_at: string
+  is_live: boolean
+  total_deals: number
+}
+
+export async function getLiveOffers(
+  cp?: string | null,
+  force: boolean = false,
+): Promise<LiveOffersResponse> {
+  const { data } = await http.get('/api/offers', {
+    params: { ...(cp ? { cp } : {}), ...(force ? { force: 'true' } : {}) },
+  })
+  return data
+}
 
 export async function searchProducts(
   q: string,

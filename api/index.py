@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 sys.path.insert(0, os.path.dirname(__file__))
-from _lib import db, optimizer, carts, regions, vtex_mcp, benefits, mercadolibre, geocoding, ai  # noqa: E402
+from _lib import db, optimizer, carts, regions, vtex_mcp, benefits, mercadolibre, geocoding, ai, deals  # noqa: E402
 from _lib.stores import VTEX_DOMAINS, COMPARE_ONLY        # noqa: E402
 
 STORE_NAMES_LOWER = {s.lower() for s in (*VTEX_DOMAINS.keys(), *COMPARE_ONLY, "thefoodmarket")}
@@ -99,6 +99,12 @@ async def search(
     return await vtex_mcp.search_live_grouped(
         q, sort_by=sort, only_offers=only_offers, cp=cp
     )
+
+
+@app.get("/api/offers")
+async def offers(cp: str | None = None, force: bool = False):
+    """Ofertas y mayores descuentos del día comparados en vivo (70%-80%, liquidaciones, 50% y canasta básica)."""
+    return await deals.get_live_discount_tiers(cp=cp, force=force)
 
 
 @app.get("/api/mcp/search")
