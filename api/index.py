@@ -89,21 +89,63 @@ async def stats():
     return vtex_mcp.live_stats_summary()
 
 
+def _normalize_filter_param(val: str | None) -> str | None:
+    """Normalize query filter parameter: strip whitespace, lowercase, map 'todos'/'all'/'' to None."""
+    if not val:
+        return None
+    s = val.strip().lower()
+    return None if s in ("todos", "all", "") else s
+
+
 @app.get("/api/search")
 async def search(
     q: str = "",
     sort: str = "price_asc",
     only_offers: bool = False,
     cp: str | None = None,
+    vertical: str | None = None,
+    store_type: str | None = None,
+    grocery_only: bool = False,
 ):
-    return await vtex_mcp.search_live_grouped(
-        q, sort_by=sort, only_offers=only_offers, cp=cp
-    )
+    clean_v = _normalize_filter_param(vertical)
+    clean_st = _normalize_filter_param(store_type)
+
+    results = []
+    try:
+        results = await vtex_mcp.search_live_grouped(
+            q,
+            sort_by=sort,
+            only_offers=only_offers,
+            cp=cp,
+            vertical=clean_v,
+            store_type=clean_st,
+            grocery_only=grocery_only,
+        )
+    except Exception:
+        results = []
+
+    # Resilient fallback to DB if live search returns 0 items (e.g. offline testing or transient network failure)
+    if not results and q.strip():
+        try:
+            results = await db.search_grouped(
+                q,
+                sort_by=sort,
+                only_offers=only_offers,
+                vertical=clean_v,
+                store_type=clean_st,
+                grocery_only=grocery_only,
+            )
+        except Exception:
+            results = []
+    return results
 
 
 @app.get("/api/offers")
 async def offers(cp: str | None = None, force: bool = False):
-    """Ofertas y mayores descuentos del día comparados en vivo (70%-80%, liquidaciones, 50% y canasta básica)."""
+    """Ofertas y mayores descuentos del día comparados en vivo:
+    - Supermercados: 70%-80%, liquidaciones directas, 50% y canasta básica.
+    - Marketplaces: Electro & Tech, Hogar & Taller, y Ofertas Destacadas con cuotas y sellers.
+    """
     return await deals.get_live_discount_tiers(cp=cp, force=force)
 
 
@@ -167,14 +209,50 @@ async def health_audit(cp: str | None = None):
 
 
 @app.get("/api/mcp/search")
-async def mcp_live_search(q: str, limit_per_store: int = 18):
+async def mcp_live_search(
+    q: str,
+    limit_per_store: int = 18,
+    vertical: str | None = None,
+    store_type: str | None = None,
+    grocery_only: bool = False,
+):
     """Endpoint directo del conector MCP VTEX + Coto para diagnóstico e integración."""
-    sync_res = await vtex_mcp.live_search_and_sync(q, limit_per_store=limit_per_store, force=True)
-    grouped = await db.search_grouped(q, sort_by="price_asc", only_offers=False)
+    clean_v = _normalize_filter_param(vertical)
+    clean_st = _normalize_filter_param(store_type)
+
+    sync_res = {}
+    try:
+        sync_res = await vtex_mcp.live_search_and_sync(
+            q,
+            limit_per_store=limit_per_store,
+            force=True,
+            vertical=clean_v,
+            store_type=clean_st,
+            grocery_only=grocery_only,
+        )
+    except Exception:
+        sync_res = {"synced": 0, "stores": {}}
+
+    grouped = []
+    try:
+        grouped = await db.search_grouped(
+            q,
+            sort_by="price_asc",
+            only_offers=False,
+            vertical=clean_v,
+            store_type=clean_st,
+            grocery_only=grocery_only,
+        )
+    except Exception:
+        grouped = []
+
     return {
         "query": q,
-        "synced_offers": sync_res.get("synced", 0),
-        "stores_hit": sync_res.get("stores", {}),
+        "vertical": clean_v,
+        "store_type": clean_st,
+        "grocery_only": grocery_only,
+        "synced_offers": sync_res.get("synced", 0) if isinstance(sync_res, dict) else 0,
+        "stores_hit": sync_res.get("stores", {}) if isinstance(sync_res, dict) else {},
         "grouped_count": len(grouped),
         "results": grouped[:40],
     }

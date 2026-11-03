@@ -15,6 +15,7 @@ const http = axios.create({ baseURL: base })
 
 export interface LiveOffersResponse {
   tiers: DiscountTier[]
+  marketplace_tiers?: DiscountTier[]
   updated_at: string
   is_live: boolean
   total_deals: number
@@ -30,14 +31,84 @@ export async function getLiveOffers(
   return data
 }
 
+export interface SearchFilterOpts {
+  vertical?: string | null
+  store_type?: string | null
+  grocery_only?: boolean
+}
+
 export async function searchProducts(
   q: string,
   sort: string,
   onlyOffers: boolean = false,
   cp?: string | null,
+  filterOptsOrVertical?: SearchFilterOpts | string | null,
+  storeType?: string | null,
+  groceryOnly: boolean = false,
 ): Promise<ProductGroup[]> {
-  const { data } = await http.get('/api/search', {
-    params: { q, sort, only_offers: onlyOffers, ...(cp ? { cp } : {}) },
+  const params: Record<string, any> = {
+    q,
+    sort,
+    only_offers: onlyOffers,
+  }
+  if (cp) params.cp = cp
+
+  let vert: string | null = null
+  let sType: string | null = null
+  let gOnly: boolean = false
+
+  if (typeof filterOptsOrVertical === 'object' && filterOptsOrVertical !== null) {
+    vert = filterOptsOrVertical.vertical ?? null
+    sType = filterOptsOrVertical.store_type ?? null
+    gOnly = Boolean(filterOptsOrVertical.grocery_only)
+  } else if (typeof filterOptsOrVertical === 'string') {
+    vert = filterOptsOrVertical
+    sType = storeType ?? null
+    gOnly = Boolean(groceryOnly)
+  }
+
+  if (vert && vert !== 'all' && vert !== 'todos') {
+    params.vertical = vert
+  }
+  if (sType && sType !== 'all' && sType !== 'todos') {
+    params.store_type = sType
+  }
+  if (gOnly) {
+    params.grocery_only = true
+  }
+
+  const { data } = await http.get('/api/search', { params })
+  return data
+}
+
+export interface McpLiveSearchResult {
+  query: string
+  vertical?: string | null
+  store_type?: string | null
+  grocery_only: boolean
+  synced_offers: number
+  stores_hit: Record<string, number>
+  grouped_count: number
+  results: ProductGroup[]
+}
+
+export async function searchLiveMCP(
+  q: string,
+  opts?: {
+    limit_per_store?: number
+    vertical?: string | null
+    store_type?: string | null
+    grocery_only?: boolean
+  },
+): Promise<McpLiveSearchResult> {
+  const { data } = await http.get('/api/mcp/search', {
+    params: {
+      q,
+      limit_per_store: opts?.limit_per_store ?? 18,
+      ...(opts?.vertical ? { vertical: opts.vertical } : {}),
+      ...(opts?.store_type ? { store_type: opts.store_type } : {}),
+      ...(opts?.grocery_only !== undefined ? { grocery_only: opts.grocery_only } : {}),
+    },
   })
   return data
 }

@@ -158,9 +158,16 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
 
         {/* Información textual */}
         <div className="mt-2 flex-1 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
-            {group.marca}
-          </p>
+          <div className="flex items-center gap-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
+              {group.marca}
+            </p>
+            {group.modelo && (
+              <span className="text-[9px] font-mono font-bold bg-slate-100 text-slate-600 px-1 py-0.2 rounded truncate">
+                {group.modelo}
+              </span>
+            )}
+          </div>
           <h4 className="text-[12px] font-semibold text-slate-800 line-clamp-2 leading-snug mt-0.5 h-[32px]">
             {group.nombre}
           </h4>
@@ -173,7 +180,28 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
             style={{ background: storeColor(best.o.supermercado) }}
           />
           <span className="truncate">en {storeLabel(best.o.supermercado)}</span>
+          {best.o.seller_name && best.o.seller_name.toLowerCase() !== storeLabel(best.o.supermercado).toLowerCase() && (
+            <span className="text-[9.5px] font-normal text-slate-400 truncate" title={`Vendido por ${best.o.seller_name}`}>
+              · {best.o.seller_name}
+            </span>
+          )}
         </div>
+
+        {/* Cuotas y financiación */}
+        {best.o.cuotas && best.o.cuotas > 1 && (
+          <div className="mt-1">
+            <span
+              className={`inline-flex items-center gap-0.5 text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md truncate max-w-full ${
+                best.o.sin_interes
+                  ? 'text-emerald-800 bg-emerald-50 border border-emerald-200/80'
+                  : 'text-indigo-800 bg-indigo-50 border border-indigo-200/80'
+              }`}
+              title={best.o.cuotas_info || `${best.o.cuotas} cuotas`}
+            >
+              💳 {best.o.cuotas} cuotas {best.o.sin_interes ? 'sin interés' : 'fijas'}
+            </span>
+          </div>
+        )}
 
         {/* Precio y Botón Agregar al Carrito */}
         <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
@@ -188,6 +216,11 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
                 </span>
               ) : null}
             </div>
+            {best.o.cuotas && best.o.cuotas > 1 && best.o.cuota_monto && best.o.cuota_monto > 0 ? (
+              <span className="text-[10px] text-emerald-700 font-bold block leading-none mt-0.5">
+                {best.o.cuotas}x {formatPrice(best.o.cuota_monto)}
+              </span>
+            ) : null}
             {promoUnitText ? (
               <span
                 className="mt-0.5 inline-block text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200/70 px-1.5 py-0.2 rounded truncate max-w-[95px]"

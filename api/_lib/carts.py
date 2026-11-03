@@ -1,13 +1,15 @@
 """Validación de carrito EN VIVO y regionalizada (stock + precio c/promos + envío según CP).
 
 Usa la simulación pública de VTEX (`/api/checkout/pub/orderForms/simulation?sc=XX`),
-pasando el Sales Channel correcto de cada cadena (Jumbo=32, Disco=33, Vea=34, Farmacity=4, etc.),
-calculando el precio real con descuentos por cantidad (`sellingPrice` y `totals`) y separando
+pasando el Sales Channel correcto de cada cadena (Jumbo=32, Disco=33, Vea=34, Farmacity=4, On City=2, Moulinex=3, Josimar=5, etc.),
+calculando el precio real con descuentos por cantidad (`sellingPrice` y `totals`), preservando
+el seller_id dinámico de cada ítem en marketplaces (`seller={seller_id}`), y separando
 el costo de Envío a Domicilio (`delivery`) del Retiro en Sucursal (`pickup-in-point`).
 """
 import httpx
 from .stores import (
     VTEX_DOMAINS,
+    get_store_meta,
     supports_cart,
     free_shipping_threshold,
     sales_channel,
@@ -24,14 +26,33 @@ HEADERS = {
 
 
 def guest_link(store: str, items: list[dict], seller: str = "1") -> str | None:
+    """Genera el enlace de compra directa / checkout preservando el seller_id dinámico por cada ítem."""
     if not supports_cart(store):
         return None
-    sc = sales_channel(store)
-    parts = [
-        f"sku={i['sku_id']}&qty={i.get('qty', 1)}&seller={i.get('seller') or seller}&sc={sc}"
-        for i in items if i.get("sku_id")
-    ]
-    raw_url = f"{VTEX_DOMAINS[store]}/checkout/cart/add?{'&'.join(parts)}"
+
+    domain = VTEX_DOMAINS.get(store)
+    if not domain:
+        meta = get_store_meta(store)
+        domain = meta["dominio"] if meta and meta.get("plataforma") == "vtex" else None
+    if not domain:
+        return None
+
+    default_sc = sales_channel(store)
+    parts = []
+    for i in items:
+        sku = i.get("sku_id")
+        if not sku:
+            continue
+        qty = i.get("qty", 1)
+        # Resuelve dinámicamente: seller_id del dict (LiveOffer/parsers) -> seller -> parámetro fallback -> "1"
+        item_seller = str(i.get("seller_id") or i.get("seller") or seller or "1")
+        item_sc = str(i.get("sc") or i.get("sales_channel") or default_sc)
+        parts.append(f"sku={sku}&qty={qty}&seller={item_seller}&sc={item_sc}")
+
+    if not parts:
+        return None
+
+    raw_url = f"{domain}/checkout/cart/add?{'&'.join(parts)}"
     return decorate_store_url(raw_url, store, "checkout")
 
 
@@ -43,23 +64,29 @@ async def validate_cart(store: str, items: list[dict], cp: str | None = None) ->
             "checkout_url": None,
         }
 
-    base = VTEX_DOMAINS[store]
+    meta = get_store_meta(store)
+    base = VTEX_DOMAINS.get(store) or (meta["dominio"] if meta else None)
+    if not base:
+        return {"status": "error", "message": f"Dominio no encontrado para {store}", "checkout_url": None}
+
     sc = sales_channel(store)
     valid_items = [i for i in items if i.get("sku_id")]
     if not valid_items:
         return {"status": "error", "message": "Sin SKUs válidos para simular.", "checkout_url": None}
 
-    def _make_payload(seller_id: str) -> dict:
-        p: dict = {
+    def _make_payload(default_seller: str = "1") -> dict:
+        return {
             "items": [
-                {"id": str(i["sku_id"]), "quantity": int(i.get("qty", 1)), "seller": seller_id}
+                {
+                    "id": str(i["sku_id"]),
+                    "quantity": int(i.get("qty", 1)),
+                    "seller": str(i.get("seller_id") or i.get("seller") or default_seller or "1"),
+                }
                 for i in valid_items
             ],
             "country": "ARG",
+            **({"postalCode": cp} if cp else {}),
         }
-        if cp:
-            p["postalCode"] = cp
-        return p
 
     try:
         async with httpx.AsyncClient(timeout=18) as client:
@@ -71,12 +98,23 @@ async def validate_cart(store: str, items: list[dict], cp: str | None = None) ->
             )
             sim = r.json()
 
-            # Si con seller="1" VTEX no encontró los ítems y hay un seller regional para ese CP, reintentar
-            if not sim.get("items") and cp:
+            # Si con seller="1" VTEX no encontró stock para ítems que dependían del seller por defecto,
+            # y hay un seller regional para ese CP, reintentar con el seller regional
+            items_returned = sim.get("items") or []
+            has_unresolved_items = (
+                not items_returned
+                or any(it.get("availability") != "available" for it in items_returned)
+            )
+            has_default_seller_items = any(
+                not (i.get("seller_id") or i.get("seller"))
+                for i in valid_items
+            )
+
+            if has_unresolved_items and has_default_seller_items and cp:
                 cov = await regions.coverage(cp)
                 store_cov = next((c for c in cov if c["supermercado"] == store), None)
                 reg_sellers = (store_cov or {}).get("sellers") or []
-                if reg_sellers and reg_sellers[0] != "1":
+                if reg_sellers and str(reg_sellers[0]) != "1":
                     r2 = await client.post(
                         f"{base}/api/checkout/pub/orderForms/simulation",
                         params={"sc": sc},

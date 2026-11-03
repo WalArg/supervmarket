@@ -10,6 +10,8 @@ export interface MeliOption {
   link: string
 }
 
+export type StoreVertical = 'supermarket' | 'marketplace' | 'electro' | 'specialty' | 'pharmacy'
+
 export interface Offer {
   supermercado: string
   precio: number
@@ -32,6 +34,10 @@ export interface Offer {
   supports_cart?: boolean
   // Marketplace / Mercado Libre transparency
   seller_name?: string | null
+  seller_id?: string | null
+  store_type?: string | null
+  vertical?: StoreVertical | string | null
+  modelo?: string | null
   seller_reputation?: string | null
   power_seller_status?: string | null
   free_shipping?: boolean
@@ -39,6 +45,12 @@ export interface Offer {
   shipping_cost?: number | null
   is_full?: boolean
   meli_options?: MeliOption[]
+  // Financing and installments
+  cuotas?: number | null
+  sin_interes?: boolean | null
+  cuotas_info?: string | null
+  cuota_monto?: number | null
+  disponible?: boolean | null
 }
 
 export type SupermarketOffer = Offer
@@ -46,10 +58,17 @@ export type SupermarketOffer = Offer
 export interface ProductGroup {
   id?: string
   ean: string
+  primary_ean?: string
   nombre: string
   marca: string
+  modelo?: string
+  model_key?: string
+  tipo?: string
+  vertical?: StoreVertical | string
+  categoria_normalizada?: string
   imagen: string
   gallery_images?: string[]
+  best_offer?: Offer
   offers: Offer[]
   all_names?: string[]
 }

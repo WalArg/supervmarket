@@ -15,6 +15,7 @@ from .stores import (
     supports_cart, free_shipping_threshold, estimated_shipping_cost,
     VTEX_DOMAINS, sales_channel, decorate_store_url,
 )
+from .carts import guest_link
 from . import regions, vtex_mcp, benefits
 
 MODES = {"ahorro": (2, 3), "comodidad": (1, 1), "balanceada": (1, 2)}
@@ -359,20 +360,16 @@ def _build_carts(
 
         checkout = None
         if is_vtex:
-            sc = sales_channel(store)
-            parts = [
-                f"sku={i['sku_id']}&qty={i['qty']}&seller=1&sc={sc}"
-                for i in items if i.get("sku_id")
-            ]
-            checkout = f"{VTEX_DOMAINS[store]}/checkout/cart/add?{'&'.join(parts)}"
-        elif len(items) == 1 and items[0].get("link"):
-            checkout = items[0].get("link")
-        elif store == "Coto":
-            checkout = "https://www.cotodigital3.com.ar/sitios/cdigi/"
-        elif store == "MercadoLibre":
-            checkout = items[0].get("link") if (items and len(items) == 1 and items[0].get("link")) else "https://www.mercadolibre.com.ar/gz/cart"
-        elif items and items[0].get("link"):
-            checkout = items[0].get("link")
+            checkout = guest_link(store, items)
+        if not checkout:
+            if len(items) == 1 and items[0].get("link"):
+                checkout = items[0].get("link")
+            elif store == "Coto":
+                checkout = "https://www.cotodigital3.com.ar/sitios/cdigi/"
+            elif store == "MercadoLibre":
+                checkout = items[0].get("link") if (items and len(items) == 1 and items[0].get("link")) else "https://www.mercadolibre.com.ar/gz/cart"
+            elif items and items[0].get("link"):
+                checkout = items[0].get("link")
 
         if checkout:
             checkout = decorate_store_url(checkout, store, "checkout")

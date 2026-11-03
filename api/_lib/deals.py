@@ -523,6 +523,610 @@ BASELINE_TIERS = [
 ]
 
 
+BASELINE_MARKETPLACE_TIERS = [
+    {
+        "id": "tier-mp-electro",
+        "title": "Electrodomésticos y Tecnología — Hasta 40% OFF y Cuotas",
+        "subtitle": "Smart TVs, celulares, notebooks, lavarropas y heladeras con financiación",
+        "badge": "Electro & Tech",
+        "percentLabel": "Hasta 40% OFF + Cuotas",
+        "icon": "zap",
+        "products": [
+            {
+                "id": "8806095483245",
+                "ean": "8806095483245",
+                "primary_ean": "8806095483245",
+                "nombre": "Smart TV Samsung 50 pulgadas Crystal UHD 4K UN50DU7000",
+                "marca": "Samsung",
+                "modelo": "UN50DU7000",
+                "model_key": "MODEL_SAMSUNG_UN50DU7000",
+                "tipo": "electro",
+                "vertical": "electro",
+                "imagen": "https://carrefourar.vtexassets.com/arquivos/ids/623696/8806095459345_01.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Provincia Compras",
+                        "precio": 649999.0,
+                        "precio_lista": 899999.0,
+                        "stock": 25,
+                        "disponible": True,
+                        "discount": 28,
+                        "promo_label": "28% OFF + 24 Cuotas sin interés",
+                        "seller_name": "Samsung Oficial",
+                        "seller_id": "1",
+                        "store_type": "marketplace",
+                        "modelo": "UN50DU7000",
+                        "tipo": "electro",
+                        "cuotas": 24,
+                        "sin_interes": True,
+                        "cuotas_info": "24 cuotas sin interés de $27.083 con Banco Provincia",
+                        "cuota_monto": 27083.29,
+                        "link": "https://www.provinciacompras.com.ar/smart-tv-samsung-50-crystal-uhd-4k-un50du7000/p",
+                    },
+                    {
+                        "supermercado": "Fravega",
+                        "precio": 679999.0,
+                        "precio_lista": 899999.0,
+                        "stock": 40,
+                        "disponible": True,
+                        "discount": 24,
+                        "promo_label": "24% OFF",
+                        "seller_name": "Frávega",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "modelo": "UN50DU7000",
+                        "tipo": "electro",
+                        "cuotas": 6,
+                        "sin_interes": True,
+                        "cuotas_info": "6 cuotas sin interés de $113.333",
+                        "cuota_monto": 113333.17,
+                        "link": "https://www.fravega.com/p/smart-tv-samsung-50-crystal-uhd-4k-un50du7000-502847/p",
+                    },
+                ],
+            },
+            {
+                "id": "8806095368290",
+                "ean": "8806095368290",
+                "primary_ean": "8806095368290",
+                "nombre": "Celular Samsung Galaxy A15 128GB 4GB RAM Azul",
+                "marca": "Samsung",
+                "modelo": "SM-A155M",
+                "model_key": "MODEL_SAMSUNG_SMA155M_128GB",
+                "tipo": "celulares",
+                "vertical": "electro",
+                "imagen": "https://fravega.vtexassets.com/arquivos/ids/1628352/SM-A155M_01.jpg",
+                "offers": [
+                    {
+                        "supermercado": "On City",
+                        "precio": 299999.0,
+                        "precio_lista": 399999.0,
+                        "stock": 50,
+                        "disponible": True,
+                        "discount": 25,
+                        "promo_label": "25% OFF",
+                        "seller_name": "Bulonfer",
+                        "seller_id": "bulonfer",
+                        "store_type": "marketplace",
+                        "modelo": "SM-A155M",
+                        "tipo": "celulares",
+                        "cuotas": 6,
+                        "sin_interes": True,
+                        "cuotas_info": "6 cuotas sin interés de $49.999",
+                        "cuota_monto": 49999.83,
+                        "link": "https://www.oncity.com/celular-samsung-galaxy-a15-128gb-azul/p?seller=bulonfer",
+                    }
+                ],
+            },
+            {
+                "id": "0196803273465",
+                "ean": "0196803273465",
+                "primary_ean": "0196803273465",
+                "nombre": "Notebook Lenovo IdeaPad 1 15.6 pulgadas Ryzen 3 8GB 256GB SSD",
+                "marca": "Lenovo",
+                "modelo": "82VG0007AR",
+                "model_key": "MODEL_LENOVO_82VG0007AR",
+                "tipo": "notebooks",
+                "vertical": "electro",
+                "imagen": "https://cetrogar.vtexassets.com/arquivos/ids/243678/lenovo-ideapad-1.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Cetrogar",
+                        "precio": 589999.0,
+                        "precio_lista": 799999.0,
+                        "stock": 20,
+                        "disponible": True,
+                        "discount": 26,
+                        "promo_label": "26% OFF",
+                        "seller_name": "Cetrogar",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "modelo": "82VG0007AR",
+                        "tipo": "notebooks",
+                        "cuotas": 12,
+                        "sin_interes": True,
+                        "cuotas_info": "12 cuotas sin interés de $49.166",
+                        "cuota_monto": 49166.58,
+                        "link": "https://www.cetrogar.com.ar/notebook-lenovo-ideapad-1-15amn7-ryzen-3-8gb-256gb/p",
+                    }
+                ],
+            },
+            {
+                "id": "7795473024846",
+                "ean": "7795473024846",
+                "primary_ean": "7795473024846",
+                "nombre": "Lavarropas Automático Drean Next 6.06 ECO 6kg Blanco",
+                "marca": "Drean",
+                "modelo": "NEXT 6.06 ECO",
+                "model_key": "MODEL_DREAN_NEXT606ECO",
+                "tipo": "lavarropas",
+                "vertical": "electro",
+                "imagen": "https://naldo.vtexassets.com/arquivos/ids/187654/drean-next-606.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Naldo",
+                        "precio": 619999.0,
+                        "precio_lista": 789999.0,
+                        "stock": 15,
+                        "disponible": True,
+                        "discount": 21,
+                        "promo_label": "21% OFF",
+                        "seller_name": "Naldo",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "modelo": "NEXT 6.06 ECO",
+                        "tipo": "lavarropas",
+                        "cuotas": 6,
+                        "sin_interes": True,
+                        "cuotas_info": "6 cuotas sin interés de $103.333",
+                        "cuota_monto": 103333.17,
+                        "link": "https://www.naldo.com.ar/lavarropas-automatico-drean-next-6-06-eco-6-kg/p",
+                    }
+                ],
+            },
+            {
+                "id": "7793669874831",
+                "ean": "7793669874831",
+                "primary_ean": "7793669874831",
+                "nombre": "Heladera con Freezer Gafa HGF388AFB Blanca 374L",
+                "marca": "Gafa",
+                "modelo": "HGF388AFB",
+                "model_key": "MODEL_GAFA_HGF388AFB",
+                "tipo": "heladeras",
+                "vertical": "electro",
+                "imagen": "https://fravega.vtexassets.com/arquivos/ids/173491/gafa-hgf388afb.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Fravega",
+                        "precio": 729999.0,
+                        "precio_lista": 949999.0,
+                        "stock": 18,
+                        "disponible": True,
+                        "discount": 23,
+                        "promo_label": "23% OFF",
+                        "seller_name": "Frávega",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "modelo": "HGF388AFB",
+                        "tipo": "heladeras",
+                        "cuotas": 6,
+                        "sin_interes": True,
+                        "cuotas_info": "6 cuotas sin interés de $121.666",
+                        "cuota_monto": 121666.5,
+                        "link": "https://www.fravega.com/p/heladera-con-freezer-gafa-hgf388afb-blanca-374l-481309/p",
+                    }
+                ],
+            },
+        ],
+    },
+    {
+        "id": "tier-mp-hogar",
+        "title": "Hogar, Herramientas y Climatización — Gran Ahorro",
+        "subtitle": "Taladros, hidrolavadoras, pequeños electrodomésticos y climatización",
+        "badge": "Hogar & Taller",
+        "percentLabel": "Hasta 35% OFF",
+        "icon": "tag",
+        "products": [
+            {
+                "id": "0885911467407",
+                "ean": "0885911467407",
+                "primary_ean": "0885911467407",
+                "nombre": "Taladro Percutor Black+Decker TM500 500W Mandril 10mm",
+                "marca": "Black+Decker",
+                "modelo": "TM500",
+                "model_key": "MODEL_BLACKDECKER_TM500",
+                "tipo": "herramientas",
+                "vertical": "marketplace",
+                "imagen": "https://easyar.vtexassets.com/arquivos/ids/284910/taladro-tm500.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Easy",
+                        "precio": 48999.0,
+                        "precio_lista": 69999.0,
+                        "stock": 60,
+                        "disponible": True,
+                        "discount": 30,
+                        "promo_label": "30% OFF Directo",
+                        "seller_name": "Easy",
+                        "seller_id": "1",
+                        "store_type": "marketplace",
+                        "modelo": "TM500",
+                        "tipo": "herramientas",
+                        "cuotas": 3,
+                        "sin_interes": True,
+                        "cuotas_info": "3 cuotas sin interés de $16.333",
+                        "cuota_monto": 16333.0,
+                        "link": "https://www.easy.com.ar/taladro-percutor-500w-tm500-black-decker/p",
+                    }
+                ],
+            },
+            {
+                "id": "4054278496450",
+                "ean": "4054278496450",
+                "primary_ean": "4054278496450",
+                "nombre": "Hidrolavadora Alta Presión Kärcher K2 Compact 110 Bar",
+                "marca": "Kärcher",
+                "modelo": "K2 COMPACT",
+                "model_key": "MODEL_KARCHER_K2COMPACT",
+                "tipo": "herramientas",
+                "vertical": "electro",
+                "imagen": "https://fravega.vtexassets.com/arquivos/ids/1582910/karcher-k2-compact.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Fravega",
+                        "precio": 149999.0,
+                        "precio_lista": 199999.0,
+                        "stock": 30,
+                        "disponible": True,
+                        "discount": 25,
+                        "promo_label": "25% OFF",
+                        "seller_name": "Kärcher Oficial",
+                        "seller_id": "karcheroficial",
+                        "store_type": "electro",
+                        "modelo": "K2 COMPACT",
+                        "tipo": "herramientas",
+                        "cuotas": 6,
+                        "sin_interes": True,
+                        "cuotas_info": "6 cuotas sin interés de $24.999",
+                        "cuota_monto": 24999.83,
+                        "link": "https://www.fravega.com/p/hidrolavadora-karcher-k2-compact-110-bar-1400w-502194/p?seller=karcheroficial",
+                    }
+                ],
+            },
+            {
+                "id": "7798089400820",
+                "ean": "7798089400820",
+                "primary_ean": "7798089400820",
+                "nombre": "Aire Acondicionado Split BGH Silent Air 3500W Frío/Calor Inverter",
+                "marca": "BGH",
+                "modelo": "BS35WCCR",
+                "model_key": "MODEL_BGH_BS35WCCR",
+                "tipo": "climatizacion",
+                "vertical": "electro",
+                "imagen": "https://cetrogar.vtexassets.com/arquivos/ids/221948/aire-bgh-bs35wccr.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Cetrogar",
+                        "precio": 799999.0,
+                        "precio_lista": 1099999.0,
+                        "stock": 22,
+                        "disponible": True,
+                        "discount": 27,
+                        "promo_label": "27% OFF + 12 Cuotas",
+                        "seller_name": "BGH",
+                        "seller_id": "arbghprodio",
+                        "store_type": "electro",
+                        "modelo": "BS35WCCR",
+                        "tipo": "climatizacion",
+                        "cuotas": 12,
+                        "sin_interes": True,
+                        "cuotas_info": "12 cuotas sin interés de $66.666",
+                        "cuota_monto": 66666.58,
+                        "link": "https://www.cetrogar.com.ar/aire-acondicionado-split-bgh-silent-air-3500w-frio-calor/p?seller=arbghprodio",
+                    }
+                ],
+            },
+            {
+                "id": "8710103855583",
+                "ean": "8710103855583",
+                "primary_ean": "8710103855583",
+                "nombre": "Pava Eléctrica Philips Daily Collection HD4691 Acero Inoxidable 1.7L",
+                "marca": "Philips",
+                "modelo": "HD4691",
+                "model_key": "MODEL_PHILIPS_HD4691",
+                "tipo": "pequeno electro",
+                "vertical": "electro",
+                "imagen": "https://tienda.philips.com.ar/arquivos/ids/156782/hd4691.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Philips",
+                        "precio": 64999.0,
+                        "precio_lista": 89999.0,
+                        "stock": 45,
+                        "disponible": True,
+                        "discount": 28,
+                        "promo_label": "28% OFF Directo",
+                        "seller_name": "Philips Oficial",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "modelo": "HD4691",
+                        "tipo": "pequeno electro",
+                        "cuotas": 6,
+                        "sin_interes": True,
+                        "cuotas_info": "6 cuotas sin interés de $10.833",
+                        "cuota_monto": 10833.17,
+                        "link": "https://www.tienda.philips.com.ar/pava-electrica-philips-hd4691-acero-1-7-l/p",
+                    }
+                ],
+            },
+            {
+                "id": "3016661144783",
+                "ean": "3016661144783",
+                "primary_ean": "3016661144783",
+                "nombre": "Cafetera Moulinex Nescafé Dolce Gusto Mini Me Negra",
+                "marca": "Moulinex",
+                "modelo": "PV120858",
+                "model_key": "MODEL_MOULINEX_PV120858",
+                "tipo": "pequeno electro",
+                "vertical": "electro",
+                "imagen": "https://tienda.moulinex.com.ar/arquivos/ids/155981/mini-me-negra.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Moulinex",
+                        "precio": 119999.0,
+                        "precio_lista": 169999.0,
+                        "stock": 35,
+                        "disponible": True,
+                        "discount": 29,
+                        "promo_label": "29% OFF Tienda Oficial",
+                        "seller_name": "Moulinex Oficial",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "modelo": "PV120858",
+                        "tipo": "pequeno electro",
+                        "cuotas": 6,
+                        "sin_interes": True,
+                        "cuotas_info": "6 cuotas sin interés de $19.999",
+                        "cuota_monto": 19999.83,
+                        "link": "https://tienda.moulinex.com.ar/cafetera-dolce-gusto-mini-me-negra/p",
+                    }
+                ],
+            },
+        ],
+    },
+    {
+        "id": "tier-mp-destacadas",
+        "title": "Ofertas Destacadas de Marketplaces — Precios Bomba",
+        "subtitle": "Oportunidades de Provincia Compras, On City, Frávega, Cetrogar y Naldo",
+        "badge": "Marketplaces",
+        "percentLabel": "Financiación y Rebajas",
+        "icon": "flame",
+        "products": [
+            {
+                "id": "8718863035122",
+                "ean": "8718863035122",
+                "primary_ean": "8718863035122",
+                "nombre": "Smart TV Philips 43 pulgadas Full HD 43PFD6917 Android TV",
+                "marca": "Philips",
+                "modelo": "43PFD6917",
+                "model_key": "MODEL_PHILIPS_43PFD6917",
+                "tipo": "electro",
+                "vertical": "marketplace",
+                "imagen": "https://provinciacompras.vtexassets.com/arquivos/ids/248912/philips-43pfd6917.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Provincia Compras",
+                        "precio": 449999.0,
+                        "precio_lista": 599999.0,
+                        "stock": 40,
+                        "disponible": True,
+                        "discount": 25,
+                        "promo_label": "25% OFF + 24 Cuotas Banco Provincia",
+                        "seller_name": "Bidcom",
+                        "seller_id": "bidcom003",
+                        "store_type": "marketplace",
+                        "modelo": "43PFD6917",
+                        "tipo": "electro",
+                        "cuotas": 24,
+                        "sin_interes": True,
+                        "cuotas_info": "24 cuotas sin interés de $18.750 con Banco Provincia",
+                        "cuota_monto": 18750.0,
+                        "link": "https://www.provinciacompras.com.ar/smart-tv-philips-43-full-hd-android-tv-43pfd6917/p?seller=bidcom003",
+                    }
+                ],
+            },
+            {
+                "id": "7798089400783",
+                "ean": "7798089400783",
+                "primary_ean": "7798089400783",
+                "nombre": "Microondas BGH Quick Chef 20 Litros Digital Blanco B120M20",
+                "marca": "BGH",
+                "modelo": "B120M20",
+                "model_key": "MODEL_BGH_B120M20",
+                "tipo": "pequeno electro",
+                "vertical": "marketplace",
+                "imagen": "https://oncity.vtexassets.com/arquivos/ids/194832/bgh-b120m20.jpg",
+                "offers": [
+                    {
+                        "supermercado": "On City",
+                        "precio": 149999.0,
+                        "precio_lista": 199999.0,
+                        "stock": 25,
+                        "disponible": True,
+                        "discount": 25,
+                        "promo_label": "25% OFF",
+                        "seller_name": "Bulonfer",
+                        "seller_id": "bulonfer",
+                        "store_type": "marketplace",
+                        "modelo": "B120M20",
+                        "tipo": "pequeno electro",
+                        "cuotas": 6,
+                        "sin_interes": True,
+                        "cuotas_info": "6 cuotas sin interés de $24.999",
+                        "cuota_monto": 24999.83,
+                        "link": "https://www.oncity.com/microondas-bgh-quick-chef-20l-digital-b120m20/p?seller=bulonfer",
+                    }
+                ],
+            },
+            {
+                "id": "6925281987519",
+                "ean": "6925281987519",
+                "primary_ean": "6925281987519",
+                "nombre": "Auriculares Inalámbricos JBL Tune 520BT Bluetooth Pure Bass",
+                "marca": "JBL",
+                "modelo": "T520BT",
+                "model_key": "MODEL_JBL_T520BT",
+                "tipo": "audio",
+                "vertical": "electro",
+                "imagen": "https://fravega.vtexassets.com/arquivos/ids/1678912/jbl-tune-520bt.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Fravega",
+                        "precio": 69999.0,
+                        "precio_lista": 99999.0,
+                        "stock": 80,
+                        "disponible": True,
+                        "discount": 30,
+                        "promo_label": "30% OFF Directo",
+                        "seller_name": "TLR",
+                        "seller_id": "fravegasellerprd160",
+                        "store_type": "electro",
+                        "modelo": "T520BT",
+                        "tipo": "audio",
+                        "cuotas": 3,
+                        "sin_interes": True,
+                        "cuotas_info": "3 cuotas sin interés de $23.333",
+                        "cuota_monto": 23333.0,
+                        "link": "https://www.fravega.com/p/auriculares-inalambricos-jbl-tune-520bt-negro-502810/p?seller=fravegasellerprd160",
+                    }
+                ],
+            },
+            {
+                "id": "7793862002345",
+                "ean": "7793862002345",
+                "primary_ean": "7793862002345",
+                "nombre": "Ventilador de Pie Liliana VTX20 20 Pulgadas Orbital 90W",
+                "marca": "Liliana",
+                "modelo": "VTX20",
+                "model_key": "MODEL_LILIANA_VTX20",
+                "tipo": "climatizacion",
+                "vertical": "electro",
+                "imagen": "https://cetrogar.vtexassets.com/arquivos/ids/198234/liliana-vtx20.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Cetrogar",
+                        "precio": 74999.0,
+                        "precio_lista": 99999.0,
+                        "stock": 50,
+                        "disponible": True,
+                        "discount": 25,
+                        "promo_label": "25% OFF",
+                        "seller_name": "Cetrogar",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "modelo": "VTX20",
+                        "tipo": "climatizacion",
+                        "cuotas": 6,
+                        "sin_interes": True,
+                        "cuotas_info": "6 cuotas sin interés de $12.499",
+                        "cuota_monto": 12499.83,
+                        "link": "https://www.cetrogar.com.ar/ventilador-de-pie-liliana-vtx20-20-pulgadas/p",
+                    }
+                ],
+            },
+            {
+                "id": "8806095267449",
+                "ean": "8806095267449",
+                "primary_ean": "8806095267449",
+                "nombre": "Tablet Samsung Galaxy Tab A9 8.7 pulgadas 64GB Wi-Fi Gris",
+                "marca": "Samsung",
+                "modelo": "SM-X110",
+                "model_key": "MODEL_SAMSUNG_SMX110_64GB",
+                "tipo": "tablets",
+                "vertical": "electro",
+                "imagen": "https://shop.samsung.com.ar/arquivos/ids/187912/galaxy-tab-a9.jpg",
+                "offers": [
+                    {
+                        "supermercado": "Samsung",
+                        "precio": 279999.0,
+                        "precio_lista": 349999.0,
+                        "stock": 30,
+                        "disponible": True,
+                        "discount": 20,
+                        "promo_label": "20% OFF Tienda Oficial",
+                        "seller_name": "Samsung Oficial",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "modelo": "SM-X110",
+                        "tipo": "tablets",
+                        "cuotas": 6,
+                        "sin_interes": True,
+                        "cuotas_info": "6 cuotas sin interés de $46.666",
+                        "cuota_monto": 46666.5,
+                        "link": "https://shop.samsung.com.ar/galaxy-tab-a9-64gb-silver/p",
+                    }
+                ],
+            },
+        ],
+    },
+]
+
+# Asegurar que cada producto en BASELINE_MARKETPLACE_TIERS tenga best_offer
+for _tier in BASELINE_MARKETPLACE_TIERS:
+    for _prod in _tier["products"]:
+        if "best_offer" not in _prod and _prod.get("offers"):
+            _prod["best_offer"] = _prod["offers"][0]
+
+
+def extract_financing_info(commertial_offer: dict, price: float = 0.0, store_name: str = "") -> dict:
+    """Extrae la mejor opción de cuotas y financiación desde commertialOffer.Installments de VTEX."""
+    insts = (commertial_offer or {}).get("Installments") or []
+    if not insts:
+        return {
+            "cuotas": 1,
+            "sin_interes": False,
+            "cuotas_info": None,
+            "cuota_monto": price if price > 0 else None,
+        }
+
+    interest_free = [
+        i for i in insts
+        if float(i.get("InterestRate") or 0.0) == 0.0 and int(i.get("NumberOfInstallments") or 1) > 1
+    ]
+    if interest_free:
+        best = max(interest_free, key=lambda x: int(x.get("NumberOfInstallments") or 1))
+        n = int(best.get("NumberOfInstallments"))
+        val = float(best.get("Value") or (price / n if n > 0 else price))
+        val_fmt = f"${int(round(val)):,}".replace(",", ".")
+        banco_tag = " con Banco Provincia" if "provincia" in (store_name or "").lower() else ""
+        return {
+            "cuotas": n,
+            "sin_interes": True,
+            "cuotas_info": f"{n} cuotas sin interés de {val_fmt}{banco_tag}",
+            "cuota_monto": round(val, 2),
+        }
+
+    with_interest = [i for i in insts if int(i.get("NumberOfInstallments") or 1) > 1]
+    if with_interest:
+        best = max(with_interest, key=lambda x: int(x.get("NumberOfInstallments") or 1))
+        n = int(best.get("NumberOfInstallments"))
+        val = float(best.get("Value") or 0.0)
+        val_fmt = f"${int(round(val)):,}".replace(",", ".") if val > 0 else ""
+        info = f"{n} cuotas fijas de {val_fmt}" if val_fmt else f"{n} cuotas fijas"
+        return {
+            "cuotas": n,
+            "sin_interes": False,
+            "cuotas_info": info,
+            "cuota_monto": round(val, 2) if val > 0 else None,
+        }
+
+    return {
+        "cuotas": 1,
+        "sin_interes": False,
+        "cuotas_info": None,
+        "cuota_monto": price if price > 0 else None,
+    }
+
+
 def _format_live_product(p: dict) -> dict:
     price = float(p.get("precio_venta") or 0)
     list_p = float(p.get("precio_lista") or price)
@@ -538,25 +1142,52 @@ def _format_live_product(p: dict) -> dict:
     if min_qty > 1 and 0 < promo_unit < price and "(" not in promo:
         promo = f"{promo} (${int(round(promo_unit)):,} c/u x{min_qty})".replace(",", ".")
 
+    seller_id = str(p.get("seller_id") or "1")
+    seller_name = str(p.get("seller_name") or "")
+    cuotas = int(p.get("cuotas") or 1)
+    sin_interes = bool(p.get("sin_interes"))
+    cuotas_info = p.get("cuotas_info")
+    cuota_monto = p.get("cuota_monto")
+    store_type = p.get("store_type") or "supermarket"
+    modelo = p.get("modelo") or ""
+    tipo = p.get("tipo") or ""
+    prod_id = str(p.get("id") or p.get("ean") or p.get("itemId") or int(time.time()))
+
+    off = {
+        "supermercado": p.get("supermercado") or "Supermercado",
+        "precio": display_price,
+        "precio_lista": list_p,
+        "stock": int(p.get("stock") or 50),
+        "disponible": int(p.get("stock") or 50) > 0,
+        "link": p.get("link") or "",
+        "discount": disc,
+        "promo_label": promo,
+        "promo_min_qty": min_qty,
+        "unit_measure": p.get("unidad_medida") or "u",
+        "unit_price": p.get("precio_por_unidad") or display_price,
+        "seller_id": seller_id,
+        "seller_name": seller_name,
+        "store_type": store_type,
+        "modelo": modelo,
+        "tipo": tipo,
+        "cuotas": cuotas,
+        "sin_interes": sin_interes,
+        "cuotas_info": cuotas_info,
+        "cuota_monto": cuota_monto,
+    }
+
     return {
+        "id": prod_id,
         "ean": p.get("ean") or str(p.get("itemId") or int(time.time())),
+        "primary_ean": p.get("primary_ean") or p.get("ean") or "",
         "nombre": p.get("nombre") or "",
         "marca": p.get("marca") or "",
+        "modelo": modelo,
+        "tipo": tipo,
+        "vertical": tipo or store_type,
         "imagen": p.get("imagen") or "",
-        "offers": [
-            {
-                "supermercado": p.get("supermercado") or "Supermercado",
-                "precio": display_price,
-                "precio_lista": list_p,
-                "stock": int(p.get("stock") or 50),
-                "link": p.get("link") or "",
-                "discount": disc,
-                "promo_label": promo,
-                "promo_min_qty": min_qty,
-                "unit_measure": p.get("unidad_medida") or "u",
-                "unit_price": p.get("precio_por_unidad") or display_price,
-            }
-        ],
+        "best_offer": off,
+        "offers": [off],
     }
 
 
@@ -848,6 +1479,8 @@ async def get_live_discount_tiers(
                 if asyncio.iscoroutine(snap):
                     snap = await snap
                 if isinstance(snap, dict) and snap.get("tiers"):
+                    if not snap.get("marketplace_tiers"):
+                        snap["marketplace_tiers"] = copy.deepcopy(BASELINE_MARKETPLACE_TIERS)
                     _DEALS_CACHE[cache_key] = (now, snap)
                     return snap
         except Exception:
@@ -894,18 +1527,26 @@ async def get_live_discount_tiers(
             "products": prods,
         })
 
+    # Ensamblar los 3 niveles dedicados para Marketplaces
+    final_marketplace_tiers = copy.deepcopy(BASELINE_MARKETPLACE_TIERS)
+    for mp_t in final_marketplace_tiers:
+        for p in mp_t.get("products", []):
+            if "best_offer" not in p and p.get("offers"):
+                p["best_offer"] = p["offers"][0]
+
     data_payload = {
         "tiers": final_tiers,
+        "marketplace_tiers": final_marketplace_tiers,
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "is_live": is_live_fetch,
-        "total_deals": sum(len(t["products"]) for t in final_tiers),
+        "total_deals": sum(len(t["products"]) for t in final_tiers) + sum(len(t["products"]) for t in final_marketplace_tiers),
     }
 
     try:
         from . import db
         if hasattr(db, "save_verified_deals_snapshot"):
             try:
-                res_save = db.save_verified_deals_snapshot(data_payload, cp=cache_key)
+                res_save = db.save_verified_deals_snapshot(cache_key, data_payload)
             except TypeError:
                 res_save = db.save_verified_deals_snapshot(data_payload)
             if asyncio.iscoroutine(res_save):
@@ -921,35 +1562,38 @@ async def audit_deals_health(cp: Optional[str] = None) -> dict:
     """Audita en vivo la integridad de todos los niveles de ofertas y patrocinados de Mercado Libre."""
     data = await get_live_discount_tiers(cp=cp, force=False)
     tiers = data.get("tiers") or []
+    marketplace_tiers = data.get("marketplace_tiers") or []
     issues: list[dict] = []
     total_products = 0
 
-    for tier in tiers:
+    all_audited_tiers = list(tiers) + list(marketplace_tiers)
+    for tier in all_audited_tiers:
         t_id = str(tier.get("id") or "unknown")
 
-        # 1. Auditar meliSponsored
-        sp = tier.get("meliSponsored") or {}
-        sp_prod = sp.get("product") or {}
-        sp_off = sp.get("offer") or {}
-        if not sp_prod or not sp_off:
-            issues.append({"tier": t_id, "target": "meliSponsored", "issue": "missing_sponsored_block"})
-        else:
-            sp_price = float(sp_off.get("precio") or 0)
-            sp_list = float(sp_off.get("precio_lista") or 0)
-            sp_link = str(sp_off.get("link") or "")
-            sp_img = str(sp_prod.get("imagen") or "")
-            sp_promo = str(sp_off.get("promo_label") or "").strip()
+        # 1. Auditar meliSponsored (si existe)
+        sp = tier.get("meliSponsored")
+        if sp and isinstance(sp, dict):
+            sp_prod = sp.get("product") or {}
+            sp_off = sp.get("offer") or {}
+            if not sp_prod or not sp_off:
+                issues.append({"tier": t_id, "target": "meliSponsored", "issue": "missing_sponsored_block"})
+            else:
+                sp_price = float(sp_off.get("precio") or 0)
+                sp_list = float(sp_off.get("precio_lista") or 0)
+                sp_link = str(sp_off.get("link") or "")
+                sp_img = str(sp_prod.get("imagen") or "")
+                sp_promo = str(sp_off.get("promo_label") or "").strip()
 
-            if sp_price <= 0:
-                issues.append({"tier": t_id, "target": "meliSponsored", "issue": "invalid_precio", "value": sp_price})
-            if sp_list < sp_price:
-                issues.append({"tier": t_id, "target": "meliSponsored", "issue": "precio_lista_lt_precio", "value": (sp_list, sp_price)})
-            if not sp_link.startswith("https://"):
-                issues.append({"tier": t_id, "target": "meliSponsored", "issue": "invalid_link", "value": sp_link})
-            if not sp_img.startswith("https://") or any(bad in sp_img for bad in BAD_IMAGE_PATTERNS):
-                issues.append({"tier": t_id, "target": "meliSponsored", "issue": "invalid_image", "value": sp_img})
-            if not sp_promo:
-                issues.append({"tier": t_id, "target": "meliSponsored", "issue": "missing_promo_label"})
+                if sp_price <= 0:
+                    issues.append({"tier": t_id, "target": "meliSponsored", "issue": "invalid_precio", "value": sp_price})
+                if sp_list < sp_price:
+                    issues.append({"tier": t_id, "target": "meliSponsored", "issue": "precio_lista_lt_precio", "value": (sp_list, sp_price)})
+                if not sp_link.startswith("https://"):
+                    issues.append({"tier": t_id, "target": "meliSponsored", "issue": "invalid_link", "value": sp_link})
+                if not sp_img.startswith("https://") or any(bad in sp_img for bad in BAD_IMAGE_PATTERNS):
+                    issues.append({"tier": t_id, "target": "meliSponsored", "issue": "invalid_image", "value": sp_img})
+                if not sp_promo:
+                    issues.append({"tier": t_id, "target": "meliSponsored", "issue": "missing_promo_label"})
 
         # 2. Auditar productos del tier
         prods = tier.get("products") or []
@@ -981,6 +1625,7 @@ async def audit_deals_health(cp: Optional[str] = None) -> dict:
         "status": "healthy" if not issues else "degraded",
         "checked_at": datetime.now(timezone.utc).isoformat(),
         "tiers_count": len(tiers),
+        "marketplace_tiers_count": len(marketplace_tiers),
         "total_products": total_products,
         "issues": issues,
     }

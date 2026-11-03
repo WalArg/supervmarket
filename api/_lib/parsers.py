@@ -125,6 +125,70 @@ def _strip_accents(s: str) -> str:
     )
 
 
+# ---------------------------------------------------------------------------
+# Robust Numeric & Store Resolution Helpers
+# ---------------------------------------------------------------------------
+
+def _safe_int(val, default: int = 0) -> int:
+    """Safely converts val to int, handling float strings ('10.0'), None, and type errors."""
+    try:
+        if val is None or val == "":
+            return default
+        return int(float(val))
+    except (ValueError, TypeError, OverflowError):
+        return default
+
+
+def _safe_float(val, default: float = 0.0) -> float:
+    """Safely converts val to float, returning default on ValueError/TypeError."""
+    try:
+        if val is None or val == "":
+            return default
+        return float(val)
+    except (ValueError, TypeError, OverflowError):
+        return default
+
+
+def _resolve_store_domain(store_name: str) -> str:
+    """Safely resolves base store domain from StoreMeta or a sanitized slug fallback."""
+    if not store_name:
+        return ""
+    try:
+        from .stores import get_store_meta
+        meta = get_store_meta(store_name)
+        if meta and meta.get("dominio"):
+            return str(meta["dominio"]).rstrip("/")
+    except Exception:
+        try:
+            from stores import get_store_meta
+            meta = get_store_meta(store_name)
+            if meta and meta.get("dominio"):
+                return str(meta["dominio"]).rstrip("/")
+        except Exception:
+            pass
+
+    slug = re.sub(r"[^a-z0-9]", "", store_name.lower())
+    return f"https://www.{slug}.com.ar"
+
+
+try:
+    from .normalization import (
+        extract_canonical_model,
+        extract_model,
+        classify_product_type,
+        is_accessory,
+        canonical_model_key,
+    )
+except ImportError:
+    from normalization import (
+        extract_canonical_model,
+        extract_model,
+        classify_product_type,
+        is_accessory,
+        canonical_model_key,
+    )
+
+
 def normalizar_categoria(cat: str) -> str:
     if not cat:
         return "Otros"
@@ -365,7 +429,13 @@ def _parse_active_teaser(text: str, base_price: float, list_price: float,
     return None
 
 
-def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> Optional[dict]:
+def parse_vtex_product(
+    prod: dict,
+    store_name: str,
+    fallback_url: str = "",
+    grocery_only: bool = False,
+    store_type: str = "supermarket",
+) -> Optional[dict]:
     if not prod or not isinstance(prod, dict):
         return None
     items = prod.get("items") or []
@@ -385,8 +455,8 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
         )
         for s in ordered_sellers:
             c_offer = s.get("commertialOffer") or {}
-            avail = int(c_offer.get("AvailableQuantity") or 0)
-            price = float(c_offer.get("Price") or 0)
+            avail = _safe_int(c_offer.get("AvailableQuantity"), 0)
+            price = _safe_float(c_offer.get("Price"), 0.0)
             if avail > 0 and price > 0:
                 sku = candidate_sku
                 comm = c_offer
@@ -399,16 +469,19 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
         return None
 
     nombre = prod.get("productName") or sku.get("nameComplete") or sku.get("name") or ""
+    marca = prod.get("brand") or "Genérico"
     cats = prod.get("categories") or []
     cats_str = ", ".join(c.strip("/") for c in cats) if cats else ""
 
     norm_nombre = _strip_accents(nombre)
     norm_cats = _strip_accents(cats_str)
-    if any(kw in norm_nombre or kw in norm_cats for kw in NON_GROCERY_MARKETPLACE_KEYWORDS):
-        return None
-    if any(ck in norm_cats for ck in NON_GROCERY_CATEGORY_KEYWORDS):
-        return None
+    if grocery_only:
+        if any(kw in norm_nombre or kw in norm_cats for kw in NON_GROCERY_MARKETPLACE_KEYWORDS):
+            return None
+        if any(ck in norm_cats for ck in NON_GROCERY_CATEGORY_KEYWORDS):
+            return None
 
+    # EAN extraction & normalization
     ean = sku.get("ean")
     if not ean:
         ref = sku.get("referenceId") or [{}]
@@ -417,9 +490,25 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
         ean_spec = prod.get("EAN")
         if isinstance(ean_spec, list) and ean_spec:
             ean = ean_spec[0]
-    ean = str(ean or "").replace("~", "").strip()
-    if not ean:
-        return None
+    raw_ean = str(ean or "").replace("~", "").strip()
+    ean = raw_ean
+
+    # Model & Type extraction
+    item_id = str(sku.get("itemId") or "")
+    base_model, canon_model_key = extract_canonical_model(prod, sku, nombre, brand=marca)
+    tipo = classify_product_type(cats_str, store_type=store_type)
+
+    # Missing EAN handling: allow tech/electro through with synthetic model key or store item ID
+    if not ean or ean.upper() in ("N/A", "NONE", "NULL", "0"):
+        if grocery_only:
+            return None
+        if canon_model_key:
+            ean = canon_model_key
+        elif store_type in ("electro", "marketplace", "specialty") or tipo in ("electro", "ferreteria", "hogar"):
+            clean_store = re.sub(r'[^A-Z0-9]', '', store_name.upper())
+            ean = f"{clean_store}-{item_id}" if item_id else f"{clean_store}-{abs(hash(nombre)) % 10000000}"
+        else:
+            return None
 
     # Precio de góndola unitario oficial (commertialOffer.Price), con fallback a priceRange.sellingPrice
     pr_selling = (
@@ -427,19 +516,24 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
         .get("sellingPrice", {})
         .get("lowPrice")
     )
-    comm_price = float(comm.get("Price") or 0)
+    comm_price = _safe_float(comm.get("Price"), 0.0)
+    pr_selling_val = _safe_float(pr_selling, 0.0)
     if comm_price > 0:
         base_price = comm_price
-    elif pr_selling is not None and float(pr_selling) > 0:
-        base_price = float(pr_selling)
+    elif pr_selling_val > 0:
+        base_price = pr_selling_val
     else:
         base_price = 0.0
 
     if base_price <= 0:
         return None
 
-    raw_list_price = float(comm.get("ListPrice") or base_price)
+    raw_list_price = _safe_float(comm.get("ListPrice"), base_price)
+    if raw_list_price <= 0:
+        raw_list_price = base_price
+
     seller_id = str((selected_seller or {}).get("sellerId") or "1")
+    seller_name = str((selected_seller or {}).get("sellerName") or "")
     if (
         seller_id != "1"
         and store_name.lower() in ("carrefour", "masonline", "mas online", "más online")
@@ -494,14 +588,23 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
 
     link = prod.get("link") or fallback_url
     if link and link.startswith("/"):
-        link = f"https://www.{store_name.lower()}.com.ar{link}"
+        base_domain = _resolve_store_domain(store_name)
+        link = f"{base_domain}{link}"
+    elif not link and fallback_url:
+        link = fallback_url
+
+    if seller_id != "1" and link and "seller=" not in link:
+        sep = "&" if "?" in link else "?"
+        link = f"{link}{sep}seller={seller_id}"
 
     return {
         "ean": ean,
+        "raw_ean": raw_ean,
         "nombre": nombre,
-        "marca": prod.get("brand") or "Genérico",
-        "modelo": "",
-        "tipo": "",
+        "marca": marca,
+        "modelo": base_model,
+        "model_key": canon_model_key,
+        "tipo": tipo,
         "imagen": ((sku.get("images") or [{}])[0] or {}).get("imageUrl"),
         "supermercado": store_name,
         "precio_venta": precio_venta,
@@ -515,9 +618,11 @@ def parse_vtex_product(prod: dict, store_name: str, fallback_url: str = "") -> O
         "precio_por_unidad": p_unidad_norm,
         "unidad_medida": unidad_norm,
         "categorias": normalizar_categoria(cats_str),
-        "stock": int(comm.get("AvailableQuantity") or 0),
-        "itemId": str(sku.get("itemId") or ""),
-        "unit_multiplier": float(sku.get("unitMultiplier") or 1.0),
+        "stock": _safe_int(comm.get("AvailableQuantity"), 0),
+        "itemId": item_id,
+        "seller_id": seller_id,
+        "seller_name": seller_name,
+        "unit_multiplier": _safe_float(sku.get("unitMultiplier"), 1.0),
         "link": link,
         "fecha": datetime.now(timezone.utc).isoformat(),
     }
@@ -637,7 +742,13 @@ def parse_coto_discounts(precio_lista: float, descuentos_raw: list) -> dict:
     return res
 
 
-def parse_coto_record(data: dict, item_id: str = "", url: str = "") -> Optional[dict]:
+def parse_coto_record(
+    data: dict,
+    item_id: str = "",
+    url: str = "",
+    grocery_only: bool = False,
+    store_type: str = "supermarket",
+) -> Optional[dict]:
     record = None
     if isinstance(data, dict) and ("attributes" in data or "records" in data):
         record = data
@@ -664,10 +775,20 @@ def parse_coto_record(data: dict, item_id: str = "", url: str = "") -> Optional[
     imagen = ((attrs.get("product.largeImage.url") or [""])[0]
               or (attrs.get("product.mediumImage.url") or [""])[0])
 
-    try:
-        p_list = float((attrs.get("sku.activePrice") or ["0"])[0] or 0)
-    except Exception:
-        p_list = 0.0
+    cats = ((attrs.get("parentCategory.displayName") or [""])[0]
+            or (attrs.get("product.category") or [""])[0])
+    cats_str = str(cats or "")
+    norm_nombre = _strip_accents(nombre)
+    norm_cats = _strip_accents(cats_str)
+
+    # Contextual grocery filter unlocking
+    if grocery_only:
+        if any(kw in norm_nombre or kw in norm_cats for kw in NON_GROCERY_MARKETPLACE_KEYWORDS):
+            return None
+        if any(ck in norm_cats for ck in NON_GROCERY_CATEGORY_KEYWORDS):
+            return None
+
+    p_list = _safe_float((attrs.get("sku.activePrice") or ["0"])[0], 0.0)
     if p_list <= 0:
         return None
 
@@ -679,7 +800,20 @@ def parse_coto_record(data: dict, item_id: str = "", url: str = "") -> Optional[
         m = re.search(r"(\d+)", str(rec_id))
         item_id = m.group(1) if m else str(rec_id)
 
-    ean = (attrs.get("product.eanPrincipal") or [""])[0].strip() or f"COTO-{item_id}"
+    raw_ean = (attrs.get("product.eanPrincipal") or [""])[0].strip()
+    ean = raw_ean
+
+    # Model & Type extraction for Coto
+    base_model, canon_model_key = extract_canonical_model({}, {}, nombre, brand=marca)
+    tipo = classify_product_type(cats_str, store_type=store_type)
+
+    if not ean:
+        if grocery_only:
+            return None
+        if canon_model_key:
+            ean = canon_model_key
+        else:
+            ean = f"COTO-{item_id}"
 
     precio_unidad, unidad = p_venta, "un"
     cant, u_tit = extraer_unidad_titulo(nombre)
@@ -688,8 +822,6 @@ def parse_coto_record(data: dict, item_id: str = "", url: str = "") -> Optional[
     p_unidad_norm, unidad_norm = normalizar_unidad(precio_unidad, unidad)
     p_unidad_norm = sanity_precio_unidad(p_venta, p_unidad_norm, unidad_norm)
 
-    cats = ((attrs.get("parentCategory.displayName") or [""])[0]
-            or (attrs.get("product.category") or [""])[0])
     descuento = round((1.0 - p_venta / p_list) * 100.0, 1) if p_list > p_venta else 0.0
 
     rec_state = record.get("detailsAction", {}).get("recordState") or ""
@@ -702,10 +834,12 @@ def parse_coto_record(data: dict, item_id: str = "", url: str = "") -> Optional[
 
     return {
         "ean": ean,
+        "raw_ean": raw_ean,
         "nombre": nombre,
         "marca": marca,
-        "modelo": "",
-        "tipo": "",
+        "modelo": base_model,
+        "model_key": canon_model_key,
+        "tipo": tipo,
         "imagen": imagen,
         "supermercado": "Coto",
         "precio_venta": p_venta,
@@ -718,7 +852,7 @@ def parse_coto_record(data: dict, item_id: str = "", url: str = "") -> Optional[
         "requiere_club": promo["requiere_club"],
         "precio_por_unidad": p_unidad_norm,
         "unidad_medida": unidad_norm,
-        "categorias": normalizar_categoria(cats),
+        "categorias": normalizar_categoria(cats_str),
         "stock": 1,
         "itemId": str(item_id),
         "link": url,

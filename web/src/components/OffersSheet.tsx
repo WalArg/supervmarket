@@ -58,7 +58,7 @@ const OffersSheet: React.FC<{
     key: string,
     qty: number = 1,
     store?: string,
-    extra?: { link?: string; precio?: number; sku_id?: string },
+    extra?: { link?: string; precio?: number; sku_id?: string; seller_id?: string | null },
   ) => {
     add(group, qty, store, extra)
     setJustAddedKey(key)
@@ -66,6 +66,15 @@ const OffersSheet: React.FC<{
     setTimeout(() => {
       setJustAddedKey(prev => (prev === key ? null : prev))
     }, 1800)
+  }
+
+  const buildOutboundOfferUrl = (offer: any): string => {
+    let url = offer?.link || ''
+    if (offer?.seller_id && offer.seller_id !== '1' && url && !url.includes('seller=')) {
+      const sep = url.includes('?') ? '&' : '?'
+      url = `${url}${sep}seller=${encodeURIComponent(offer.seller_id)}`
+    }
+    return url
   }
 
   useEffect(() => {
@@ -253,6 +262,13 @@ const OffersSheet: React.FC<{
                             <CreditCard size={12} /> {formatPrice(r.club)} con {r.o.promo_label}
                           </div>
                         )}
+                        {r.o.cuotas && r.o.cuotas > 1 && (
+                          <div className="text-[11.5px] text-emerald-700 font-semibold flex items-center gap-1 mt-0.5 flex-wrap">
+                            <span className="px-1.5 py-0.2 rounded bg-emerald-50 border border-emerald-200/70 font-bold">
+                              💳 {r.o.cuotas_info || `${r.o.cuotas} cuotas ${r.o.sin_interes ? 'sin interés' : 'fijas'}${r.o.cuota_monto ? ` de ${formatPrice(r.o.cuota_monto)}` : ''}`}
+                            </span>
+                          </div>
+                        )}
                         <div className="text-[12px] text-slate-400 mt-0.5">
                           {r.unit ? `${formatPrice(r.unit)}/${r.o.unit_measure}` : ''}
                           {diff > 0 ? ` · +${diff}% que el mejor` : ''}
@@ -287,6 +303,7 @@ const OffersSheet: React.FC<{
                                   link: r.o.link,
                                   precio: r.eff,
                                   sku_id: r.o.sku_id,
+                                  seller_id: r.o.seller_id,
                                 })
                               }}
                               className="w-8 h-full flex items-center justify-center hover:bg-blue-700 active:bg-blue-800 rounded-r-xl transition-colors"
@@ -307,6 +324,7 @@ const OffersSheet: React.FC<{
                                   link: r.o.link,
                                   precio: r.eff,
                                   sku_id: r.o.sku_id,
+                                  seller_id: r.o.seller_id,
                                 },
                               )
                             }
@@ -334,7 +352,7 @@ const OffersSheet: React.FC<{
                         {/* Enlace secundario opcional y discreto hacia la web oficial */}
                         {r.o.link && r.o.link.startsWith('http') && (
                           <a
-                            href={r.o.link}
+                            href={buildOutboundOfferUrl(r.o)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="mt-1 text-[11px] text-slate-400 hover:text-blue-600 flex items-center gap-0.5"

@@ -4,10 +4,25 @@ import type { Offer, ProductGroup } from '../types'
 import { useBenefits } from '../benefits/BenefitsContext'
 import { useLocation } from '../location/LocationContext'
 import { useSaved, getCanonicalProductId } from '../saved/SavedContext'
-import { storeColor, storeLabel } from '../lib/stores'
+import { storeColor, storeLabel, storeVertical } from '../lib/stores'
 import { effPrice, unitPriceFor, clubPriceHint, promoText, formatPrice } from '../lib/pricing'
 import OffersSheet from './OffersSheet'
 import QtyControl from './QtyControl'
+
+const getVerticalBadge = (vertical?: string) => {
+  switch (vertical) {
+    case 'electro':
+      return { label: 'Electro', className: 'bg-indigo-50 text-indigo-700 border-indigo-200/80' }
+    case 'marketplace':
+      return { label: 'Marketplace', className: 'bg-sky-50 text-sky-700 border-sky-200/80' }
+    case 'pharmacy':
+      return { label: 'Farmacia', className: 'bg-rose-50 text-rose-700 border-rose-200/80' }
+    case 'specialty':
+      return { label: 'Hogar', className: 'bg-amber-50 text-amber-700 border-amber-200/80' }
+    default:
+      return { label: 'Súper', className: 'bg-emerald-50 text-emerald-700 border-emerald-200/80' }
+  }
+}
 
 export interface OfferRow {
   o: Offer
@@ -97,6 +112,24 @@ const ProductCard: React.FC<{
   const maxEff = Math.max(...rows.map(r => r.eff))
   const savePct = rows.length > 1 && maxEff > best.eff ? Math.round(((maxEff - best.eff) / maxEff) * 100) : 0
 
+  const vertKey = group.vertical || (best ? storeVertical(best.o.supermercado) : 'supermarket')
+  const badge = getVerticalBadge(vertKey)
+
+  const isDirect = Boolean(
+    (!best.o.seller_name ||
+      best.o.seller_name.trim().toLowerCase() === storeLabel(best.o.supermercado).trim().toLowerCase() ||
+      best.o.seller_name.trim().toLowerCase() === best.o.supermercado.trim().toLowerCase()) &&
+    (!best.o.seller_id || best.o.seller_id === '1' || best.o.seller_id === 'default')
+  )
+  const isThirdParty = !isDirect
+  const sellerDisplay = isDirect
+    ? 'Venta directa'
+    : best.o.seller_name
+    ? `Vendido por ${best.o.seller_name}`
+    : best.o.seller_id
+    ? `Vendido por ${best.o.seller_id}`
+    : 'Venta directa'
+
   return (
     <article
       className={`rounded-2xl border shadow-[0_1px_2px_rgba(15,23,42,0.04)] ${
@@ -151,7 +184,17 @@ const ProductCard: React.FC<{
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-1">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 truncate">{group.marca}</p>
+              <div className="flex items-center gap-1.5 mb-0.5 min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 truncate">{group.marca}</p>
+                <span className={`text-[9.5px] font-black px-1.5 py-0.2 rounded-md uppercase tracking-wider border shrink-0 ${badge.className}`}>
+                  {badge.label}
+                </span>
+                {group.modelo && (
+                  <span className="text-[9px] font-mono font-bold bg-slate-100 text-slate-600 px-1 py-0.2 rounded truncate">
+                    {group.modelo}
+                  </span>
+                )}
+              </div>
               <h3 className="text-[13.5px] leading-snug font-semibold text-slate-900 line-clamp-2">{group.nombre}</h3>
             </div>
             <button
@@ -188,6 +231,19 @@ const ProductCard: React.FC<{
               </span>
             )}
 
+            {best.o.cuotas && best.o.cuotas > 1 && (
+              <span
+                className={`inline-flex items-center gap-0.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md ${
+                  best.o.sin_interes
+                    ? 'text-emerald-800 bg-emerald-50 border border-emerald-200/80'
+                    : 'text-indigo-800 bg-indigo-50 border border-indigo-200/80'
+                }`}
+                title={best.o.cuotas_info || `${best.o.cuotas} cuotas`}
+              >
+                💳 {best.o.cuotas} cuotas {best.o.sin_interes ? 'sin interés' : 'fijas'}
+              </span>
+            )}
+
             {best.promo && (
               <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-orange-800 bg-orange-50 px-1.5 py-0.5 rounded-md">
                 <Flame size={10} /> {best.promo}
@@ -211,9 +267,16 @@ const ProductCard: React.FC<{
             <span className="truncate">
               {rows.length > 1 ? 'Mejor en ' : 'En '}
               <b className="text-slate-700">{storeLabel(best.o.supermercado)}</b>
-              {best.o.seller_name && (
-                <span className="text-slate-500 font-normal"> · {best.o.seller_name}</span>
-              )}
+              <span
+                title={sellerDisplay}
+                className={`ml-1 text-[10px] px-1.5 py-0.2 rounded font-medium ${
+                  isThirdParty
+                    ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                    : 'bg-slate-100 text-slate-600'
+                }`}
+              >
+                {sellerDisplay}
+              </span>
             </span>
             {best.o.seller_reputation && (
               <span
@@ -238,6 +301,11 @@ const ProductCard: React.FC<{
               <span className="text-[10px] text-slate-400 line-through">{formatPrice(best.o.precio)}</span>
             ) : null}
           </span>
+          {best.o.cuotas && best.o.cuotas > 1 && best.o.cuota_monto && best.o.cuota_monto > 0 ? (
+            <span className="text-[10px] text-emerald-700 font-bold block leading-none mt-0.5">
+              {best.o.cuotas}x {formatPrice(best.o.cuota_monto)}
+            </span>
+          ) : null}
         </button>
 
         <button

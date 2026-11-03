@@ -34,18 +34,39 @@ from .parsers import (  # noqa: E402
     extraer_unidad_titulo,
     normalizar_unidad,
     sanity_precio_unidad,
+    _safe_int,
+    _safe_float,
 )
-from .stores import VTEX_DOMAINS, VTEX_SALES_CHANNELS, supports_cart              # noqa: E402
+from .normalization import (  # noqa: E402
+    is_valid_ean13,
+    normalize_ean,
+    is_internal_scale,
+    extract_canonical_model,
+    canonical_model_key,
+    is_accessory,
+)
+from .stores import (  # noqa: E402
+    VTEX_DOMAINS,
+    VTEX_SALES_CHANNELS,
+    supports_cart,
+    store_vertical,
+    is_marketplace,
+    STORE_REGISTRY,
+)
 from . import regions as regions_mod                                              # noqa: E402
 from .mercadolibre import fetch_mercadolibre_live                                # noqa: E402
 
 LIVE_VTEX_DOMAINS: dict[str, str] = {
     **VTEX_DOMAINS,
     "TheFoodMarket": "https://www.thefoodmarket.com.ar",
+    "Oster": "https://www.osterargentina.com",
+    "StyleStore": "https://www.stylestore.com.ar",
 }
 
 SHOPIFY_DOMAINS: dict[str, str] = {
     "LaBarraCCU": "https://labarraccu.com.ar",
+    "Bodegas Bianchi": "https://www.bodegasbianchi.com.ar",
+    "BodegasBianchi": "https://www.bodegasbianchi.com.ar",
 }
 
 TIENDANUBE_DOMAINS: dict[str, str] = {
@@ -58,7 +79,16 @@ WOOCOMMERCE_DOMAINS: dict[str, str] = {
     "ArcorEnCasa": "https://arcorencasa.com",
 }
 
-SUPERMARKET_CHAINS = ("Jumbo", "Disco", "Vea", "Carrefour", "Dia", "Masonline")
+SUPERMARKET_CHAINS = (
+    "Jumbo", "Disco", "Vea", "Carrefour", "Dia", "Masonline",
+    "Josimar", "Toledo", "Cordiez",
+)
+
+ELECTRO_MARKETPLACE_CHAINS = (
+    "Provincia Compras", "On City", "Fravega", "Cetrogar",
+    "Naldo", "Pardo", "Coppel", "Samsung", "Philips", "Whirlpool",
+    "Moulinex", "Sony", "Easy", "Musimundo", "Oster", "StyleStore",
+)
 
 HEADERS = {
     "User-Agent": (
@@ -175,6 +205,8 @@ async def fetch_vtex_store_live(
     limit: int = 18,
     order_by: str = "OrderByTopSaleDESC",
     region_id: str | None = None,
+    grocery_only: bool = False,
+    store_type: str | None = None,
 ) -> list[dict]:
     domain = LIVE_VTEX_DOMAINS.get(store)
     if not domain:
@@ -182,6 +214,7 @@ async def fetch_vtex_store_live(
     base = domain if domain.startswith("http") else f"https://{domain}"
     sc = str(VTEX_SALES_CHANNELS.get(store, "1"))
     sc_qs = f"&sc={sc}" if sc != "1" else ""
+    st_type = store_type or store_vertical(store)
 
     req_headers = dict(HEADERS)
     if region_id or sc != "1":
@@ -200,7 +233,7 @@ async def fetch_vtex_store_live(
                 return []
             return [
                 p for raw in data
-                if (p := parse_vtex_product(raw, store)) and int(p.get("stock") or 0) > 0
+                if (p := parse_vtex_product(raw, store, grocery_only=grocery_only, store_type=st_type)) and int(p.get("stock") or 0) > 0
             ]
         except Exception:
             return []
@@ -222,7 +255,7 @@ async def fetch_vtex_store_live(
             if isinstance(prods, list) and prods:
                 out = [
                     p for raw in prods
-                    if (p := parse_vtex_product(raw, store)) and int(p.get("stock") or 0) > 0
+                    if (p := parse_vtex_product(raw, store, grocery_only=grocery_only, store_type=st_type)) and int(p.get("stock") or 0) > 0
                 ]
                 if out:
                     return out
@@ -244,7 +277,7 @@ async def fetch_vtex_store_live(
             return []
         return [
             p for raw in data
-            if (p := parse_vtex_product(raw, store)) and int(p.get("stock") or 0) > 0
+            if (p := parse_vtex_product(raw, store, grocery_only=grocery_only, store_type=st_type)) and int(p.get("stock") or 0) > 0
         ]
     except Exception:
         return []
@@ -255,6 +288,8 @@ async def fetch_vtex_by_eans_live(
     store: str,
     eans: list[str],
     region_id: str | None = None,
+    grocery_only: bool = False,
+    store_type: str | None = None,
 ) -> list[dict]:
     domain = LIVE_VTEX_DOMAINS.get(store)
     if not domain or not eans:
@@ -266,6 +301,7 @@ async def fetch_vtex_by_eans_live(
     base = domain if domain.startswith("http") else f"https://{domain}"
     sc = str(VTEX_SALES_CHANNELS.get(store, "1"))
     sc_qs = f"&sc={sc}" if sc != "1" else ""
+    st_type = store_type or store_vertical(store)
     fq_qs = "&".join(f"fq=alternateIds_Ean:{e}" for e in clean_eans)
     url = f"{base}/api/catalog_system/pub/products/search?{fq_qs}&_from=0&_to=49{sc_qs}"
 
@@ -283,7 +319,7 @@ async def fetch_vtex_by_eans_live(
             return []
         out = []
         for raw_prod in data:
-            parsed = parse_vtex_product(raw_prod, store)
+            parsed = parse_vtex_product(raw_prod, store, grocery_only=grocery_only, store_type=st_type)
             if parsed and int(parsed.get("stock") or 0) > 0:
                 out.append(parsed)
         return out
@@ -295,6 +331,7 @@ async def fetch_coto_live(
     client: httpx.AsyncClient,
     query: str,
     limit: int = 24,
+    grocery_only: bool = False,
 ) -> list[dict]:
     """Consulta en vivo Coto Digital ordenando por Más Vendidos (`Ns=product.TOTALDEVENTAS|1`)."""
     q_enc = urllib.parse.quote(query.strip())
@@ -311,7 +348,7 @@ async def fetch_coto_live(
         for m in data.get("contents", [{}])[0].get("Main", []):
             for c in m.get("contents", []):
                 for rec in c.get("records", []):
-                    parsed = parse_coto_record(rec)
+                    parsed = parse_coto_record(rec, grocery_only=grocery_only)
                     if parsed and int(parsed.get("stock") or 0) > 0:
                         out.append(parsed)
                         if len(out) >= limit:
@@ -763,15 +800,43 @@ def _to_offer_dict(d: dict) -> dict:
         descuento = float(d.get("descuento") or 0.0)
     promo_unit = float(d.get("precio_promo_unit") or precio)
     offer_imagen = _clean_image_url(d.get("imagen"))
+
+    seller_id = str(d.get("seller_id") or "1")
+    raw_link = d.get("link") or ""
+    # Enriquecer link con seller dinámico si no lo tiene y no es el seller principal
+    if seller_id != "1" and raw_link and "seller=" not in raw_link:
+        sep = "&" if "?" in raw_link else "?"
+        final_link = f"{raw_link}{sep}seller={seller_id}"
+    else:
+        final_link = raw_link
+
+    sku_id = str(d.get("itemId") or d.get("sku") or "")
+    st_name = d["supermercado"]
+
+    # Construir link directo de agregado al carrito si la tienda soporta guest-link
+    cart_link = None
+    if supports_cart(st_name) and sku_id:
+        sc = str(VTEX_SALES_CHANNELS.get(st_name, "1"))
+        base_domain = LIVE_VTEX_DOMAINS.get(st_name) or VTEX_DOMAINS.get(st_name)
+        if base_domain:
+            cart_link = f"{base_domain}/checkout/cart/add?sku={sku_id}&qty=1&seller={seller_id}&sc={sc}"
+
     return {
-        "supermercado": d["supermercado"],
+        "supermercado": st_name,
         "precio": precio,
         "precio_lista": p_lista,
         "precio_promo_unit": promo_unit,
         "stock": int(d.get("stock") or 0) > 0,
-        "link": d.get("link") or "",
+        "disponible": int(d.get("stock") or 0) > 0,
+        "link": final_link,
+        "cart_link": cart_link,
         "imagen": offer_imagen,
-        "sku_id": str(d.get("itemId") or d.get("sku") or ""),
+        "sku_id": sku_id,
+        "seller_id": seller_id,
+        "seller_name": d.get("seller_name") or "",
+        "store_type": str(d.get("store_type") or store_vertical(st_name)),
+        "modelo": d.get("modelo") or "",
+        "tipo": d.get("tipo") or "",
         "unit_price": d.get("unit_price") or d.get("precio_por_unidad"),
         "unit_measure": d.get("unit_type") or d.get("unidad_medida") or "un",
         "discount": descuento,
@@ -780,11 +845,14 @@ def _to_offer_dict(d: dict) -> dict:
         "promo_min_qty": int(d.get("promo_min_qty") or 1),
         "promo_unit_price": promo_unit,
         "requires_club": bool(d.get("requires_club") or d.get("requiere_club")),
-        "supports_cart": supports_cart(d["supermercado"]),
+        "supports_cart": supports_cart(st_name),
         "unit_multiplier": float(d.get("unit_multiplier") or 1.0),
         "nombre": d.get("nombre") or "",
+        "cuotas": int(d.get("cuotas") or 1),
+        "sin_interes": bool(d.get("sin_interes")),
+        "cuotas_info": d.get("cuotas_info"),
+        "cuota_monto": d.get("cuota_monto"),
         # Metadata enriquecida de Mercado Libre y Marketplace
-        "seller_name": d.get("seller_name"),
         "seller_reputation": d.get("seller_reputation"),
         "power_seller_status": d.get("power_seller_status"),
         "free_shipping": bool(d.get("free_shipping")),
@@ -810,7 +878,10 @@ _FILLER_TOKENS = {
 }
 
 _NUMBER_WORDS = {"3": "tres", "9": "nueve", "5": "cinco", "7": "siete", "2": "dos"}
+_EAN_TO_MODEL: dict[str, str] = {}
+_MODEL_TO_EAN: dict[str, str] = {}
 _EAN_ALIASES: dict[str, set[str]] = {}
+_MODEL_ALIASES: dict[str, set[str]] = {}
 
 
 def _is_valid_brand(b: str | None) -> bool:
@@ -1101,42 +1172,120 @@ def _match_meat(p: dict) -> tuple[str, str] | None:
 
 
 def _store_in_memory(flat_products: list[dict]) -> list[dict]:
-    """Agrupa en memoria por EAN, unifica frutas/verduras y cortes de carnicería en identidades canónicas,
-    fusiona EANs gemelos del mismo fabricante/variante/tamaño y guarda en RAM."""
+    """Agrupa en memoria aplicando jerarquía de 4 niveles:
+    Nivel 1: GS1 EAN-13 validado (Modulo 10, excluyendo balanza 20-29).
+    Nivel 2: Marca y Modelo Canónico Alfanumérico (electro/tech/hogar).
+    Nivel 3: Taxonomía de frutas/verduras y cortes de carnicería.
+    Nivel 4: Firma canónica de fabricante GS1 (misma marca/volumen/tokens y prefijo compatible).
+    Incluye guarda de razón de precios (0.35 <= ratio <= 2.8) y registro de aliases bidireccionales."""
     by_ean: dict[str, dict] = {}
     for d in flat_products:
-        if not d.get("ean") or not d.get("precio_venta") or int(d.get("stock") or 0) <= 0:
+        if not d:
+            continue
+        p_venta = _safe_float(d.get("precio_venta"), 0.0)
+        stock_val = _safe_int(d.get("stock"), 0)
+        if p_venta <= 0 or stock_val <= 0:
             continue
 
-        prod_match = _match_produce(d)
-        meat_match = _match_meat(d) if not prod_match else None
-        if prod_match:
-            canon_key, display_title = prod_match
-            ean = f"PRODUCE_{canon_key.upper()}"
-            d_nom = display_title
-            d_marca = "Verdulería"
-        elif meat_match:
-            canon_key, display_title = meat_match
-            ean = f"MEAT_{canon_key.upper()}"
-            d_nom = display_title
-            d_marca = "Carnicería"
-        else:
-            raw_e = str(d["ean"]).strip()
-            if len(raw_e) == 14 and raw_e.startswith("0") and raw_e.isdigit():
-                raw_e = raw_e[1:]
-            ean = raw_e
-            d_nom = (d.get("nombre") or "").strip()
-            d_marca = (d.get("marca") or "").strip()
+        d_nom = (d.get("nombre") or "").strip()
+        d_marca = (d.get("marca") or "").strip()
+        d_store = d.get("supermercado") or "Store"
+        item_id = str(d.get("itemId") or d.get("sku") or "")
 
-        is_canonical_fresh = bool(prod_match or meat_match)
+        # Guarda previa: Accesorios y repuestos
+        if is_accessory(d_nom):
+            clean_toks = re.sub(r'[^A-Z0-9]', '', d_nom.upper())[:30]
+            clean_st = re.sub(r'[^A-Z0-9]', '', d_store.upper())
+            group_id = f"ACC_{clean_st}_{item_id or clean_toks}"
+            is_canonical_fresh = False
+            base_model = ""
+            model_key = ""
+            norm_e = ""
+            has_valid_ean = False
+        else:
+            # Tier 3: Frutas, verduras y carnicería
+            prod_match = _match_produce(d)
+            meat_match = _match_meat(d) if not prod_match else None
+            if prod_match:
+                canon_key, display_title = prod_match
+                group_id = f"PRODUCE_{canon_key.upper()}"
+                d_nom = display_title
+                d_marca = "Verdulería"
+                is_canonical_fresh = True
+                base_model = ""
+                model_key = ""
+                norm_e = ""
+                has_valid_ean = False
+            elif meat_match:
+                canon_key, display_title = meat_match
+                group_id = f"MEAT_{canon_key.upper()}"
+                d_nom = display_title
+                d_marca = "Carnicería"
+                is_canonical_fresh = True
+                base_model = ""
+                model_key = ""
+                norm_e = ""
+                has_valid_ean = False
+            else:
+                is_canonical_fresh = False
+                raw_e = str(d.get("raw_ean") or d.get("ean") or "").strip()
+                norm_e = normalize_ean(raw_e)
+                has_valid_ean = bool(norm_e and is_valid_ean13(norm_e) and not is_internal_scale(norm_e))
+
+                model_key = d.get("model_key") or ""
+                base_model = d.get("modelo") or ""
+                if not model_key:
+                    base_model, model_key = extract_canonical_model({}, {}, d_nom, brand=d_marca)
+
+                # Aliasing bidireccional EAN <-> Modelo
+                if has_valid_ean and model_key:
+                    _EAN_TO_MODEL[norm_e] = model_key
+                    _MODEL_TO_EAN.setdefault(model_key, norm_e)
+                    _EAN_ALIASES.setdefault(norm_e, set()).add(model_key)
+                    _MODEL_ALIASES.setdefault(model_key, set()).add(norm_e)
+
+                # Resolución jerárquica de clave de grupo
+                if model_key:
+                    # Tier 2 Priority: unifica comercios con EAN y comercios con solo Modelo
+                    group_id = model_key
+                elif has_valid_ean:
+                    # Tier 1 Priority: resuelve alias de modelo si existe, de lo contrario EAN
+                    group_id = _EAN_TO_MODEL.get(norm_e, norm_e)
+                elif norm_e and is_internal_scale(norm_e):
+                    # Códigos de balanza interna (20-29): aislamiento por tienda
+                    group_id = f"{norm_e}_{d_store}"
+                elif norm_e:
+                    group_id = norm_e
+                else:
+                    clean_st = re.sub(r'[^A-Z0-9]', '', d_store.upper())
+                    group_id = f"ITEM_{clean_st}_{item_id or abs(hash(d_nom)) % 10000000}"
+
         clean_d_img = _clean_image_url(d.get("imagen"))
 
-        if not is_canonical_fresh and ean in by_ean:
-            if not _is_semantically_coherent(by_ean[ean]["nombre"], d_nom):
-                ean = f"{ean}_{d['supermercado']}"
+        # Coherencia semántica básica
+        if not is_canonical_fresh and group_id in by_ean:
+            if not _is_semantically_coherent(by_ean[group_id]["nombre"], d_nom):
+                group_id = f"{group_id}_{d_store}"
 
-        g = by_ean.setdefault(ean, {
-            "ean": ean,
+        # Guarda de razón de precios (0.35 <= cand_price / group_price <= 2.8)
+        if group_id in by_ean and by_ean[group_id]["offers_by_store"]:
+            existing_prices = [
+                float(o["precio"]) for o in by_ean[group_id]["offers_by_store"].values()
+                if o.get("precio") and float(o["precio"]) > 0
+            ]
+            if existing_prices:
+                avg_p = sum(existing_prices) / len(existing_prices)
+                if p_venta < 0.35 * avg_p or p_venta > 2.8 * avg_p:
+                    clean_st = re.sub(r'[^A-Z0-9]', '', d_store.upper())
+                    group_id = f"{group_id}_OUTLIER_{clean_st}_{item_id or abs(hash(d_nom)) % 10000000}"
+
+        g = by_ean.setdefault(group_id, {
+            "id": group_id,
+            "ean": group_id,
+            "primary_ean": norm_e if (not is_canonical_fresh and has_valid_ean) else "",
+            "model_key": model_key if (not is_canonical_fresh and model_key) else "",
+            "modelo": base_model if not is_canonical_fresh else "",
+            "tipo": d.get("tipo") or "",
             "nombre": d_nom if is_canonical_fresh else (d.get("nombre") or ""),
             "marca": d_marca if is_canonical_fresh else (d_marca if _is_valid_brand(d_marca) else "Genérico"),
             "imagen": clean_d_img,
@@ -1153,16 +1302,119 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             g["imagen"] = clean_d_img
         if not _is_valid_brand(g["marca"]) and _is_valid_brand(d_marca):
             g["marca"] = d_marca
+        if not g.get("tipo") and d.get("tipo"):
+            g["tipo"] = d.get("tipo")
+        if not g.get("modelo") and base_model:
+            g["modelo"] = base_model
+        if not g.get("primary_ean") and norm_e and has_valid_ean:
+            g["primary_ean"] = norm_e
 
         offer = _to_offer_dict(d)
-        if is_canonical_fresh and d["supermercado"] in g["offers_by_store"]:
-            existing = g["offers_by_store"][d["supermercado"]]
+        if is_canonical_fresh and d_store in g["offers_by_store"]:
+            existing = g["offers_by_store"][d_store]
             p_exist = existing.get("unit_price") or existing.get("precio") or float("inf")
             p_new = offer.get("unit_price") or offer.get("precio") or float("inf")
             if p_new < p_exist:
-                g["offers_by_store"][d["supermercado"]] = offer
+                g["offers_by_store"][d_store] = offer
         else:
-            g["offers_by_store"][d["supermercado"]] = offer
+            g["offers_by_store"][d_store] = offer
+
+    # Rebalanceo de grupos y blindaje contra usurpación por orden de llegada (Arrival Order Usurpation Guard)
+    _ACC_INDICATORS = re.compile(
+        r'\b(cargador|cable|funda|case|estuche|vidrio|film|soporte|control remoto|repuesto|bateria|batería|adaptador|auricular|auriculares|correa|malla|tapa|modulo|módulo|display|filtro|bolsa)\b',
+        re.IGNORECASE
+    )
+    _DEVICE_INDICATORS = re.compile(
+        r'\b(celular|celulares|telefono|teléfono|smartphone|smart tv|televisor|tv|heladera|heladeras|lavarropas|lavavajillas|aire acondicionado|notebook|notebooks|laptop|laptops|tablet|tablets|microondas|freidora|aspiradora|taladro|cafetera|purificador|afeitadora)\b',
+        re.IGNORECASE
+    )
+
+    outlier_keys = [k for k in list(by_ean.keys()) if "_OUTLIER_" in k]
+    if outlier_keys:
+        outliers_by_base: dict[str, list[str]] = {}
+        for ok in outlier_keys:
+            base_key = ok.split("_OUTLIER_")[0]
+            outliers_by_base.setdefault(base_key, []).append(ok)
+
+        def _card_legitimacy_score(g: dict) -> float:
+            offers = list(g.get("offers_by_store", {}).values())
+            nom = g.get("nombre") or ""
+            score = len(offers) * 50.0
+
+            if _ACC_INDICATORS.search(nom) or is_accessory(nom):
+                score -= 100.0
+            if _DEVICE_INDICATORS.search(nom):
+                score += 40.0
+            pri_e = g.get("primary_ean") or ""
+            if pri_e and len(pri_e) == 13 and is_valid_ean13(pri_e) and not is_internal_scale(pri_e):
+                score += 20.0
+            return score
+
+        for base_key, related_outliers in outliers_by_base.items():
+            if base_key not in by_ean:
+                continue
+            primary_g = by_ean[base_key]
+            primary_score = _card_legitimacy_score(primary_g)
+
+            best_candidate_key = None
+            best_candidate_score = -9999.0
+
+            for ok in related_outliers:
+                if ok not in by_ean:
+                    continue
+                cand_g = by_ean[ok]
+                cand_score = _card_legitimacy_score(cand_g)
+                if cand_score > best_candidate_score:
+                    best_candidate_score = cand_score
+                    best_candidate_key = ok
+
+            if best_candidate_key and best_candidate_score > primary_score:
+                promoted_g = by_ean[best_candidate_key]
+
+                # Demote primary_g a outlier
+                st_pri = list(primary_g["offers_by_store"].keys())[0] if primary_g["offers_by_store"] else "UNKNOWN"
+                clean_st_pri = re.sub(r'[^A-Z0-9]', '', st_pri.upper())
+                pri_id = primary_g.get("primary_ean") or abs(hash(primary_g.get("nombre", ""))) % 10000000
+                demoted_key = f"{base_key}_OUTLIER_{clean_st_pri}_{pri_id}"
+
+                primary_g["id"] = demoted_key
+                primary_g["ean"] = demoted_key
+                by_ean[demoted_key] = primary_g
+
+                # Promote candidate a primary
+                promoted_g["id"] = base_key
+                promoted_g["ean"] = promoted_g.get("primary_ean") or base_key
+                by_ean[base_key] = promoted_g
+                del by_ean[best_candidate_key]
+
+                if promoted_g.get("primary_ean"):
+                    _MODEL_TO_EAN[base_key] = promoted_g["primary_ean"]
+
+                # Unificar otros outliers compatibles con la nueva tarjeta principal
+                p_prom_prices = [
+                    float(o["precio"]) for o in promoted_g["offers_by_store"].values()
+                    if o.get("precio") and float(o["precio"]) > 0
+                ]
+                if p_prom_prices:
+                    avg_prom = sum(p_prom_prices) / len(p_prom_prices)
+                    for other_ok in related_outliers:
+                        if other_ok == best_candidate_key or other_ok not in by_ean:
+                            continue
+                        other_g = by_ean[other_ok]
+                        other_prices = [
+                            float(o["precio"]) for o in other_g["offers_by_store"].values()
+                            if o.get("precio") and float(o["precio"]) > 0
+                        ]
+                        if not other_prices:
+                            continue
+                        avg_other = sum(other_prices) / len(other_prices)
+                        if 0.35 * avg_prom <= avg_other <= 2.8 * avg_prom:
+                            disjoint = set(promoted_g["offers_by_store"].keys()).isdisjoint(other_g["offers_by_store"].keys())
+                            if disjoint:
+                                for st, off in other_g["offers_by_store"].items():
+                                    promoted_g["offers_by_store"][st] = off
+                                promoted_g.setdefault("all_names", set()).update(other_g.get("all_names") or [])
+                                del by_ean[other_ok]
 
     # Segunda pasada genérica: fusionar grupos con distinto EAN pero idéntica firma canónica
     # (Misma marca + Mismo peso/volumen + Mismos tokens de producto/variante + Cadenas disjuntas + Mismo prefijo GS1)
@@ -1174,7 +1426,7 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
     merged_away: set[str] = set()
 
     for ean in ean_list:
-        if ean.startswith(("PRODUCE_", "MEAT_")):
+        if ean.startswith(("PRODUCE_", "MEAT_", "ACC_")):
             continue
         g = by_ean[ean]
         sig = _canonical_signature(g["nombre"], g["marca"])
@@ -1196,9 +1448,9 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             if not _is_semantically_coherent(primary_g["nombre"], g["nombre"]):
                 continue
             # 4. Coherencia de precios (evitar unir un bulto mal rotulado con una unidad)
-            p_main = min(o["precio"] for o in primary_g["offers_by_store"].values())
-            p_cand = min(o["precio"] for o in g["offers_by_store"].values())
-            if not (0.45 <= (p_cand / p_main) <= 2.2):
+            p_main = sum(o["precio"] for o in primary_g["offers_by_store"].values()) / len(primary_g["offers_by_store"])
+            p_cand = sum(o["precio"] for o in g["offers_by_store"].values()) / len(g["offers_by_store"])
+            if not (0.35 <= (p_cand / p_main) <= 2.8):
                 continue
 
             # Fusionar ofertas dentro del grupo principal
@@ -1208,6 +1460,7 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             if not primary_g["imagen"] and g["imagen"]:
                 primary_g["imagen"] = g["imagen"]
             _EAN_ALIASES.setdefault(primary_ean, set()).add(ean)
+            _EAN_ALIASES.setdefault(ean, set()).add(primary_ean)
             merged_away.add(ean)
             merged = True
             break
@@ -1216,14 +1469,13 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             by_sig.setdefault(sig, []).append(ean)
 
     groups: list[dict] = []
-    for ean, g in by_ean.items():
-        if ean in merged_away:
+    for group_id, g in by_ean.items():
+        if group_id in merged_away:
             continue
         cant, u_tit = extraer_unidad_titulo(g["nombre"])
         offers = list(g["offers_by_store"].values())
-        if not ean.startswith(("PRODUCE_", "MEAT_")):
+        if not group_id.startswith(("PRODUCE_", "MEAT_", "ACC_")):
             for o in offers:
-                # Solo aplicar descuento al precio unitario ($/l, $/kg, $/un) si la promo es abierta a todo público
                 eff_p = (
                     float(o["precio"])
                     if o.get("requires_club")
@@ -1238,55 +1490,254 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
         primary_img = gallery_images[0] if gallery_images else _clean_image_url(g.get("imagen"))
         g["imagen"] = primary_img
 
-        # Persistir en el catálogo en memoria de la sesión para el optimizador Smart Cart
-        _LIVE_PRODUCTS_MEM[ean] = {
-            "ean": ean,
+        g_dict = {
+            "id": group_id,
+            "ean": g.get("primary_ean") or group_id,
+            "primary_ean": g.get("primary_ean") or "",
+            "model_key": g.get("model_key") or "",
             "nombre": g["nombre"],
             "marca": g["marca"],
-            "imagen": primary_img,
-            "gallery_images": gallery_images,
-        }
-        mem_offers = _LIVE_OFFERS_MEM.setdefault(ean, {})
-        for st, off in g["offers_by_store"].items():
-            mem_offers[st] = {**off, "ean": ean, "nombre": g["nombre"]}
-
-        if ean.startswith(("MEAT_", "PRODUCE_")):
-            _LIVE_PRODUCTS_MEM[ean.lower()] = _LIVE_PRODUCTS_MEM[ean]
-            _LIVE_OFFERS_MEM[ean.lower()] = mem_offers
-            if "CHORIZO" in ean:
-                _LIVE_OFFERS_MEM["MEAT_CHORIZO"] = mem_offers
-                _LIVE_OFFERS_MEM["meat_chorizo"] = mem_offers
-                _LIVE_PRODUCTS_MEM["MEAT_CHORIZO"] = _LIVE_PRODUCTS_MEM[ean]
-                _LIVE_PRODUCTS_MEM["meat_chorizo"] = _LIVE_PRODUCTS_MEM[ean]
-            if "ASADO_TIRA" in ean:
-                _LIVE_OFFERS_MEM["MEAT_ASADO"] = mem_offers
-                _LIVE_OFFERS_MEM["meat_asado"] = mem_offers
-            if "VACIO_VACUNO" in ean:
-                _LIVE_OFFERS_MEM["MEAT_VACIO"] = mem_offers
-                _LIVE_OFFERS_MEM["meat_vacio"] = mem_offers
-                _LIVE_PRODUCTS_MEM["MEAT_VACIO"] = _LIVE_PRODUCTS_MEM[ean]
-                _LIVE_PRODUCTS_MEM["meat_vacio"] = _LIVE_PRODUCTS_MEM[ean]
-            if "ENTRANA_VACUNA" in ean:
-                _LIVE_OFFERS_MEM["MEAT_ENTRANA"] = mem_offers
-                _LIVE_OFFERS_MEM["meat_entrana"] = mem_offers
-                _LIVE_PRODUCTS_MEM["MEAT_ENTRANA"] = _LIVE_PRODUCTS_MEM[ean]
-                _LIVE_PRODUCTS_MEM["meat_entrana"] = _LIVE_PRODUCTS_MEM[ean]
-            if "MATAMBRE_VACUNO" in ean:
-                _LIVE_OFFERS_MEM["MEAT_MATAMBRE"] = mem_offers
-                _LIVE_OFFERS_MEM["meat_matambre"] = mem_offers
-                _LIVE_PRODUCTS_MEM["MEAT_MATAMBRE"] = _LIVE_PRODUCTS_MEM[ean]
-                _LIVE_PRODUCTS_MEM["meat_matambre"] = _LIVE_PRODUCTS_MEM[ean]
-
-        groups.append({
-            "ean": ean,
-            "nombre": g["nombre"],
-            "marca": g["marca"],
+            "modelo": g.get("modelo") or "",
+            "tipo": g.get("tipo") or "",
+            "vertical": g.get("tipo") or (offers[0].get("store_type") if offers else "supermarket"),
+            "best_offer": offers[0] if offers else None,
             "imagen": primary_img,
             "gallery_images": gallery_images,
             "offers": offers,
             "all_names": list(g.get("all_names") or []),
-        })
+        }
+
+        # Persistir en memoria para el optimizador Smart Cart
+        prod_mem = {
+            "id": group_id,
+            "ean": g_dict["ean"],
+            "nombre": g["nombre"],
+            "marca": g["marca"],
+            "modelo": g.get("modelo") or "",
+            "tipo": g.get("tipo") or "",
+            "imagen": primary_img,
+            "gallery_images": gallery_images,
+        }
+        _LIVE_PRODUCTS_MEM[group_id] = prod_mem
+        _LIVE_PRODUCTS_MEM[group_id.lower()] = prod_mem
+        mem_offers = _LIVE_OFFERS_MEM.setdefault(group_id, {})
+        for st, off in g["offers_by_store"].items():
+            mem_offers[st] = {**off, "ean": g_dict["ean"], "nombre": g["nombre"]}
+        _LIVE_OFFERS_MEM[group_id.lower()] = mem_offers
+
+        pri_ean = g.get("primary_ean")
+        if pri_ean and pri_ean != group_id:
+            _LIVE_PRODUCTS_MEM[pri_ean] = prod_mem
+            _LIVE_PRODUCTS_MEM[pri_ean.lower()] = prod_mem
+            _LIVE_OFFERS_MEM[pri_ean] = mem_offers
+            _LIVE_OFFERS_MEM[pri_ean.lower()] = mem_offers
+
+        m_key = g.get("model_key")
+        if m_key and m_key != group_id:
+            _LIVE_PRODUCTS_MEM[m_key] = prod_mem
+            _LIVE_PRODUCTS_MEM[m_key.lower()] = prod_mem
+            _LIVE_OFFERS_MEM[m_key] = mem_offers
+            _LIVE_OFFERS_MEM[m_key.lower()] = mem_offers
+
+        all_aliases = (
+            _MODEL_ALIASES.get(group_id, set())
+            | _EAN_ALIASES.get(group_id, set())
+            | (_EAN_ALIASES.get(pri_ean, set()) if pri_ean else set())
+            | (_MODEL_ALIASES.get(m_key, set()) if m_key else set())
+        )
+        for al in all_aliases:
+            if al:
+                _LIVE_PRODUCTS_MEM[al] = prod_mem
+                _LIVE_PRODUCTS_MEM[al.lower()] = prod_mem
+                _LIVE_OFFERS_MEM[al] = mem_offers
+                _LIVE_OFFERS_MEM[al.lower()] = mem_offers
+
+        if group_id.startswith(("MEAT_", "PRODUCE_")):
+            if "CHORIZO" in group_id:
+                _LIVE_OFFERS_MEM["MEAT_CHORIZO"] = mem_offers
+                _LIVE_OFFERS_MEM["meat_chorizo"] = mem_offers
+                _LIVE_PRODUCTS_MEM["MEAT_CHORIZO"] = prod_mem
+                _LIVE_PRODUCTS_MEM["meat_chorizo"] = prod_mem
+            if "ASADO_TIRA" in group_id:
+                _LIVE_OFFERS_MEM["MEAT_ASADO"] = mem_offers
+                _LIVE_OFFERS_MEM["meat_asado"] = mem_offers
+            if "VACIO_VACUNO" in group_id:
+                _LIVE_OFFERS_MEM["MEAT_VACIO"] = mem_offers
+                _LIVE_OFFERS_MEM["meat_vacio"] = mem_offers
+                _LIVE_PRODUCTS_MEM["MEAT_VACIO"] = prod_mem
+                _LIVE_PRODUCTS_MEM["meat_vacio"] = prod_mem
+            if "ENTRANA_VACUNA" in group_id:
+                _LIVE_OFFERS_MEM["MEAT_ENTRANA"] = mem_offers
+                _LIVE_OFFERS_MEM["meat_entrana"] = mem_offers
+                _LIVE_PRODUCTS_MEM["MEAT_ENTRANA"] = prod_mem
+                _LIVE_PRODUCTS_MEM["meat_entrana"] = prod_mem
+            if "MATAMBRE_VACUNO" in group_id:
+                _LIVE_OFFERS_MEM["MEAT_MATAMBRE"] = mem_offers
+                _LIVE_OFFERS_MEM["meat_matambre"] = mem_offers
+                _LIVE_PRODUCTS_MEM["MEAT_MATAMBRE"] = prod_mem
+                _LIVE_PRODUCTS_MEM["meat_matambre"] = prod_mem
+
+        groups.append(g_dict)
+
+    # Prioritize genuine commercial products over quarantined accessories
+    groups.sort(key=lambda grp: (
+        1 if (grp.get("id", "").startswith("ACC_") or is_accessory(grp.get("nombre", ""))) else 0,
+        -len(grp.get("offers", [])),
+    ))
     return groups
+
+
+STORE_TIMEOUTS: dict[str, float] = {
+    "Coto": 4.5,
+    "MercadoLibre": 4.5,
+    "Provincia Compras": 4.0,
+    "On City": 4.0,
+    "Fravega": 3.8,
+}
+DEFAULT_STORE_TIMEOUT = 3.5
+
+
+async def _fetch_store_safe(
+    coroutine,
+    store_name: str,
+    timeout: float | None = None,
+) -> list[dict]:
+    """Ejecuta la consulta a una tienda con timeout aislado y protección de excepciones.
+    Garantiza que una tienda lenta o caída nunca bloquee o aborte la búsqueda global.
+    """
+    effective_timeout = timeout or STORE_TIMEOUTS.get(store_name, DEFAULT_STORE_TIMEOUT)
+    try:
+        res = await asyncio.wait_for(coroutine, timeout=effective_timeout)
+        if isinstance(res, list):
+            return res
+        return []
+    except asyncio.TimeoutError:
+        return []
+    except Exception:
+        return []
+
+
+async def _fetch_all_live_async(
+    client: httpx.AsyncClient,
+    query: str,
+    limit_per_store: int = 16,
+    order_by: str = "OrderByTopSaleDESC",
+    region_map: dict[str, str | None] | None = None,
+    vertical: str | None = None,
+    store_type: str | None = None,
+    grocery_only: bool = False,
+    cp: str | None = None,
+) -> tuple[list[dict], dict[str, int], dict[str, set[str]], list[str]]:
+    """Consulta concurrentemente todas las tiendas activas mediante asyncio.gather.
+    Aplica filtros verticales, timeouts individuales y aislamiento de errores.
+
+    Retorna:
+        - flat_products: lista unificada de ofertas obtenidas.
+        - by_store: conteo de productos por tienda.
+        - store_eans: conjunto de EANs encontrados por tienda.
+        - ean_priority: lista ordenada de EANs para Etapa 2.
+    """
+    region_map = region_map or {}
+    q_clean = query.strip()
+    is_ean = q_clean.isdigit() and 8 <= len(q_clean) <= 14
+
+    # Determinar tiendas VTEX según vertical
+    target_v = set()
+    if vertical and vertical.strip().lower() not in ("todos", "all", ""):
+        target_v.update(v.strip().lower() for v in vertical.split(",") if v.strip() and v.strip().lower() not in ("todos", "all"))
+    if store_type and store_type.strip().lower() not in ("todos", "all", ""):
+        target_v.update(st.strip().lower() for st in store_type.split(",") if st.strip() and st.strip().lower() not in ("todos", "all"))
+
+    vtex_candidates = list(LIVE_VTEX_DOMAINS.keys())
+    if target_v:
+        vtex_candidates = [
+            st for st in vtex_candidates
+            if store_vertical(st).lower() in target_v
+            or ("marketplace" in target_v and is_marketplace(st))
+            or (("supermarket" in target_v or "pharmacy" in target_v) and st in ("Farmacity", "Simplicity", "Farmaonline", "Farmaplus"))
+        ]
+
+    # Excluir alias duplicados para evitar llamadas dobles al mismo backend
+    alias_keys = {
+        "ProvinciaCompras", "OnCity", "Frávega", "Moulinex / Tefal", "Moulinex/Tefal",
+        "Sony Store", "SonyStore", "Perfumerías Pigmento", "Perfumerias Pigmento",
+        "Toledo Digital", "ToledoDigital", "Food Market", "BodegasBianchi",
+    }
+    vtex_names = [
+        st for st in vtex_candidates
+        if st not in alias_keys and region_map.get(st) != "__NO_DELIVERY__"
+    ]
+
+    tasks = []
+    task_stores = []
+
+    # A. Tiendas VTEX
+    for st in vtex_names:
+        st_vert = store_vertical(st)
+        if is_ean:
+            coro = fetch_vtex_by_eans_live(
+                client, st, [q_clean], region_id=region_map.get(st),
+                grocery_only=grocery_only, store_type=st_vert,
+            )
+        else:
+            coro = fetch_vtex_store_live(
+                client, st, q_clean, limit=limit_per_store, order_by=order_by,
+                region_id=region_map.get(st), grocery_only=grocery_only, store_type=st_vert,
+            )
+        tasks.append(_fetch_store_safe(coro, store_name=st))
+        task_stores.append(st)
+
+    # B. Coto Digital
+    if not target_v or "supermarket" in target_v:
+        tasks.append(_fetch_store_safe(fetch_coto_live(client, q_clean, limit=limit_per_store, grocery_only=grocery_only), store_name="Coto"))
+        task_stores.append("Coto")
+
+    # C. Shopify Stores (LaBarraCCU, Bodegas Bianchi)
+    if not target_v or any(v in target_v for v in ("supermarket", "specialty")):
+        for sh_st in SHOPIFY_DOMAINS.keys():
+            if sh_st in alias_keys:
+                continue
+            tasks.append(_fetch_store_safe(fetch_shopify_live(client, sh_st, q_clean, limit=10), store_name=sh_st))
+            task_stores.append(sh_st)
+
+    # D. Tiendanube Stores (LaBarata, TonelPrivado, DePastura)
+    if not target_v or any(v in target_v for v in ("supermarket", "specialty")):
+        for tn_st in TIENDANUBE_DOMAINS.keys():
+            tasks.append(_fetch_store_safe(fetch_tiendanube_live(client, tn_st, q_clean, limit=10), store_name=tn_st))
+            task_stores.append(tn_st)
+
+    # E. WooCommerce Stores (Arcor en Casa)
+    if not target_v or "supermarket" in target_v:
+        for wc_st in WOOCOMMERCE_DOMAINS.keys():
+            tasks.append(_fetch_store_safe(fetch_woocommerce_live(client, wc_st, q_clean, limit=10), store_name=wc_st))
+            task_stores.append(wc_st)
+
+    # F. Mercado Libre
+    if not target_v or any(v in target_v for v in ("marketplace", "electro", "supermarket", "specialty")):
+        tasks.append(_fetch_store_safe(fetch_mercadolibre_live(client, q_clean, limit=14, cp=cp), store_name="MercadoLibre"))
+        task_stores.append("MercadoLibre")
+
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    flat_products: list[dict] = []
+    by_store: dict[str, int] = {st: 0 for st in task_stores}
+    store_eans: dict[str, set[str]] = {st: set() for st in task_stores}
+    ean_priority: list[str] = []
+
+    for st_name, res in zip(task_stores, results):
+        if isinstance(res, list) and res:
+            flat_products.extend(res)
+            by_store[st_name] = len(res)
+            for p in res:
+                e = str(p.get("ean") or "")
+                if e.isdigit() and 8 <= len(e) <= 14:
+                    store_eans[st_name].add(e)
+                    if e not in ean_priority:
+                        ean_priority.append(e)
+        else:
+            by_store[st_name] = 0
+
+    return flat_products, by_store, store_eans, ean_priority
 
 
 async def live_search_and_sync(
@@ -1295,15 +1746,24 @@ async def live_search_and_sync(
     only_offers: bool = False,
     cp: str | None = None,
     force: bool = False,
+    vertical: str | None = None,
+    store_type: str | None = None,
+    grocery_only: bool = False,
 ) -> dict:
-    """Ejecuta la búsqueda 100% en vivo en los 3 motores (VTEX + Coto Endeca + Shopify)
-    filtrando estrictamente productos con stock (regionalizado por CP si se informa).
+    """Ejecuta la búsqueda 100% en vivo en los motores (VTEX + Coto + Shopify + Tiendanube + MeLi)
+    con ejecución concurrente protegida, aislando timeouts y errores de cada tienda.
     """
     q_norm = " ".join(query.lower().strip().split())
     if not q_norm:
         q_norm = "leche"
 
-    cache_key = f"{q_norm}|{'offers' if only_offers else 'all'}|{cp or ''}"
+    target_v = set()
+    if vertical and vertical.strip().lower() not in ("todos", "all", ""):
+        target_v.update(v.strip().lower() for v in vertical.split(",") if v.strip() and v.strip().lower() not in ("todos", "all"))
+    if store_type and store_type.strip().lower() not in ("todos", "all", ""):
+        target_v.update(st.strip().lower() for st in store_type.split(",") if st.strip() and st.strip().lower() not in ("todos", "all"))
+
+    cache_key = f"{q_norm}|{'offers' if only_offers else 'all'}|{cp or ''}|{vertical or 'all'}|{store_type or 'all'}|{grocery_only}"
     now = time.time()
     if not force and cache_key in _QUERY_GROUPS_CACHE:
         ts, cached_groups = _QUERY_GROUPS_CACHE[cache_key]
@@ -1331,70 +1791,24 @@ async def live_search_and_sync(
 
     order_by = "OrderByBestDiscountDESC" if only_offers else "OrderByTopSaleDESC"
 
-    async with httpx.AsyncClient(timeout=4.0, follow_redirects=True) as client:
-        vtex_names = [
-            st for st in LIVE_VTEX_DOMAINS.keys()
-            if region_map.get(st) != "__NO_DELIVERY__"
-        ]
-        is_ean = q_norm.isdigit() and 8 <= len(q_norm) <= 14
-        if is_ean:
-            # Búsqueda exacta indexada por EAN directo en cada cadena VTEX
-            tasks = [
-                fetch_vtex_by_eans_live(
-                    client,
-                    st,
-                    [q_norm],
-                    region_id=region_map.get(st),
-                )
-                for st in vtex_names
-            ]
-        else:
-            tasks = [
-                fetch_vtex_store_live(
-                    client,
-                    st,
-                    q_norm,
-                    limit=limit_per_store,
-                    order_by=order_by,
-                    region_id=region_map.get(st),
-                )
-                for st in vtex_names
-            ]
-        tasks.append(fetch_coto_live(client, q_norm, limit=limit_per_store))
-        shopify_names = list(SHOPIFY_DOMAINS.keys())
-        for sh_st in shopify_names:
-            tasks.append(fetch_shopify_live(client, sh_st, q_norm, limit=10))
-        tiendanube_names = list(TIENDANUBE_DOMAINS.keys())
-        for tn_st in tiendanube_names:
-            tasks.append(fetch_tiendanube_live(client, tn_st, q_norm, limit=10))
-        woocommerce_names = list(WOOCOMMERCE_DOMAINS.keys())
-        for wc_st in woocommerce_names:
-            tasks.append(fetch_woocommerce_live(client, wc_st, q_norm, limit=10))
-        tasks.append(fetch_mercadolibre_live(client, q_norm, limit=12, cp=cp))
+    limits = httpx.Limits(max_connections=150, max_keepalive_connections=50, keepalive_expiry=30.0)
+    timeout = httpx.Timeout(connect=3.0, read=5.0, write=3.0, pool=5.0)
 
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+    async with httpx.AsyncClient(limits=limits, timeout=timeout, follow_redirects=True) as client:
+        # Etapa 1: Consulta concurrente con _fetch_all_live_async
+        flat_products, by_store, store_eans, ean_priority = await _fetch_all_live_async(
+            client=client,
+            query=q_norm,
+            limit_per_store=limit_per_store,
+            order_by=order_by,
+            region_map=region_map,
+            vertical=vertical,
+            store_type=store_type,
+            grocery_only=grocery_only,
+            cp=cp,
+        )
 
-        all_names = vtex_names + ["Coto"] + shopify_names + tiendanube_names + woocommerce_names + ["MercadoLibre"]
-        flat_products: list[dict] = []
-        by_store: dict[str, int] = {}
-        store_eans: dict[str, set[str]] = {st: set() for st in all_names}
-        ean_priority: list[str] = []
-
-        for st_name, res in zip(all_names, results):
-            if isinstance(res, list) and res:
-                flat_products.extend(res)
-                by_store[st_name] = len(res)
-                for p in res:
-                    e = str(p.get("ean") or "")
-                    if e.isdigit() and 8 <= len(e) <= 14:
-                        store_eans[st_name].add(e)
-                        if e not in ean_priority:
-                            ean_priority.append(e)
-            else:
-                by_store[st_name] = 0
-
-        # Etapa 2: Completado cruzado por EAN (`fq=alternateIds_Ean:...`) en VTEX
-        # + Re-consulta automática a Coto si VTEX Intelligent Search corrigió un error de tipeo (ej. 'pecsi' -> 'pepsi')
+        # Etapa 2: Completado cruzado por EAN en VTEX
         vtex_only_prods = [p for p in flat_products if p.get("supermercado") != "Coto"]
         corrected_q = _detect_corrected_query(q_norm, vtex_only_prods)
 
@@ -1402,26 +1816,36 @@ async def live_search_and_sync(
         ean_tasks = []
         ean_task_stores = []
         if top_eans and not q_norm.isdigit():
-            for st in SUPERMARKET_CHAINS:
-                if region_map.get(st) == "__NO_DELIVERY__":
+            target_cross_chains = (
+                [st for st in SUPERMARKET_CHAINS if not target_v or "supermarket" in target_v]
+                if target_v and "supermarket" in target_v and not any(v in target_v for v in ("electro", "marketplace"))
+                else (
+                    [st for st in ELECTRO_MARKETPLACE_CHAINS if not target_v or any(v in target_v for v in ("electro", "marketplace"))]
+                    if target_v and any(v in target_v for v in ("electro", "marketplace")) and "supermarket" not in target_v
+                    else SUPERMARKET_CHAINS + ("Fravega", "Cetrogar", "Provincia Compras", "On City")
+                )
+            )
+            for st in target_cross_chains:
+                if st not in LIVE_VTEX_DOMAINS or region_map.get(st) == "__NO_DELIVERY__":
                     continue
                 missing = [e for e in top_eans if e not in store_eans.get(st, set())]
                 if missing:
-                    ean_tasks.append(
-                        fetch_vtex_by_eans_live(
-                            client, st, missing[:20], region_id=region_map.get(st)
-                        )
+                    coro = fetch_vtex_by_eans_live(
+                        client, st, missing[:20], region_id=region_map.get(st),
+                        grocery_only=grocery_only, store_type=store_vertical(st),
                     )
+                    ean_tasks.append(_fetch_store_safe(coro, store_name=st, timeout=3.0))
                     ean_task_stores.append(st)
 
             # Completado cruzado por EAN en Mercado Libre para los ítems principales
-            missing_meli = [e for e in top_eans[:10] if e not in store_eans.get("MercadoLibre", set())]
-            for me in missing_meli:
-                ean_tasks.append(fetch_mercadolibre_live(client, me, limit=1, cp=cp))
-                ean_task_stores.append("MercadoLibre")
+            if not target_v or any(v in target_v for v in ("marketplace", "electro", "supermarket")):
+                missing_meli = [e for e in top_eans[:10] if e not in store_eans.get("MercadoLibre", set())]
+                for me in missing_meli:
+                    ean_tasks.append(_fetch_store_safe(fetch_mercadolibre_live(client, me, limit=1, cp=cp), store_name="MercadoLibre", timeout=2.5))
+                    ean_task_stores.append("MercadoLibre")
 
-        if corrected_q and corrected_q != q_norm:
-            ean_tasks.append(fetch_coto_live(client, corrected_q, limit=limit_per_store))
+        if corrected_q and corrected_q != q_norm and (not target_v or "supermarket" in target_v):
+            ean_tasks.append(_fetch_store_safe(fetch_coto_live(client, corrected_q, limit=limit_per_store, grocery_only=grocery_only), store_name="Coto", timeout=3.5))
             ean_task_stores.append("Coto")
 
         if ean_tasks:
@@ -1447,6 +1871,9 @@ async def search_live_grouped(
     sort_by: str = "unit_price_asc",
     only_offers: bool = False,
     cp: str | None = None,
+    vertical: str | None = None,
+    store_type: str | None = None,
+    grocery_only: bool = False,
 ) -> list[dict]:
     """Devuelve los grupos de productos 100% desde la búsqueda en vivo (sin base de datos),
     filtrando falsos positivos de subcadena (ej. 'Pepsina' al buscar 'Pepsi') y ordenando
@@ -1455,7 +1882,13 @@ async def search_live_grouped(
     q_clean = query.strip()
     effective_q = q_clean if len(q_clean) >= 2 else "coca cola leche"
     res = await live_search_and_sync(
-        effective_q, limit_per_store=18, only_offers=only_offers, cp=cp
+        effective_q,
+        limit_per_store=18,
+        only_offers=only_offers,
+        cp=cp,
+        vertical=vertical,
+        store_type=store_type,
+        grocery_only=grocery_only,
     )
     raw_groups = []
     for g in res.get("groups", []):
@@ -1471,6 +1904,7 @@ async def search_live_grouped(
             "imagen": gallery[0] if gallery else _clean_image_url(g.get("imagen")),
             "gallery_images": gallery,
             "offers": coherent_offers,
+            "best_offer": coherent_offers[0] if coherent_offers else None,
         })
 
     # 1. Filtro estricto por palabra completa (evita 'Pepsina' o 'Cerveza Imperial' al buscar 'Pepsi',
@@ -1488,7 +1922,7 @@ async def search_live_grouped(
         q_sings = [_singularize_token(_NUMBER_WORDS.get(w, w)) for w in q_words]
 
         def _matches_strict(g: dict) -> bool:
-            all_text = f"{g['nombre']} {g['marca']} " + " ".join(g.get("all_names") or [])
+            all_text = f"{g.get('nombre', '')} {g.get('marca', '')} " + " ".join(g.get("all_names") or [])
             doc_tokens = _norm_text(all_text).split()
             doc_sings = {_singularize_token(_NUMBER_WORDS.get(t, t)) for t in doc_tokens}
             doc_raw = set(doc_tokens)
@@ -1504,7 +1938,7 @@ async def search_live_grouped(
             # Si no hubo coincidencias exactas porque el usuario tipeó mal (ej. 'pecsi', 'hugies', 'matarazo'),
             # permitimos tolerancia ortográfica Damerau-Levenshtein (distancia <= 1 o 2 en palabras del mismo largo)
             def _matches_fuzzy_typo(g: dict) -> bool:
-                all_text = f"{g['nombre']} {g['marca']} " + " ".join(g.get("all_names") or [])
+                all_text = f"{g.get('nombre', '')} {g.get('marca', '')} " + " ".join(g.get("all_names") or [])
                 doc_tokens = _norm_text(all_text).split()
                 for qw in q_words:
                     max_d = 1 if len(qw) <= 5 else 2
@@ -1530,6 +1964,52 @@ async def search_live_grouped(
             )
         ]
 
+    # 2. In-memory vertical and store_type filtering
+    target_v = set()
+    if vertical and vertical.strip().lower() not in ("todos", "all", ""):
+        target_v.update(v.strip().lower() for v in vertical.split(",") if v.strip() and v.strip().lower() not in ("todos", "all"))
+    if store_type and store_type.strip().lower() not in ("todos", "all", ""):
+        target_v.update(st.strip().lower() for st in store_type.split(",") if st.strip() and st.strip().lower() not in ("todos", "all"))
+
+    if target_v:
+        filtered_v = []
+        for g in groups:
+            g_tipo = (g.get("tipo") or "").lower()
+            g_vert = (g.get("vertical") or "").lower()
+            matching_offers = [
+                o for o in g.get("offers", [])
+                if (o.get("store_type") or "").lower() in target_v
+                or (o.get("tipo") or "").lower() in target_v
+                or (store_vertical(o.get("supermercado", "")).lower() in target_v)
+            ]
+            if matching_offers:
+                g_mod = dict(g)
+                g_mod["offers"] = matching_offers
+                g_mod["best_offer"] = matching_offers[0]
+                filtered_v.append(g_mod)
+            elif g_tipo in target_v or g_vert in target_v:
+                filtered_v.append(g)
+        groups = filtered_v
+
+    # 3. In-memory grocery_only filtering
+    if grocery_only:
+        grocery_filtered = []
+        for g in groups:
+            g_tipo = (g.get("tipo") or "").lower()
+            if g_tipo in ("electro", "hogar", "tecnologia", "ferreteria"):
+                continue
+            valid_offers = [
+                o for o in g.get("offers", [])
+                if (o.get("store_type") or "").lower() not in ("electro", "marketplace")
+                and (o.get("tipo") or "").lower() not in ("electro", "hogar", "tecnologia", "ferreteria")
+            ]
+            if valid_offers:
+                g_mod = dict(g)
+                g_mod["offers"] = valid_offers
+                g_mod["best_offer"] = valid_offers[0]
+                grocery_filtered.append(g_mod)
+        groups = grocery_filtered
+
     first_tok = _singularize_token(q_words[0]) if q_words else ""
 
     def _public_eff(o: dict) -> float:
@@ -1546,10 +2026,11 @@ async def search_live_grouped(
             )
         else:
             g["offers"].sort(key=_public_eff)
+        g["best_offer"] = g["offers"][0] if g["offers"] else None
 
     def _group_sort_key(g: dict):
-        name_tokens = [_singularize_token(t) for t in _norm_text(g["nombre"]).split()]
-        brand_tokens = {_singularize_token(t) for t in _norm_text(g["marca"]).split()}
+        name_tokens = [_singularize_token(t) for t in _norm_text(g.get("nombre", "")).split()]
+        brand_tokens = {_singularize_token(t) for t in _norm_text(g.get("marca", "")).split()}
 
         # Tier 0: El producto ES de esa marca (ej. marca 'PEPSI') o su nombre empieza con lo buscado (ej. 'Leche...')
         # Tier 1: Productos secundarios que contienen la palabra más adelante (ej. 'Dulce de leche' al buscar 'leche')
@@ -1615,6 +2096,25 @@ async def live_offers_for_eans(
         el = e.lower()
         if el in _LIVE_OFFERS_MEM:
             return _LIVE_OFFERS_MEM[el]
+        if e in _EAN_TO_MODEL and _EAN_TO_MODEL[e] in _LIVE_OFFERS_MEM:
+            return _LIVE_OFFERS_MEM[_EAN_TO_MODEL[e]]
+        if eu in _EAN_TO_MODEL and _EAN_TO_MODEL[eu] in _LIVE_OFFERS_MEM:
+            return _LIVE_OFFERS_MEM[_EAN_TO_MODEL[eu]]
+        if e in _MODEL_TO_EAN and _MODEL_TO_EAN[e] in _LIVE_OFFERS_MEM:
+            return _LIVE_OFFERS_MEM[_MODEL_TO_EAN[e]]
+        if eu in _MODEL_TO_EAN and _MODEL_TO_EAN[eu] in _LIVE_OFFERS_MEM:
+            return _LIVE_OFFERS_MEM[_MODEL_TO_EAN[eu]]
+        aliases = (
+            _EAN_ALIASES.get(e, set())
+            | _EAN_ALIASES.get(eu, set())
+            | _MODEL_ALIASES.get(e, set())
+            | _MODEL_ALIASES.get(eu, set())
+        )
+        for al in aliases:
+            if al in _LIVE_OFFERS_MEM:
+                return _LIVE_OFFERS_MEM[al]
+            if al.upper() in _LIVE_OFFERS_MEM:
+                return _LIVE_OFFERS_MEM[al.upper()]
         alias = _MEAT_CANONICAL_ALIASES.get(eu)
         if alias and alias in _LIVE_OFFERS_MEM:
             return _LIVE_OFFERS_MEM[alias]
@@ -1697,9 +2197,18 @@ async def live_lookup_eans(eans: list[str], cp: str | None = None) -> dict:
     if not clean_eans:
         return {"eans": [], "synced": 0, "stores": {}}
 
+    alias_keys = {
+        "ProvinciaCompras", "OnCity", "Frávega", "Moulinex / Tefal", "Moulinex/Tefal",
+        "Sony Store", "SonyStore", "Perfumerías Pigmento", "Perfumerias Pigmento",
+        "Toledo Digital", "ToledoDigital", "Food Market", "BodegasBianchi",
+    }
+    vtex_names = [st for st in LIVE_VTEX_DOMAINS.keys() if st not in alias_keys]
+
     async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
-        vtex_names = list(LIVE_VTEX_DOMAINS.keys())
-        tasks = [fetch_vtex_by_eans_live(client, st, clean_eans) for st in vtex_names]
+        tasks = [
+            _fetch_store_safe(fetch_vtex_by_eans_live(client, st, clean_eans), store_name=st, timeout=4.5)
+            for st in vtex_names
+        ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
     flat: list[dict] = []

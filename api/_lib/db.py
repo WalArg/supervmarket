@@ -12,7 +12,17 @@ import sqlite3
 import asyncio
 import unicodedata
 from .stores import supports_cart
-from .parsers import extraer_unidad_titulo, normalizar_unidad, sanity_precio_unidad
+from .parsers import (
+    extraer_unidad_titulo,
+    normalizar_unidad,
+    sanity_precio_unidad,
+    NON_GROCERY_MARKETPLACE_KEYWORDS,
+    NON_GROCERY_CATEGORY_KEYWORDS,
+)
+try:
+    from .normalization import extract_model
+except ImportError:
+    from normalization import extract_model
 
 _DSN = os.environ.get("DATABASE_URL", "sqlite:///./supervmarket.db")
 IS_SQLITE = _DSN.startswith("sqlite")
@@ -24,6 +34,14 @@ SQLITE_MIGRATIONS = [
     "ALTER TABLE precios ADD COLUMN promo_min_qty INTEGER DEFAULT 1",
     "ALTER TABLE precios ADD COLUMN precio_promo_unit REAL",
     "ALTER TABLE precios ADD COLUMN requiere_club INTEGER DEFAULT 0",
+    "ALTER TABLE precios ADD COLUMN seller_id TEXT DEFAULT '1'",
+    "ALTER TABLE precios ADD COLUMN store_type TEXT DEFAULT 'supermarket'",
+    "ALTER TABLE productos ADD COLUMN modelo TEXT",
+    "ALTER TABLE productos ADD COLUMN tipo TEXT",
+    "CREATE INDEX IF NOT EXISTS idx_precios_seller ON precios (seller_id)",
+    "CREATE INDEX IF NOT EXISTS idx_precios_store_type ON precios (store_type)",
+    "CREATE INDEX IF NOT EXISTS idx_productos_modelo ON productos (modelo)",
+    "CREATE INDEX IF NOT EXISTS idx_productos_tipo ON productos (tipo)",
 ]
 
 
@@ -89,6 +107,41 @@ def _get_sqlite() -> sqlite3.Connection:
             _sqlite_conn.execute(
                 "CREATE TABLE IF NOT EXISTS verified_deals_cache (cp TEXT PRIMARY KEY, updated_at REAL, payload_json TEXT)"
             )
+            # Safe backfill for existing rows
+            _sqlite_conn.execute(
+                "UPDATE precios SET seller_id = '1' WHERE seller_id IS NULL OR seller_id = ''"
+            )
+            _sqlite_conn.execute(
+                "UPDATE precios SET store_type = 'pharmacy' WHERE supermercado IN ('Farmacity', 'Farmaplus', 'Farmaonline', 'Simplicity', 'Pigmento') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
+            )
+            _sqlite_conn.execute(
+                "UPDATE precios SET store_type = 'specialty' WHERE supermercado = 'TheFoodMarket' AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
+            )
+            _sqlite_conn.execute(
+                "UPDATE precios SET store_type = 'electro' WHERE supermercado IN ('Fravega', 'Cetrogar', 'Naldo', 'Pardo', 'Coppel', 'Samsung', 'Philips', 'Whirlpool', 'Moulinex', 'Sony') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
+            )
+            _sqlite_conn.execute(
+                "UPDATE precios SET store_type = 'marketplace' WHERE supermercado IN ('Provincia Compras', 'On City') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
+            )
+            _sqlite_conn.execute(
+                "UPDATE precios SET store_type = 'supermarket' WHERE store_type IS NULL OR store_type = ''"
+            )
+            _sqlite_conn.execute(
+                "UPDATE productos SET tipo = 'pharmacy' WHERE (tipo IS NULL OR tipo = '') AND (supermercado_origen IN ('Farmacity', 'Farmaplus', 'Farmaonline', 'Simplicity', 'Pigmento') OR categorias LIKE '%Salud%' OR categorias LIKE '%Belleza%' OR categorias LIKE '%Perfumer%')"
+            )
+            _sqlite_conn.execute(
+                "UPDATE productos SET tipo = 'electro' WHERE (tipo IS NULL OR tipo = '') AND (categorias LIKE '%Electro%' OR categorias LIKE '%Celulares%' OR categorias LIKE '%Informatica%' OR categorias LIKE '%Calefacc%')"
+            )
+            _sqlite_conn.execute(
+                "UPDATE productos SET tipo = 'supermarket' WHERE tipo IS NULL OR tipo = ''"
+            )
+            rows_tech = _sqlite_conn.execute(
+                "SELECT ean, nombre, marca FROM productos WHERE (modelo IS NULL OR modelo = '') AND (tipo = 'electro' OR categorias LIKE '%Electro%' OR categorias LIKE '%Celular%')"
+            ).fetchall()
+            for row in rows_tech:
+                m = extract_model(row["nombre"] or "", row["marca"] or "")
+                if m:
+                    _sqlite_conn.execute("UPDATE productos SET modelo = ? WHERE ean = ?", (m, row["ean"]))
             _sqlite_conn.commit()
         except Exception:
             pass
@@ -133,6 +186,11 @@ def _offer_row(r) -> dict:
     else:
         eff_unit_price = float(raw_unit_price) if raw_unit_price else None
 
+    seller_id = str(r["seller_id"]) if ("seller_id" in keys and r["seller_id"]) else "1"
+    store_type = str(r["store_type"]) if ("store_type" in keys and r["store_type"]) else "supermarket"
+    modelo = str(r["modelo"]) if ("modelo" in keys and r["modelo"]) else ""
+    tipo = str(r["tipo"]) if ("tipo" in keys and r["tipo"]) else ""
+
     return {
         "supermercado": r["supermercado"],
         "precio": precio,
@@ -149,12 +207,23 @@ def _offer_row(r) -> dict:
         "promo_unit_price": promo_unit,
         "requires_club": req_club,
         "supports_cart": supports_cart(r["supermercado"]),
+        "seller_id": seller_id,
+        "store_type": store_type,
+        "modelo": modelo,
+        "tipo": tipo,
     }
 
 
 # ---------- API pública ----------
-async def search_grouped(query: str, sort_by: str = "price_asc", only_offers: bool = False,
-                         limit: int = 120) -> list[dict]:
+async def search_grouped(
+    query: str,
+    sort_by: str = "price_asc",
+    only_offers: bool = False,
+    limit: int = 120,
+    vertical: str | None = None,
+    store_type: str | None = None,
+    grocery_only: bool = False,
+) -> list[dict]:
     tokens = [t for t in query.split() if t]
     order_col = (
         "pr.precio_por_unidad"
@@ -162,20 +231,48 @@ async def search_grouped(query: str, sort_by: str = "price_asc", only_offers: bo
         else "COALESCE(pr.precio_promo_unit, pr.precio_venta)"
     )
 
+    target_verticals = set()
+    if vertical and vertical.strip().lower() not in ("todos", "all", ""):
+        target_verticals.update(v.strip().lower() for v in vertical.split(",") if v.strip() and v.strip().lower() not in ("todos", "all"))
+    if store_type and store_type.strip().lower() not in ("todos", "all", ""):
+        target_verticals.update(st.strip().lower() for st in store_type.split(",") if st.strip() and st.strip().lower() not in ("todos", "all"))
+
+    conds = []
+    args = []
+
     if IS_SQLITE:
         search_expr = (
             "unaccent(lower(p.nombre || ' ' || COALESCE(p.marca, '') || ' ' || "
             "p.ean || ' ' || COALESCE(pr.supermercado, '') || ' ' || COALESCE(p.categorias, '')))"
         )
-        conds = [f"{search_expr} LIKE ?" for _ in tokens]
-        args = [f"%{_norm(t)}%" for t in tokens]
+        conds.extend([f"{search_expr} LIKE ?" for _ in tokens])
+        args.extend([f"%{_norm(t)}%" for t in tokens])
+        if target_verticals:
+            ph = ",".join("?" * len(target_verticals))
+            conds.append(f"(COALESCE(pr.store_type, 'supermarket') IN ({ph}) OR COALESCE(p.tipo, 'supermarket') IN ({ph}))")
+            args.extend(list(target_verticals))
+            args.extend(list(target_verticals))
+        if grocery_only:
+            conds.append("COALESCE(pr.store_type, 'supermarket') NOT IN ('electro', 'marketplace')")
+            conds.append("COALESCE(p.tipo, 'supermarket') NOT IN ('electro', 'hogar', 'tecnologia', 'ferreteria')")
+            conds.append("(COALESCE(p.categorias, '') NOT LIKE '%Electro%' AND COALESCE(p.categorias, '') NOT LIKE '%Celulares%' AND COALESCE(p.categorias, '') NOT LIKE '%Informatica%')")
     else:
         search_expr = (
             "lower(unaccent(p.nombre || ' ' || COALESCE(p.marca, '') || ' ' || "
             "p.ean || ' ' || COALESCE(pr.supermercado, '') || ' ' || COALESCE(p.categorias, '')))"
         )
-        conds = [f"{search_expr} LIKE lower(unaccent(${i}))" for i in range(1, len(tokens) + 1)]
-        args = [f"%{t}%" for t in tokens]
+        conds.extend([f"{search_expr} LIKE lower(unaccent(${i}))" for i in range(1, len(tokens) + 1)])
+        args.extend([f"%{t}%" for t in tokens])
+        if target_verticals:
+            idx1 = len(args) + 1
+            idx2 = len(args) + 2
+            conds.append(f"(COALESCE(pr.store_type, 'supermarket') = ANY(${idx1}::text[]) OR COALESCE(p.tipo, 'supermarket') = ANY(${idx2}::text[]))")
+            args.append(list(target_verticals))
+            args.append(list(target_verticals))
+        if grocery_only:
+            conds.append("COALESCE(pr.store_type, 'supermarket') NOT IN ('electro', 'marketplace')")
+            conds.append("COALESCE(p.tipo, 'supermarket') NOT IN ('electro', 'hogar', 'tecnologia', 'ferreteria')")
+            conds.append("(COALESCE(p.categorias, '') NOT ILIKE '%Electro%' AND COALESCE(p.categorias, '') NOT ILIKE '%Celulares%' AND COALESCE(p.categorias, '') NOT ILIKE '%Informatica%')")
 
     if only_offers:
         conds.append("((pr.promo_etiqueta IS NOT NULL AND pr.requiere_club = 0) OR pr.descuento >= 5)")
@@ -186,7 +283,7 @@ async def search_grouped(query: str, sort_by: str = "price_asc", only_offers: bo
     # Si el usuario buscó un término, priorizamos los productos cuyo nombre empieza con la palabra buscada
     # (ej: buscando "leche" aparece "Leche La Serenísima" antes que "Pepitas de dulce de leche").
     if tokens and IS_SQLITE:
-        first_tok = _norm(tokens[0])
+        first_tok = _norm(tokens[0]).replace("'", "''")
         starts_expr = (
             f"MAX(CASE WHEN unaccent(lower(p.nombre)) LIKE '{first_tok}%' THEN 2 "
             f"WHEN unaccent(lower(p.nombre)) LIKE '% {first_tok}%' THEN 1 ELSE 0 END)"
@@ -209,10 +306,10 @@ async def search_grouped(query: str, sort_by: str = "price_asc", only_offers: bo
         return []
 
     cols = (
-        "p.ean, p.nombre, p.marca, p.imagen, pr.supermercado, pr.precio_venta, "
+        "p.ean, p.nombre, p.marca, p.modelo, p.tipo, p.categorias, p.imagen, pr.supermercado, pr.precio_venta, "
         "pr.precio_lista, pr.stock, pr.link, pr.internal_id, pr.precio_por_unidad, "
         "pr.unidad_medida, pr.descuento, pr.promo_etiqueta, pr.promo_tipo, "
-        "pr.promo_min_qty, pr.precio_promo_unit, pr.requiere_club"
+        "pr.promo_min_qty, pr.precio_promo_unit, pr.requiere_club, pr.seller_id, pr.store_type"
     )
     if IS_SQLITE:
         ph = ",".join("?" * len(eans))
@@ -226,10 +323,27 @@ async def search_grouped(query: str, sort_by: str = "price_asc", only_offers: bo
 
     grouped: dict[str, dict] = {}
     for r in rows:
+        keys = r.keys()
+        st_val = r["store_type"] if "store_type" in keys and r["store_type"] else ""
+        tp_val = r["tipo"] if "tipo" in keys and r["tipo"] else ""
+        if grocery_only:
+            cat_val = r["categorias"] if "categorias" in keys and r["categorias"] else ""
+            norm_nom = _norm(r["nombre"])
+            norm_cat = _norm(cat_val)
+            if st_val in ("electro", "marketplace") or tp_val in ("electro", "hogar", "tecnologia", "ferreteria"):
+                continue
+            if any(kw in norm_nom or kw in norm_cat for kw in NON_GROCERY_MARKETPLACE_KEYWORDS):
+                continue
+            if any(ck in norm_cat for ck in NON_GROCERY_CATEGORY_KEYWORDS):
+                continue
         g = grouped.setdefault(r["ean"], {
+            "id": r["ean"],
             "ean": r["ean"],
             "nombre": r["nombre"],
             "marca": r["marca"],
+            "modelo": r["modelo"] if "modelo" in keys and r["modelo"] else "",
+            "tipo": tp_val,
+            "vertical": tp_val or st_val or "supermarket",
             "imagen": r["imagen"],
             "offers": [],
         })
@@ -238,7 +352,7 @@ async def search_grouped(query: str, sort_by: str = "price_asc", only_offers: bo
     results = []
     for ean in eans:
         g = grouped.get(ean)
-        if not g:
+        if not g or not g.get("offers"):
             continue
         # Unificar la cantidad/unidad del grupo por EAN (ej: Multipack 3x90 G = 0.27 kg)
         # y recalcular el precio por kg/litro sobre el precio efectivo con promo de cada tienda.
@@ -253,6 +367,7 @@ async def search_grouped(query: str, sort_by: str = "price_asc", only_offers: bo
             g["offers"].sort(key=lambda o: (o["unit_price"] is None, o["unit_price"] or 0))
         else:
             g["offers"].sort(key=lambda o: o.get("promo_unit_price") or o["precio"])
+        g["best_offer"] = g["offers"][0] if g["offers"] else None
         results.append(g)
     return results
 
@@ -276,9 +391,10 @@ async def offers_for_eans(eans: list[str]):
     if not eans:
         return {}, {}
     cols = (
-        "p.ean, p.nombre, pr.supermercado, pr.precio_venta, pr.precio_lista, pr.stock, "
+        "p.ean, p.nombre, p.marca, p.modelo, p.tipo, pr.supermercado, pr.precio_venta, pr.precio_lista, pr.stock, "
         "pr.link, pr.internal_id, pr.precio_por_unidad, pr.unidad_medida, pr.descuento, "
-        "pr.promo_etiqueta, pr.promo_tipo, pr.promo_min_qty, pr.precio_promo_unit, pr.requiere_club"
+        "pr.promo_etiqueta, pr.promo_tipo, pr.promo_min_qty, pr.precio_promo_unit, pr.requiere_club, "
+        "pr.seller_id, pr.store_type"
     )
     if IS_SQLITE:
         ph = ",".join("?" * len(eans))
@@ -319,14 +435,36 @@ async def stats_summary() -> dict:
     }
 
 
-async def save_verified_deals_snapshot(cp: str, payload: dict) -> bool:
+async def save_verified_deals_snapshot(*args, **kwargs) -> bool:
     """Guarda un snapshot verificado de ofertas en SQLite/Postgres con fallback local en JSON."""
-    cp_key = str(cp or "global").strip() or "global"
+    payload_data = None
+    cp_key = "global"
+
+    if "payload" in kwargs:
+        payload_data = kwargs["payload"]
+    if "cp" in kwargs:
+        cp_key = str(kwargs["cp"] or "global").strip() or "global"
+
+    if len(args) == 1:
+        if isinstance(args[0], dict) and payload_data is None:
+            payload_data = args[0]
+        elif isinstance(args[0], str) and "cp" not in kwargs:
+            cp_key = args[0].strip() or "global"
+    elif len(args) >= 2:
+        if isinstance(args[0], dict):
+            payload_data = args[0]
+            cp_key = str(args[1] or "global").strip() or "global"
+        else:
+            cp_key = str(args[0] or "global").strip() or "global"
+            payload_data = args[1]
+
+    if not isinstance(payload_data, dict):
+        return False
     now = time.time()
     saved = False
 
     try:
-        payload_str = json.dumps(payload, ensure_ascii=False)
+        payload_str = json.dumps(payload_data, ensure_ascii=False)
     except Exception:
         return False
 
@@ -372,7 +510,7 @@ async def save_verified_deals_snapshot(cp: str, payload: dict) -> bool:
                         existing = loaded
             existing[cp_key] = {
                 "updated_at": now,
-                "payload": payload,
+                "payload": payload_data,
             }
             with open(_SNAPSHOT_FILE, "w", encoding="utf-8") as f:
                 json.dump(existing, f, ensure_ascii=False)
@@ -383,7 +521,7 @@ async def save_verified_deals_snapshot(cp: str, payload: dict) -> bool:
     return saved
 
 
-async def load_verified_deals_snapshot(cp: str, max_age_seconds: float = 43200.0) -> dict | None:
+async def load_verified_deals_snapshot(cp: str = "global", max_age_seconds: float = 43200.0) -> dict | None:
     """Carga un snapshot verificado de ofertas desde SQLite/Postgres o el fallback local en JSON."""
     cp_key = str(cp or "global").strip() or "global"
     now = time.time()

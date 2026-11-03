@@ -6,10 +6,25 @@ import SponsoredProductBox from './SponsoredProductBox'
 import { searchProducts } from '../api'
 import { useLocation } from '../location/LocationContext'
 import { SPONSORED_CONFIG } from '../lib/sponsoredConfig'
-import { storeColor, storeLabel } from '../lib/stores'
+import { storeColor, storeLabel, storeVertical, type StoreVertical } from '../lib/stores'
 import type { ProductGroup } from '../types'
 
 type Sort = 'unit_price_asc' | 'price_asc'
+
+export type VerticalFilter = 'all' | 'supermarket' | 'marketplace_electro'
+
+interface VerticalChipDef {
+  id: VerticalFilter
+  label: string
+  queryParam?: string
+  groceryOnly?: boolean
+}
+
+const VERTICAL_CHIPS: VerticalChipDef[] = [
+  { id: 'all', label: 'Todos' },
+  { id: 'supermarket', label: 'Supermercados', queryParam: 'supermarket', groceryOnly: true },
+  { id: 'marketplace_electro', label: 'Marketplaces / Electro', queryParam: 'marketplace,electro', groceryOnly: false },
+]
 
 const Chip: React.FC<{ active: boolean; onClick: () => void; children: React.ReactNode }> = ({ active, onClick, children }) => (
   <button
@@ -33,10 +48,16 @@ const SearchScreen: React.FC = () => {
   const [onlyOffers, setOnlyOffers] = useState(false)
   const [onlyBulk, setOnlyBulk] = useState(false)
   const [onlyMulti, setOnlyMulti] = useState(false)
+  const [selectedVertical, setSelectedVertical] = useState<VerticalFilter>('all')
   const [selectedStore, setSelectedStore] = useState<string | null>(null)
   const [storeDropdownOpen, setStoreDropdownOpen] = useState(false)
   const [scanning, setScanning] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleVerticalChange = (v: VerticalFilter) => {
+    setSelectedVertical(v)
+    setSelectedStore(null)
+  }
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query.trim()), 350)
@@ -52,7 +73,11 @@ const SearchScreen: React.FC = () => {
     }
     let alive = true
     setLoading(true)
-    searchProducts(debounced, sort, onlyOffers, cp)
+    const vertChip = VERTICAL_CHIPS.find(c => c.id === selectedVertical)
+    searchProducts(debounced, sort, onlyOffers, cp, {
+      vertical: vertChip?.queryParam || null,
+      grocery_only: vertChip?.groceryOnly ?? false,
+    })
       .then(data => {
         if (!alive) return
         setResults(data)
@@ -62,7 +87,7 @@ const SearchScreen: React.FC = () => {
     return () => {
       alive = false
     }
-  }, [debounced, sort, onlyOffers, cp])
+  }, [debounced, sort, onlyOffers, cp, selectedVertical])
 
   // Lista de comercios presentes en los resultados de búsqueda para filtrado
   const availableStores = useMemo(() => {
@@ -89,13 +114,46 @@ const SearchScreen: React.FC = () => {
     () =>
       results.filter(g => {
         if (selectedStore && !g.offers.some(o => o.supermercado === selectedStore)) return false
+        if (selectedVertical !== 'all') {
+          const chip = VERTICAL_CHIPS.find(c => c.id === selectedVertical)
+          if (chip?.queryParam) {
+            const allowedVerts = chip.queryParam.split(',')
+            const matchesVertical =
+              (g.vertical && allowedVerts.includes(g.vertical)) ||
+              g.offers.some(o => allowedVerts.includes(o.vertical || storeVertical(o.supermercado)))
+            if (!matchesVertical) return false
+          }
+        }
         if (onlyOffers && !g.offers.some(o => (o.discount >= 5) || (o.promo_label && !o.requires_club))) return false
         if (onlyMulti && g.offers.length < 2) return false
         if (onlyBulk && !g.offers.some(o => (o.promo_min_qty || 1) > 1 && !o.requires_club)) return false
         return true
       }),
-    [results, selectedStore, onlyOffers, onlyMulti, onlyBulk],
+    [results, selectedStore, selectedVertical, onlyOffers, onlyMulti, onlyBulk],
   )
+
+  const groupedStores = useMemo(() => {
+    const order: { key: StoreVertical; title: string }[] = [
+      { key: 'supermarket', title: 'Supermercados' },
+      { key: 'marketplace', title: 'Marketplaces Generales' },
+      { key: 'electro', title: 'Electro y Tecnología' },
+      { key: 'pharmacy', title: 'Farmacias y Perfumería' },
+      { key: 'specialty', title: 'Hogar y Especialidades' },
+    ]
+    const res: { title: string; stores: { store: string; count: number }[] }[] = []
+    for (const cat of order) {
+      const matched = availableStores.filter(s => storeVertical(s.store) === cat.key)
+      if (matched.length > 0) {
+        res.push({ title: cat.title, stores: matched })
+      }
+    }
+    const assigned = new Set(res.flatMap(g => g.stores.map(s => s.store)))
+    const unassigned = availableStores.filter(s => !assigned.has(s.store))
+    if (unassigned.length > 0) {
+      res.push({ title: 'Otros Comercios', stores: unassigned })
+    }
+    return res
+  }, [availableStores])
 
   // Detecta el producto para el recuadro patrocinado (Mercado Libre)
   const sponsoredCandidate = useMemo(() => {
@@ -262,6 +320,29 @@ const SearchScreen: React.FC = () => {
           </form>
         </div>
 
+        {/* Selector de Verticales (WCAG 2.5.5 touch target >= 44px) */}
+        {hasQuery && (
+          <div className="px-4 pb-2 pt-0.5 flex items-center gap-2 overflow-x-auto no-scrollbar animate-in fade-in duration-200">
+            {VERTICAL_CHIPS.map(chip => {
+              const isActive = selectedVertical === chip.id
+              return (
+                <button
+                  key={chip.id}
+                  type="button"
+                  onClick={() => handleVerticalChange(chip.id)}
+                  className={`shrink-0 min-h-[44px] h-11 px-4 rounded-full text-[13px] font-bold flex items-center gap-1.5 border transition-all active:scale-95 shadow-2xs ${
+                    isActive
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <span>{chip.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         {/* Filtros generales y Desplegable de Comercios (solo cuando hay búsqueda) */}
         {hasQuery && (
           <div className="px-4 pb-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar animate-in fade-in duration-200">
@@ -360,7 +441,7 @@ const SearchScreen: React.FC = () => {
                     setSelectedStore(null)
                     setStoreDropdownOpen(false)
                   }}
-                  className={`w-full py-2.5 px-2.5 rounded-xl text-left flex items-center justify-between transition-colors min-h-[40px] ${
+                  className={`w-full py-2.5 px-2.5 rounded-xl text-left flex items-center justify-between transition-colors min-h-[44px] ${
                     selectedStore === null
                       ? 'bg-blue-50 text-blue-700 font-bold'
                       : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
@@ -376,38 +457,45 @@ const SearchScreen: React.FC = () => {
                   </div>
                 </button>
 
-                {availableStores.map(({ store, count }) => {
-                  const isSel = selectedStore === store
-                  return (
-                    <button
-                      key={store}
-                      type="button"
-                      role="option"
-                      aria-selected={isSel}
-                      onClick={() => {
-                        setSelectedStore(store)
-                        setStoreDropdownOpen(false)
-                      }}
-                      className={`w-full py-2.5 px-2.5 rounded-xl text-left flex items-center justify-between transition-colors min-h-[40px] ${
-                        isSel
-                          ? 'bg-blue-50 text-blue-700 font-bold'
-                          : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ background: storeColor(store) }}
-                        />
-                        <span className="text-[13px] truncate">{storeLabel(store)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-normal text-slate-400">({count})</span>
-                        {isSel && <Check size={16} strokeWidth={2.5} className="text-blue-600" />}
-                      </div>
-                    </button>
-                  )
-                })}
+                {groupedStores.map(cat => (
+                  <div key={cat.title} className="py-1">
+                    <div className="px-2.5 py-1 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 bg-slate-50/80 rounded-md mb-0.5">
+                      {cat.title}
+                    </div>
+                    {cat.stores.map(({ store, count }) => {
+                      const isSel = selectedStore === store
+                      return (
+                        <button
+                          key={store}
+                          type="button"
+                          role="option"
+                          aria-selected={isSel}
+                          onClick={() => {
+                            setSelectedStore(store)
+                            setStoreDropdownOpen(false)
+                          }}
+                          className={`w-full py-2.5 px-2.5 rounded-xl text-left flex items-center justify-between transition-colors min-h-[44px] ${
+                            isSel
+                              ? 'bg-blue-50 text-blue-700 font-bold'
+                              : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ background: storeColor(store) }}
+                            />
+                            <span className="text-[13px] truncate">{storeLabel(store)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-normal text-slate-400">({count})</span>
+                            {isSel && <Check size={16} strokeWidth={2.5} className="text-blue-600" />}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ))}
               </div>
             </div>
           </>
