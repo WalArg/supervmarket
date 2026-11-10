@@ -13,6 +13,7 @@ import threading
 import functools
 import asyncio
 import unicodedata
+import re
 from .stores import supports_cart
 from .parsers import (
     extraer_unidad_titulo,
@@ -47,6 +48,10 @@ SQLITE_MIGRATIONS = [
     "CREATE INDEX IF NOT EXISTS idx_productos_tipo ON productos (tipo)",
     "CREATE INDEX IF NOT EXISTS idx_productos_search_text ON productos (search_text)",
     "CREATE INDEX IF NOT EXISTS idx_productos_cat_search ON productos (categoria_normalizada, search_text)",
+    "CREATE VIRTUAL TABLE IF NOT EXISTS productos_fts USING fts5(ean UNINDEXED, search_text, tokenize=trigram)",
+    "CREATE TRIGGER IF NOT EXISTS productos_ai AFTER INSERT ON productos BEGIN INSERT INTO productos_fts(ean, search_text) VALUES (new.ean, new.search_text); END",
+    "CREATE TRIGGER IF NOT EXISTS productos_ad AFTER DELETE ON productos BEGIN DELETE FROM productos_fts WHERE ean = old.ean; END",
+    "CREATE TRIGGER IF NOT EXISTS productos_au AFTER UPDATE ON productos BEGIN DELETE FROM productos_fts WHERE ean = old.ean; INSERT INTO productos_fts(ean, search_text) VALUES (new.ean, new.search_text); END",
 ]
 
 _TRANS = str.maketrans('áéíóúÁÉÍÓÚñÑüÜàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛãõÃÕ', 'aeiouAEIOUnNuUaeiouAEIOUaeiouAEIOUaeiouAEIOUaoAO')
@@ -290,6 +295,10 @@ def detect_search_intent(query: str) -> str | None:
     )):
         return "muebles_racks"
 
+    # Limpieza específica antes de cocina (para atrapar rollo de cocina antes de cocina)
+    if "rollo de cocina" in q or "rollos de cocina" in q or "papel de cocina" in q:
+        return "limpieza"
+
     # 3. Equipos de Tecnología / Electro
     # Televisores
     if any(tok in q for tok in ("smart tv", "smarttv", "smart-tv", "televisor", "televisores", "led tv", "qled", "oled", "neo qled", "the frame", "4k tv")):
@@ -303,7 +312,7 @@ def detect_search_intent(query: str) -> str | None:
         return "celulares"
 
     # Notebooks y Tablets
-    if any(k in q for k in ("notebook", "notebooks", "laptop", "laptops", "tablet", "tablets", "ipad", "netbook", "macbook", "chromebook", "all in one", "computadora", "pc gamer", "monitor")):
+    if any(k in q for k in ("notebook", "notebooks", "laptop", "laptops", "tablet", "tablets", "ipad", "netbook", "macbook", "chromebook", "all in one", "computadora", "pc gamer", "monitor", "teclado")):
         return "notebooks_tablets"
 
     # Heladeras y Freezers
@@ -315,7 +324,7 @@ def detect_search_intent(query: str) -> str | None:
         return "lavado"
 
     # Cocina y Hornos
-    if any(k in q for k in ("cocina", "cocinas", "horno", "hornos", "anafe", "anafes", "campana extractora")):
+    if any(k in q for k in ("cocina", "cocinas", "horno", "hornos", "microondas", "anafe", "anafes", "campana extractora")):
         return "cocina_hornos"
 
     # Climatización
@@ -327,7 +336,7 @@ def detect_search_intent(query: str) -> str | None:
         return "audio_video"
 
     # Pequeños Electro
-    if any(k in q for k in ("microondas", "cafetera", "pava electrica", "licuadora", "batidora", "tostadora", "procesadora", "freidora", "air fryer", "plancha", "aspiradora")):
+    if any(k in q for k in ("cafetera", "pava electrica", "licuadora", "batidora", "tostadora", "procesadora", "freidora", "air fryer", "plancha", "aspiradora")):
         return "pequenos_electro"
 
     # Herramientas y Construcción
@@ -335,22 +344,6 @@ def detect_search_intent(query: str) -> str | None:
         return "herramientas_construccion"
 
     # 4. Supermercado, Farmacia y Mascotas
-    # Lácteos Frescos
-    if any(k in q for k in ("leche", "yogur", "yogurt", "queso", "manteca", "crema de leche", "dulce de leche")):
-        return "lacteos_frescos"
-
-    # Bebidas
-    if any(k in q for k in ("cerveza", "vino", "gaseosa", "coca cola", "pepsi", "sprite", "fanta", "fernet", "gin", "vodka", "whisky", "agua mineral", "jugo")):
-        return "bebidas"
-
-    # Almacén
-    if any(k in q for k in ("fideos", "arroz", "aceite", "harina", "azucar", "galletitas", "galletas", "atun", "yerba", "cafe", "te", "conserva", "legumbres", "mermelada", "mayonesa", "ketchup", "pure de tomate")):
-        return "almacen"
-
-    # Carnes y Verdulería
-    if any(k in q for k in ("carne", "pollo", "asado", "vacio", "matambre", "nalga", "lomo", "peceto", "pescado", "fruta", "verdura", "tomate", "papa", "cebolla", "manzana", "banana")):
-        return "carnes_verduleria"
-
     # Limpieza
     if any(k in q for k in ("detergente", "lavandina", "jabon liquido", "suavizante", "desodorante de ambiente", "papel higienico", "rollo de cocina", "limpiador", "desinfectante", "esponja")):
         return "limpieza"
@@ -358,6 +351,24 @@ def detect_search_intent(query: str) -> str | None:
     # Perfumería y Farmacia
     if any(k in q for k in ("shampoo", "acondicionador", "desodorante", "jabon de tocador", "dentifrico", "pasta dental", "cepillo dental", "panales", "protector solar", "crema facial", "perfume", "repelente")):
         return "perfumeria_farmacia"
+
+    # Lácteos Frescos
+    if any(k in q for k in ("leche", "yogur", "yogurt", "queso", "manteca", "crema de leche", "dulce de leche")):
+        return "lacteos_frescos"
+
+    # Bebidas
+    if any(k in q for k in ("cerveza", "vino", "gaseosa", "coca cola", "pepsi", "sprite", "fanta", "fernet", "vodka", "whisky", "agua mineral", "agua saborizada", "jugo")) or "gin" in q_words:
+        return "bebidas"
+
+    # Carnes y Verdulería
+    if any(k in q for k in ("carne", "pollo", "asado", "vacio", "matambre", "nalga", "lomo", "peceto", "pescado", "fruta", "verdura", "tomate", "papa", "cebolla", "manzana", "banana", "salchicha", "salchichas", "milanesa", "milanesas", "zanahoria", "zanahorias", "lechuga", "lechugas")):
+        return "carnes_verduleria"
+
+    # Almacén
+    if "pure de tomate" in q or any(k in q for k in ("fideos", "arroz", "aceite", "harina", "azucar", "galletitas", "galletas", "atun", "yerba", "cafe", "conserva", "legumbres", "mermelada", "mayonesa", "mostaza", "ketchup", "pan")):
+        return "almacen"
+    if "te" in q_words or "té" in q_words:
+        return "almacen"
 
     # Mascotas
     if any(k in q for k in ("alimento perro", "alimento gato", "comida perro", "comida gato", "piedras sanitarias", "pedigree", "whiskas", "royal canin", "cat chow", "dog chow", "pro plan", "catycan")):
@@ -370,6 +381,20 @@ def detect_search_intent(query: str) -> str | None:
 _SEARCH_CACHE: dict[tuple, tuple[float, list[dict]]] = {}
 _SEARCH_CACHE_TTL_SECONDS = 60.0
 _SEARCH_CACHE_LOCK = threading.Lock()
+_HAS_FTS5: bool | None = None
+
+
+def _check_has_fts5() -> bool:
+    global _HAS_FTS5
+    if _HAS_FTS5 is None:
+        try:
+            conn = _get_sqlite()
+            cur = conn.cursor()
+            cur.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='productos_fts'")
+            _HAS_FTS5 = bool(cur.fetchone())
+        except Exception:
+            _HAS_FTS5 = False
+    return _HAS_FTS5
 
 
 async def search_grouped(
@@ -408,9 +433,22 @@ async def search_grouped(
     conds = []
     args = []
 
+    use_fts = bool(IS_SQLITE and _check_has_fts5() and tokens)
+    clean_fts_toks = [re.sub(r'[^a-zA-Z0-9]', '', _norm(t)) for t in tokens]
+    clean_fts_toks = [t for t in clean_fts_toks if t]
+    has_short_tok = any(len(t) < 3 for t in clean_fts_toks)
+    if has_short_tok:
+        clean_phrase = " ".join(clean_fts_toks)
+        fts_match = f'"{clean_phrase}"' if clean_phrase else ""
+    else:
+        fts_match = " ".join(f'"{t}"' for t in clean_fts_toks) if clean_fts_toks else ""
+    if not fts_match:
+        use_fts = False
+
     if IS_SQLITE:
-        conds.extend(["p.search_text LIKE ?" for _ in tokens])
-        args.extend([f"%{_norm(t)}%" for t in tokens])
+        if not use_fts:
+            conds.extend(["p.search_text LIKE ?" for _ in tokens])
+            args.extend([f"%{_norm(t)}%" for t in tokens])
         if target_verticals:
             ph = ",".join("?" * len(target_verticals))
             conds.append(f"(COALESCE(pr.store_type, 'supermarket') IN ({ph}) OR COALESCE(p.tipo, 'supermarket') IN ({ph}))")
@@ -457,7 +495,48 @@ async def search_grouped(
 
     target_intent = detect_search_intent(query)
 
-    if target_intent and IS_SQLITE:
+    if use_fts:
+        # FTS5 Trigram Super-Acceleration (<10ms across 700k+ products)
+        if target_intent:
+            target_sql = (
+                f"SELECT p.ean, MIN({order_col}) AS best, COUNT(pr.supermercado) AS stores_cnt, "
+                f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
+                f"{starts_expr} AS name_rel, 3 AS intent_score "
+                f"FROM productos_fts f "
+                f"JOIN productos p ON p.ean = f.ean "
+                f"JOIN precios pr ON pr.ean = p.ean "
+                f"WHERE f.search_text MATCH ? AND p.categoria_normalizada = ? AND {where_clause} AND pr.stock > 0 AND {order_col} IS NOT NULL "
+                f"GROUP BY p.ean ORDER BY intent_score DESC, name_rel DESC, stores_cnt DESC, has_promo DESC, best ASC LIMIT {safe_limit}"
+            )
+            target_rows = await _fetch(target_sql, target_sql, [fts_match, target_intent] + args)
+            if not target_rows:
+                # Fallback to broad match without category constraint
+                broad_sql = (
+                    f"SELECT p.ean, MIN({order_col}) AS best, COUNT(pr.supermercado) AS stores_cnt, "
+                    f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
+                    f"{starts_expr} AS name_rel, 1 AS intent_score "
+                    f"FROM productos_fts f "
+                    f"JOIN productos p ON p.ean = f.ean "
+                    f"JOIN precios pr ON pr.ean = p.ean "
+                    f"WHERE f.search_text MATCH ? AND {where_clause} AND pr.stock > 0 AND {order_col} IS NOT NULL "
+                    f"GROUP BY p.ean ORDER BY intent_score DESC, name_rel DESC, stores_cnt DESC, has_promo DESC, best ASC LIMIT {safe_limit}"
+                )
+                ean_rows = await _fetch(broad_sql, broad_sql, [fts_match] + args)
+            else:
+                ean_rows = target_rows
+        else:
+            broad_sql = (
+                f"SELECT p.ean, MIN({order_col}) AS best, COUNT(pr.supermercado) AS stores_cnt, "
+                f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
+                f"{starts_expr} AS name_rel, 1 AS intent_score "
+                f"FROM productos_fts f "
+                f"JOIN productos p ON p.ean = f.ean "
+                f"JOIN precios pr ON pr.ean = p.ean "
+                f"WHERE f.search_text MATCH ? AND {where_clause} AND pr.stock > 0 AND {order_col} IS NOT NULL "
+                f"GROUP BY p.ean ORDER BY intent_score DESC, name_rel DESC, stores_cnt DESC, has_promo DESC, best ASC LIMIT {safe_limit}"
+            )
+            ean_rows = await _fetch(broad_sql, broad_sql, [fts_match] + args)
+    elif target_intent and IS_SQLITE:
         # Aceleración por índice idx_productos_cat_norm: resolución <15ms
         target_sql = (
             f"SELECT p.ean, MIN({order_col}) AS best, COUNT(pr.supermercado) AS stores_cnt, "

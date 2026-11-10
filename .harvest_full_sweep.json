@@ -1,0 +1,41 @@
+{
+  "completed_stores": [
+    "Coto",
+    "Cetrogar",
+    "Naldo",
+    "Dia",
+    "Josimar",
+    "Pardo",
+    "Cordiez",
+    "Farmaplus",
+    "StyleStore",
+    "Natural Life",
+    "Toledo",
+    "Simplicity",
+    "Farmaonline",
+    "Puppis",
+    "Catycan",
+    "Pigmento",
+    "TheFoodMarket"
+  ],
+  "store_counts": {
+    "Coto": 37617,
+    "Cetrogar": 7850,
+    "Naldo": 8961,
+    "Dia": 5698,
+    "Josimar": 6025,
+    "Pardo": 10132,
+    "Cordiez": 6184,
+    "Farmaplus": 10024,
+    "StyleStore": 8064,
+    "Natural Life": 4801,
+    "Toledo": 8678,
+    "Simplicity": 12902,
+    "Farmaonline": 15180,
+    "Puppis": 4259,
+    "Catycan": 4787,
+    "Pigmento": 7002,
+    "TheFoodMarket": 3126
+  },
+  "last_updated": "2026-11-10T18:21:01Z"
+}

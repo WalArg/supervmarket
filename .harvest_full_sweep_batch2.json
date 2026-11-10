@@ -1,0 +1,19 @@
+{
+  "completed_stores": [
+    "Easy",
+    "Farmacity",
+    "Masonline",
+    "Coppel",
+    "On City",
+    "Provincia Compras"
+  ],
+  "store_counts": {
+    "Easy": 26709,
+    "Farmacity": 24772,
+    "Masonline": 37347,
+    "Coppel": 114799,
+    "On City": 91292,
+    "Provincia Compras": 254142
+  },
+  "last_updated": "2026-11-10T19:08:25Z"
+}

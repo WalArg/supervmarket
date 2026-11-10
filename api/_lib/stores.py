@@ -1,6 +1,7 @@
 """Configuración de tiendas: dominios VTEX, canales de venta (sc), soporte de carrito y mínimos."""
 
 import os
+import unicodedata
 import urllib.parse
 from typing import TypedDict, Literal, Optional
 
@@ -879,16 +880,27 @@ RETAILER_AFFILIATE_CONFIG = {
 }
 
 
+def _strip_accents(text: str) -> str:
+    if not text:
+        return ""
+    return "".join(
+        c for c in unicodedata.normalize("NFD", str(text))
+        if unicodedata.category(c) != "Mn"
+    )
+
+
 def get_store_meta(store: str) -> Optional[StoreMeta]:
-    """Obtiene los metadatos de la tienda realizando resolución exacta o insensible a mayúsculas/espacios."""
+    """Obtiene los metadatos de la tienda realizando resolución exacta o insensible a mayúsculas/espacios/acentos."""
     if not store:
         return None
     if store in STORE_REGISTRY:
         return STORE_REGISTRY[store]
-    cleaned = store.strip().lower().replace(" ", "").replace("_", "")
+    cleaned = _strip_accents(store).strip().lower().replace(" ", "").replace("_", "").replace("-", "")
     for k, v in STORE_REGISTRY.items():
-        k_clean = k.strip().lower().replace(" ", "").replace("_", "")
-        if cleaned == k_clean or cleaned == v["id"].lower().replace("_", ""):
+        k_clean = _strip_accents(k).strip().lower().replace(" ", "").replace("_", "").replace("-", "")
+        v_id_clean = _strip_accents(v["id"]).strip().lower().replace(" ", "").replace("_", "").replace("-", "")
+        v_nom_clean = _strip_accents(v.get("nombre", "")).strip().lower().replace(" ", "").replace("_", "").replace("-", "")
+        if cleaned in (k_clean, v_id_clean, v_nom_clean):
             return v
     return None
 

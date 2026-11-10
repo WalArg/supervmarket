@@ -279,21 +279,37 @@ class DatabaseBatchWriter:
                     actualizado = excluded.actualizado;
             """, prod_rows)
 
-            # Upsert into precios
+            # Upsert into precios (Winning In-Stock Offer Invariant: 0-stock never overwrites in-stock)
             cur.executemany("""
                 INSERT INTO precios (
                     ean, supermercado, precio_venta, precio_lista, descuento,
                     stock, internal_id, link, fecha, seller_id, store_type
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(ean, supermercado) DO UPDATE SET
-                    precio_venta = excluded.precio_venta,
-                    precio_lista = excluded.precio_lista,
-                    descuento = excluded.descuento,
-                    stock = excluded.stock,
-                    internal_id = excluded.internal_id,
-                    link = excluded.link,
+                    precio_venta = CASE 
+                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.precio_venta
+                        WHEN precios.stock <= 0 AND excluded.stock <= 0 AND excluded.precio_venta > 0 THEN excluded.precio_venta
+                        ELSE precios.precio_venta END,
+                    precio_lista = CASE 
+                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.precio_lista
+                        ELSE precios.precio_lista END,
+                    descuento = CASE 
+                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.descuento
+                        ELSE precios.descuento END,
+                    stock = CASE 
+                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.stock
+                        WHEN precios.stock <= 0 AND excluded.stock > 0 THEN excluded.stock
+                        ELSE precios.stock END,
+                    internal_id = CASE 
+                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.internal_id
+                        ELSE precios.internal_id END,
+                    link = CASE 
+                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.link
+                        ELSE precios.link END,
                     fecha = excluded.fecha,
-                    seller_id = excluded.seller_id,
+                    seller_id = CASE 
+                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.seller_id
+                        ELSE precios.seller_id END,
                     store_type = excluded.store_type;
             """, price_rows)
 
