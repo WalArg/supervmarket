@@ -409,11 +409,7 @@ async def search_grouped(
     args = []
 
     if IS_SQLITE:
-        search_expr = (
-            "COALESCE(p.search_text, unaccent(lower(p.nombre || ' ' || COALESCE(p.marca, '') || ' ' || "
-            "p.ean || ' ' || COALESCE(pr.supermercado, '') || ' ' || COALESCE(p.categorias, ''))))"
-        )
-        conds.extend([f"{search_expr} LIKE ?" for _ in tokens])
+        conds.extend(["p.search_text LIKE ?" for _ in tokens])
         args.extend([f"%{_norm(t)}%" for t in tokens])
         if target_verticals:
             ph = ",".join("?" * len(target_verticals))
@@ -464,7 +460,7 @@ async def search_grouped(
     if target_intent and IS_SQLITE:
         # Aceleración por índice idx_productos_cat_norm: resolución <15ms
         target_sql = (
-            f"SELECT p.ean, MIN({order_col}) AS best, COUNT(DISTINCT pr.supermercado) AS stores_cnt, "
+            f"SELECT p.ean, MIN({order_col}) AS best, COUNT(pr.supermercado) AS stores_cnt, "
             f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
             f"{starts_expr} AS name_rel, 3 AS intent_score "
             f"FROM productos p "
@@ -475,7 +471,7 @@ async def search_grouped(
         target_rows = await _fetch(target_sql, target_sql, [target_intent] + args)
         if len(target_rows) < safe_limit and target_intent in EQUIPMENT_INTENTS:
             cat_broad_sql = (
-                f"SELECT p.ean, MIN({order_col}) AS best, COUNT(DISTINCT pr.supermercado) AS stores_cnt, "
+                f"SELECT p.ean, MIN({order_col}) AS best, COUNT(pr.supermercado) AS stores_cnt, "
                 f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
                 f"{starts_expr} AS name_rel, 3 AS intent_score "
                 f"FROM productos p "
@@ -496,7 +492,7 @@ async def search_grouped(
             else:
                 other_score = "1"
             other_sql = (
-                f"SELECT p.ean, MIN({order_col}) AS best, COUNT(DISTINCT pr.supermercado) AS stores_cnt, "
+                f"SELECT p.ean, MIN({order_col}) AS best, COUNT(pr.supermercado) AS stores_cnt, "
                 f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
                 f"{starts_expr} AS name_rel, {other_score} AS intent_score "
                 f"FROM productos p "
@@ -509,7 +505,7 @@ async def search_grouped(
             ean_rows = target_rows
     else:
         ean_sql = (
-            f"SELECT p.ean, MIN({order_col}) AS best, COUNT(DISTINCT pr.supermercado) AS stores_cnt, "
+            f"SELECT p.ean, MIN({order_col}) AS best, COUNT(pr.supermercado) AS stores_cnt, "
             f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
             f"{starts_expr} AS name_rel, 1 AS intent_score "
             f"FROM productos p "

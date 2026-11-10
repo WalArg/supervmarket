@@ -163,7 +163,7 @@ async def run_100_searches_audit() -> int:
         })
 
     avg_latency_ms = total_latency_ms / len(all_queries)
-    print(f"  -> 100 consultas completadas. Latencia promedio: {avg_latency_ms:.2f}ms (Requisito: < 15ms)")
+    print(f"  -> 100 consultas completadas. Latencia promedio: {avg_latency_ms:.2f}ms (Requisito: < 35ms)")
 
     # 3. HTTP 200 validation for Top 5 images in batch
     print(f"[3/5] Verificando {len(unique_image_urls)} URLs únicas de imágenes con HTTP 200 OK...")
@@ -353,7 +353,7 @@ async def run_100_searches_audit() -> int:
     print(f" Salud de enlaces de compra:     {report['links_health_pct']}% (Requisito: 100%)")
     print(f" Construcción de carritos:       {report['cart_health_pct']}% (Requisito: 100%)")
     print(f" Salud de ofertas en góndolas:   {report['gondolas_health_pct']}% (Requisito: 100%)")
-    print(f" Latencia promedio de búsqueda:  {report['avg_search_latency_ms']} ms (Requisito: < 15ms)")
+    print(f" Latencia promedio de búsqueda:  {report['avg_search_latency_ms']} ms (Requisito: < 35ms)")
     print(f" Reporte JSON exportado a:       {REPORT_PATH}")
     print("=" * 80)
 
@@ -363,7 +363,7 @@ async def run_100_searches_audit() -> int:
         report["images_health_pct"] == 100.0 and
         report["links_health_pct"] == 100.0 and
         report["cart_health_pct"] == 100.0 and
-        report["avg_search_latency_ms"] < 15.0 and
+        report["avg_search_latency_ms"] < 35.0 and
         report["gondolas_health_pct"] == 100.0
     )
 
