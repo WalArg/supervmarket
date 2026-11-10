@@ -186,6 +186,7 @@ export const SavedScreen: React.FC<SavedScreenProps> = ({ onGoSearch, onGoCart, 
                         loading="lazy"
                         className="max-w-full max-h-full object-contain"
                         onError={e => ((e.target as HTMLImageElement).style.visibility = 'hidden')}
+                        referrerPolicy="no-referrer"
                       />
                     ) : (
                       <Bookmark size={24} className="text-slate-300" />

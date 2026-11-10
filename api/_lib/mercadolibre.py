@@ -53,20 +53,82 @@ NON_SUPERMARKET_DOMAIN_PREFIXES = (
     "MLA-FOOTWEAR",
 )
 
+ELECTRO_DOMAIN_PREFIXES = (
+    "MLA-CELLPHONES",
+    "MLA-COMPUTERS",
+    "MLA-COMPUTER_",
+    "MLA-TELEVISIONS",
+    "MLA-TABLETS",
+    "MLA-HEADPHONES",
+    "MLA-AUDIO_",
+    "MLA-ELECTRONICS",
+    "MLA-REFRIGERATORS",
+    "MLA-WASHING_MACHINES",
+    "MLA-AIR_CONDITIONERS",
+    "MLA-SMALL_APPLIANCES",
+    "MLA-MICROWAVES",
+)
 
-def _is_supermarket_domain(domain_id: str | None) -> bool:
-    """Descarta dominios que pertenecen a rubros ajenos a supermercado (automotor, bazar, accesorios)."""
+ELECTRO_DOMAIN_TOKENS = (
+    "CELLPHONE", "COMPUTER", "TELEVISION", "TABLET", "HEADPHONE",
+    "AUDIO", "ELECTRONIC", "REFRIGERATOR", "WASHING_MACHINE",
+    "AIR_CONDITIONER", "MICROWAVE",
+)
+
+
+def is_electro_query(query: str, vertical: str | None = None) -> bool:
+    """Determina si una consulta o vertical corresponde al rubro de tecnología o electrodomésticos."""
+    if vertical and vertical.strip().lower() in ("electro", "tecnologia", "tech", "electronics", "hogar"):
+        return True
+    if not query:
+        return False
+    q = query.lower().strip()
+    electro_keywords = (
+        "tv", "smart tv", "televisor", "televisores", "led tv", "qled", "oled",
+        "celular", "celulares", "smartphone", "smartphones", "iphone", "galaxy",
+        "motorola", "xiaomi", "notebook", "notebooks", "laptop", "laptops", "tablet",
+        "tablets", "ipad", "macbook", "computadora", "pc", "monitor",
+        "heladera", "heladeras", "freezer", "freezers", "lavarropas", "secarropas",
+        "lavavajillas", "aire acondicionado", "split", "climatizador", "estufa",
+        "calefactor", "ventilador", "microondas", "cafetera", "pava electrica",
+        "licuadora", "batidora", "tostadora", "freidora", "air fryer", "aspiradora",
+        "auricular", "auriculares", "headphone", "headphones", "parlante", "parlantes",
+        "soundbar", "barra de sonido", "home theater"
+    )
+    q_words = set(q.split())
+    if any(k in q_words for k in ("tv", "tvs", "pc")):
+        return True
+    return any(k in q for k in electro_keywords)
+
+
+def _is_supermarket_domain(domain_id: str | None, allow_electro: bool = False) -> bool:
+    """Descarta dominios que pertenecen a rubros ajenos a supermercado (automotor, bazar, accesorios).
+
+    Si allow_electro es True, permite dominios de tecnología y electrodomésticos.
+    """
     if not domain_id:
         return True
     dom = domain_id.upper()
+
+    if allow_electro:
+        if any(dom.startswith(p) for p in ELECTRO_DOMAIN_PREFIXES) or any(t in dom for t in ELECTRO_DOMAIN_TOKENS):
+            return True
+    else:
+        if any(dom.startswith(p) for p in ELECTRO_DOMAIN_PREFIXES) or any(t in dom for t in ELECTRO_DOMAIN_TOKENS):
+            return False
+
     for prefix in NON_SUPERMARKET_DOMAIN_PREFIXES:
         if dom.startswith(prefix):
             return False
-    bad_tokens = (
+
+    bad_tokens = [
         "AIR_FRESHENER", "VEHICLE", "AUTO_", "MOTORCYCLE", "FILTER", "RADIATOR",
         "DISPENSER", "HOLDER", "SLICER", "GRATER", "CUSHION", "PILLOW", "POUF",
-        "POLISH", "TOILETRY", "HEADPHONE", "DRINKING_GLASS",
-    )
+        "POLISH", "TOILETRY", "DRINKING_GLASS",
+    ]
+    if not allow_electro:
+        bad_tokens.append("HEADPHONE")
+
     for tok in bad_tokens:
         if tok in dom:
             return False
@@ -259,6 +321,7 @@ async def fetch_mercadolibre_live(
     query: str,
     limit: int = 10,
     cp: str | None = None,
+    vertical: str | None = None,
 ) -> list[dict]:
     """Consulta productos en vivo desde el catálogo oficial de Mercado Libre y cotiza envío real según el CP."""
     token = await get_meli_token(client)
@@ -267,6 +330,7 @@ async def fetch_mercadolibre_live(
 
     q_clean = query.strip()
     is_ean = q_clean.isdigit() and 8 <= len(q_clean) <= 14
+    is_electro = is_electro_query(q_clean, vertical)
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -284,7 +348,7 @@ async def fetch_mercadolibre_live(
             if r.status_code == 200:
                 for p in r.json().get("results", []):
                     pid = p.get("id")
-                    if pid and pid not in seen_pids and _is_supermarket_domain(p.get("domain_id")):
+                    if pid and pid not in seen_pids and _is_supermarket_domain(p.get("domain_id"), allow_electro=is_electro):
                         seen_pids.add(pid)
                         products.append(p)
         else:
@@ -314,7 +378,7 @@ async def fetch_mercadolibre_live(
                 if r.status_code == 200:
                     for p in r.json().get("results", []):
                         pid = p.get("id")
-                        if pid and pid not in seen_pids and _is_supermarket_domain(p.get("domain_id")):
+                        if pid and pid not in seen_pids and _is_supermarket_domain(p.get("domain_id"), allow_electro=is_electro):
                             seen_pids.add(pid)
                             products.append(p)
                 if len(products) >= limit:
@@ -323,10 +387,10 @@ async def fetch_mercadolibre_live(
         if not products:
             return []
 
-        # Consultar precios en paralelo para los productos válidos del catálogo de supermercado
+        # Consultar precios en paralelo para los productos válidos del catálogo
         async def _fetch_product_best_item(prod: dict) -> dict | None:
             pid = prod.get("id")
-            if not pid or not _is_supermarket_domain(prod.get("domain_id")):
+            if not pid or not _is_supermarket_domain(prod.get("domain_id"), allow_electro=is_electro):
                 return None
             it_url = f"https://api.mercadolibre.com/products/{pid}/items"
             try:

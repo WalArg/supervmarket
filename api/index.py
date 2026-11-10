@@ -13,8 +13,10 @@ Local: cd api && uvicorn index:app --reload --port 8000
 """
 import os
 import sys
+import asyncio
 from typing import Literal
 
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -103,41 +105,176 @@ async def search(
     sort: str = "price_asc",
     only_offers: bool = False,
     cp: str | None = None,
+    limit: int = 120,
     vertical: str | None = None,
     store_type: str | None = None,
     grocery_only: bool = False,
 ):
     clean_v = _normalize_filter_param(vertical)
     clean_st = _normalize_filter_param(store_type)
+    query_str = q.strip()
+    if not query_str:
+        return []
 
-    results = []
-    try:
-        results = await vtex_mcp.search_live_grouped(
-            q,
-            sort_by=sort,
-            only_offers=only_offers,
-            cp=cp,
-            vertical=clean_v,
-            store_type=clean_st,
-            grocery_only=grocery_only,
-        )
-    except Exception:
-        results = []
-
-    # Resilient fallback to DB if live search returns 0 items (e.g. offline testing or transient network failure)
-    if not results and q.strip():
+    # 1. Tareas concurrentes: Consulta SQLite optimizada (<15ms) + Mercado Libre en vivo en paralelo
+    async def _search_db():
         try:
-            results = await db.search_grouped(
-                q,
+            return await db.search_grouped(
+                query_str,
                 sort_by=sort,
                 only_offers=only_offers,
+                limit=limit,
                 vertical=clean_v,
                 store_type=clean_st,
                 grocery_only=grocery_only,
             )
         except Exception:
-            results = []
-    return results
+            return []
+
+    async def _search_meli():
+        if grocery_only or (clean_st and "marketplace" not in clean_st and "electro" not in clean_st):
+            return []
+        try:
+            async with httpx.AsyncClient(timeout=2.5) as client:
+                return await asyncio.wait_for(
+                    mercadolibre.fetch_mercadolibre_live(
+                        client,
+                        query_str,
+                        limit=min(limit, 10),
+                        cp=cp,
+                        vertical=clean_v,
+                    ),
+                    timeout=2.0,
+                )
+        except Exception:
+            return []
+
+    db_results, meli_results = await asyncio.gather(_search_db(), _search_meli(), return_exceptions=True)
+    if isinstance(db_results, Exception):
+        db_results = []
+    if isinstance(meli_results, Exception):
+        meli_results = []
+
+    # Si la base de datos y MeLi devuelven 0, fallback de rescate a vtex_mcp
+    if not db_results and not meli_results:
+        try:
+            return await vtex_mcp.search_live_grouped(
+                query_str,
+                sort_by=sort,
+                only_offers=only_offers,
+                cp=cp,
+                vertical=clean_v,
+                store_type=clean_st,
+                grocery_only=grocery_only,
+            )
+        except Exception:
+            return []
+
+    if not meli_results:
+        return db_results
+
+    # 2. Fusión inteligente de ofertas de Mercado Libre en grupos de DB por EAN o (marca, modelo)
+    from _lib.normalization import extract_model, canonical_model_key, is_valid_ean13
+
+    by_ean: dict[str, dict] = {}
+    by_model: dict[str, dict] = {}
+
+    for g in db_results:
+        g_ean = str(g.get("ean") or "")
+        if is_valid_ean13(g_ean) or (len(g_ean) == 13 and g_ean.isdigit()):
+            by_ean[g_ean] = g
+        g_marca = g.get("marca") or ""
+        g_raw_m = g.get("modelo") or ""
+        g_modelo = extract_model(g_raw_m, g_marca) if g_raw_m else extract_model(g.get("nombre") or "", g_marca)
+        if not g_modelo:
+            g_modelo = g_raw_m
+        c_key = canonical_model_key(g_marca, g_modelo)
+        if c_key:
+            by_model[c_key] = g
+
+    unmatched_meli_groups = []
+    is_electro = mercadolibre.is_electro_query(query_str, clean_v)
+
+    for m in meli_results:
+        p_val = float(m.get("precio") or m.get("precio_venta") or 0.0)
+        if p_val <= 0:
+            continue
+        pl_val = float(m.get("precio_lista") or p_val)
+        m_disc = float(m.get("discount") or 0.0)
+        if pl_val > p_val and m_disc <= 0:
+            m_disc = round((1 - p_val / pl_val) * 100, 1)
+
+        m_link = str(m.get("link") or m.get("url") or "")
+        m_sku = str(m.get("sku") or m.get("ean") or "")
+
+        meli_offer = {
+            "supermercado": "MercadoLibre",
+            "precio": p_val,
+            "precio_lista": pl_val,
+            "stock": True,
+            "link": m_link,
+            "sku_id": m_sku,
+            "unit_price": m.get("unit_price"),
+            "unit_measure": m.get("unit_type") or m.get("unit_measure"),
+            "discount": m_disc,
+            "promo_label": m.get("promo_label"),
+            "promo_tipo": None,
+            "promo_min_qty": 1,
+            "promo_unit_price": p_val,
+            "requires_club": False,
+            "supports_cart": False,
+            "seller_id": str(m.get("seller_name") or "MercadoLibre"),
+            "store_type": "marketplace",
+            "modelo": m.get("modelo") or "",
+            "tipo": "electro" if is_electro else "supermarket",
+            "is_full": m.get("is_full", False),
+            "free_shipping": m.get("free_shipping", False),
+            "shipping_cost": float(m.get("shipping_cost") or 0.0),
+            "seller_name": m.get("seller_name"),
+        }
+
+        target_group = None
+        m_ean = str(m.get("ean") or "")
+        if (is_valid_ean13(m_ean) or (len(m_ean) == 13 and m_ean.isdigit())) and m_ean in by_ean:
+            target_group = by_ean[m_ean]
+        else:
+            m_marca = m.get("marca") or ""
+            m_raw_m = m.get("modelo") or ""
+            m_modelo = extract_model(m_raw_m, m_marca) if m_raw_m else extract_model(m.get("nombre") or "", m_marca)
+            if not m_modelo:
+                m_modelo = m_raw_m
+            m_key = canonical_model_key(m_marca, m_modelo)
+            if m_key and m_key in by_model:
+                target_group = by_model[m_key]
+
+        if target_group:
+            existing_meli = next((o for o in target_group.get("offers", []) if o.get("supermercado") == "MercadoLibre"), None)
+            if not existing_meli:
+                target_group.setdefault("offers", []).append(meli_offer)
+            elif p_val < float(existing_meli.get("precio") or 1e9):
+                target_group["offers"].remove(existing_meli)
+                target_group["offers"].append(meli_offer)
+
+            target_group["offers"].sort(key=lambda o: (o.get("promo_unit_price") or o["precio"]))
+            target_group["best_offer"] = target_group["offers"][0]
+        else:
+            new_grp = {
+                "id": m_ean if is_valid_ean13(m_ean) else f"MELI_{m_sku or id(m)}",
+                "ean": m_ean if is_valid_ean13(m_ean) else f"MELI_{m_sku or id(m)}",
+                "nombre": m.get("nombre") or "",
+                "marca": m.get("marca") or "Mercado Libre",
+                "modelo": m.get("modelo") or "",
+                "tipo": "electro" if is_electro else "supermarket",
+                "vertical": "electro" if is_electro else "supermarket",
+                "categoria_normalizada": db.detect_search_intent(m.get("nombre") or "") or "",
+                "imagen": m.get("imagen") or "",
+                "offers": [meli_offer],
+                "best_offer": meli_offer,
+            }
+            unmatched_meli_groups.append(new_grp)
+
+    final_results = list(db_results) + unmatched_meli_groups
+    return final_results[:limit]
 
 
 @app.get("/api/offers")

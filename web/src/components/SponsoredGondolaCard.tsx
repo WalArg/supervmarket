@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { Flame, Zap, ExternalLink, Package } from 'lucide-react'
 import type { ProductGroup, Offer } from '../types'
 import { formatPrice } from '../lib/pricing'
-import { decorateOutboundUrl, trackOutboundAffiliateClick } from '../lib/affiliate'
+import { trackOutboundAffiliateClick } from '../lib/affiliate'
+import { resolveOutboundUrl } from '../lib/stores'
 
 interface SponsoredGondolaCardProps {
   product: ProductGroup
@@ -11,7 +12,7 @@ interface SponsoredGondolaCardProps {
 
 export const SponsoredGondolaCard: React.FC<SponsoredGondolaCardProps> = ({ product, offer }) => {
   const store = offer.supermercado || 'MercadoLibre'
-  const decoratedUrl = decorateOutboundUrl(offer.link, store, 'item')
+  const decoratedUrl = resolveOutboundUrl(offer.link, store, product.nombre, offer.seller_id)
   const [imgIdx, setImgIdx] = useState(0)
   const [imgFailed, setImgFailed] = useState(false)
 
@@ -100,6 +101,7 @@ export const SponsoredGondolaCard: React.FC<SponsoredGondolaCardProps> = ({ prod
             loading="lazy"
             className="max-h-full max-w-full object-contain"
             onError={handleImgError}
+            referrerPolicy="no-referrer"
           />
         ) : (
           <div

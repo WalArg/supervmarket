@@ -172,7 +172,7 @@ describe('CHALLENGER M4 RE 2: Adversarial Stress & Verification Suite', () => {
 
       // Check final state integrity
       expect(screen.getAllByText('PATROCINADO')).toHaveLength(4)
-      expect(screen.getByText(/Smart TV Samsung 50 pulgadas Crystal UHD 4K UN50DU7000/i)).toBeTruthy()
+      expect(screen.getByText(/Smart TV Samsung 55'' Qled 4K Q6F/i)).toBeTruthy()
     })
   })
 

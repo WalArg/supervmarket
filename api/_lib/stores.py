@@ -416,6 +416,28 @@ STORE_REGISTRY: dict[str, StoreMeta] = {
         "supports_cart": True,
         "color": "#ff6b00",
     },
+    "Catycan": {
+        "id": "catycan",
+        "nombre": "Catycan",
+        "dominio": "https://www.catycan.com.ar",
+        "plataforma": "vtex",
+        "sales_channel": 1,
+        "vertical": "specialty",
+        "is_marketplace": False,
+        "supports_cart": True,
+        "color": "#ff5500",
+    },
+    "Natural Life": {
+        "id": "naturallife",
+        "nombre": "Natural Life",
+        "dominio": "https://www.natural-life.com.ar",
+        "plataforma": "vtex",
+        "sales_channel": 1,
+        "vertical": "specialty",
+        "is_marketplace": False,
+        "supports_cart": True,
+        "color": "#16a34a",
+    },
     "StyleStore": {
         "id": "stylestore",
         "nombre": "StyleStore",
@@ -517,6 +539,9 @@ VTEX_DOMAINS: dict[str, str] = {
     "Pigmento": "https://www.perfumeriaspigmento.com.ar",
     "Puppis": "https://www.puppis.com.ar",
     "StyleStore": "https://www.stylestore.com.ar",
+    "Catycan": "https://www.catycan.com.ar",
+    "Natural Life": "https://www.natural-life.com.ar",
+    "NaturalLife": "https://www.natural-life.com.ar",
 
     # Alias comunes (espaciado y acentos)
     "ProvinciaCompras": "https://www.provinciacompras.com.ar",
@@ -577,6 +602,9 @@ VTEX_SALES_CHANNELS: dict[str, str] = {
     "Perfumerias Pigmento": "1",
     "Puppis": "1",
     "StyleStore": "1",
+    "Catycan": "1",
+    "Natural Life": "1",
+    "NaturalLife": "1",
     "Toledo Digital": "1",
     "ToledoDigital": "1",
 }
@@ -636,6 +664,8 @@ FREE_SHIPPING: dict[str, int] = {
     "Musimundo": 50000,
     "Oster": 45000,
     "StyleStore": 50000,
+    "Catycan": 30000,
+    "Natural Life": 30000,
 }
 
 # Costo estimado de envío a domicilio (ARS) cuando no se alcanza el umbral
@@ -680,6 +710,8 @@ SHIPPING_COST: dict[str, float] = {
     "Musimundo": 5500,
     "Oster": 4900,
     "StyleStore": 4900,
+    "Catycan": 4500,
+    "Natural Life": 4500,
 }
 
 MELI_AFFILIATE_TOOL = os.getenv("MELI_AFFILIATE_TOOL", "43872651")

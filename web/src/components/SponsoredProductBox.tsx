@@ -2,8 +2,8 @@ import React from 'react'
 import { ExternalLink, Zap, Truck, ShieldCheck } from 'lucide-react'
 import type { ProductGroup, Offer } from '../types'
 import { formatPrice } from '../lib/pricing'
-import { decorateOutboundUrl, trackOutboundAffiliateClick } from '../lib/affiliate'
-import { storeLabel, storeColor } from '../lib/stores'
+import { trackOutboundAffiliateClick } from '../lib/affiliate'
+import { storeLabel, storeColor, resolveOutboundUrl } from '../lib/stores'
 
 interface SponsoredProductBoxProps {
   product: ProductGroup
@@ -12,7 +12,7 @@ interface SponsoredProductBoxProps {
 
 export const SponsoredProductBox: React.FC<SponsoredProductBoxProps> = ({ product, offer }) => {
   const store = offer.supermercado || 'MercadoLibre'
-  const decoratedUrl = decorateOutboundUrl(offer.link, store, 'item')
+  const decoratedUrl = resolveOutboundUrl(offer.link, store, product.nombre, offer.seller_id)
 
   const handleOutboundClick = () => {
     trackOutboundAffiliateClick(
@@ -56,6 +56,7 @@ export const SponsoredProductBox: React.FC<SponsoredProductBoxProps> = ({ produc
             loading="lazy"
             className="max-w-full max-h-full object-contain"
             onError={e => ((e.target as HTMLImageElement).style.visibility = 'hidden')}
+            referrerPolicy="no-referrer"
           />
         </div>
 

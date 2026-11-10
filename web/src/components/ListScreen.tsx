@@ -421,6 +421,7 @@ const ListScreen: React.FC<{
                         src={i.imagen}
                         alt=""
                         className="w-12 h-12 object-contain rounded-lg bg-slate-50 p-1 shrink-0 border border-slate-100"
+                        referrerPolicy="no-referrer"
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">

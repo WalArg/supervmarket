@@ -1,96 +1,99 @@
-# Project: SuperVmarket — Integración de 17 Cadenas/Marketplaces, Normalización de Catálogo y Búsqueda Diferenciada
+# Project: SuperVmarket — Master Plan: Ingesta Masiva, Normalización Global, Búsqueda Híbrida y Auditoría de 100 Búsquedas
 
 ## Architecture
-SuperVmarket integra supermercados tradicionales, cadenas de electro y tecnología, tiendas oficiales y marketplaces generales en tiempo real para Argentina.
-- **Backend (`api/`)**:
-  - `api/_lib/stores.py`: Registro centralizado de cadenas, dominios VTEX/Shopify, canales de venta (`sc`), verticales (`supermarket`, `marketplace`, `electro`, `specialty`, `pharmacy`) y metadatos de afiliados.
-  - `api/_lib/vtex_mcp.py`: Motor de consulta concurrente asíncrona (`asyncio.gather`), agrupación jerárquica de 4 niveles (EAN-13, Modelo Alfanumérico Canónico, Taxonomía Perecederos, Prefijo GS1), aliasing bidireccional EAN <-> Modelo, y resolución dinámica de `seller_id`.
-  - `api/_lib/parsers.py`: Deserialización y limpieza de payloads VTEX y Coto, desbloqueo contextual de `NON_GROCERY_MARKETPLACE_KEYWORDS` y `NON_GROCERY_CATEGORY_KEYWORDS` condicionado a `grocery_only=True`, extractor de modelo y variantes.
-  - `api/_lib/deals.py`: Curaduría y caching de góndolas de ofertas: niveles tradicionales de supermercados más carruseles dedicados de marketplaces y electro.
-  - `api/index.py`: Endpoints REST `/api/search` (con soporte para `vertical`, `store_type`, `grocery_only`) y `/api/offers` (retornando `tiers` y `marketplace_tiers`).
-- **Frontend (`web/src/`)**:
-  - `web/src/lib/stores.ts`: Registro tipado de metadatos de tiendas con clasificación vertical (`StoreVertical`), colores y badges.
-  - `web/src/components/SearchScreen.tsx`: Búsqueda diferenciada con selector por chips (`Todos`, `Supermercados`, `Marketplaces / Electro`), agrupación por categorías de tienda y badges de vertical en tarjetas.
-  - `web/src/components/OffersScreen.tsx`: Góndolas de ofertas con carruseles dedicados para Marketplaces, Electro & TV, y Hogar, junto a los 4 niveles de ofertas de supermercados.
-  - `web/src/components/OffersSheet.tsx`: Comparador concurrentes de ofertas unificadas por EAN o Modelo con desglose de vendedor y link de carrito.
-- **Verification & E2E Testing Track (`scratch/` & `web/src/__tests__/`)**:
-  - `scratch/verify_connectors_live.py`: Validación programática de llamadas en vivo y dynamic seller en las 17+ tiendas.
-  - `scratch/verify_normalization_live.py`: Verificación de algoritmos EAN-13 Modulo 10, extracción de modelo alfanumérico, guardas de accesorios y aliasing.
-  - `scratch/verify_endpoints_live.py`: Pruebas de integración de endpoints `/api/search` y `/api/offers`.
-  - `web/src/components/__tests__/DifferentiatedSearchAndCarousels.test.tsx`: Pruebas unitarias/UI en Vitest.
+SuperVmarket integra supermercados tradicionales, cadenas de electro y tecnología, tiendas oficiales y marketplaces generales en tiempo real para Argentina con persistencia masiva en SQLite (`supervmarket.db`), normalización global cross-store offline y búsqueda híbrida (<15ms DB + live Mercado Libre).
+- **Offline Ingestion & Raw Catalog (`api/_lib/harvester.py`, `scripts/harvest_all_stores.py`, `supervmarket.db`)**:
+  - Tabla `raw_catalog`: Persistencia completa sin filtros ni descartes de payloads JSON crudos (`store_name`, `external_id`, `ean_raw`, `title_raw`, `brand_raw`, `categories_raw`, `link_raw`, `image_raw`, `price_raw`, `list_price_raw`, `stock_raw`, `seller_id_raw`, `raw_json`, `scraped_at`).
+  - Dual-write con integridad referencial: Inserción simultánea en `raw_catalog` y `productos`/`precios` (usando clave sintética `{STORE_SLUG}-{external_id}` para productos de electro/marketplaces que no exponen EAN-13 público).
+  - Barrido multitienda asíncrono con semáforos por dominio (`asyncio.Semaphore(2)`), backoff exponencial y SQLite WAL mode con batching transaccional.
+- **Global Entity Resolution & Normalization (`api/_lib/catalog_normalizer.py`, `scripts/normalize_database.py`)**:
+  - Índice en memoria `(marca_norm, modelo_norm, variante) -> ean_canonico` que re-vincula ofertas de tiendas sin EAN público (Frávega, Coppel, etc.) bajo el EAN-13 estándar de GS1.
+  - Taxonomía canónica de 19 categorías en `categoria_normalizada` cubriendo el 100% de `productos` con lookahead negativo para 0 falsos positivos (segregando estrictamente `televisores` vs `muebles_racks` vs `soportes_accesorios`).
+  - Creación del índice `idx_productos_cat_norm ON productos(categoria_normalizada)`.
+- **Hybrid Search Engine & Verified Deals (`api/_lib/db.py`, `api/index.py`, `api/_lib/deals.py`, `api/_lib/mercadolibre.py`)**:
+  - `db.search_grouped`: Clasificador de intención de consulta que prioriza coincidencia exacta de `categoria_normalizada` (`intent_score DESC, name_rel DESC, stores_cnt DESC, has_promo DESC, best ASC`), garantizando 0 accesorios en el Top 10 para equipamiento.
+  - `/api/search`: Consulta concurrente asíncrona a `supervmarket.db` (<15ms) y a la API de Mercado Libre en vivo (`_is_supermarket_domain` flexibilizado), fusionando resultados por EAN o (marca, modelo).
+  - Góndolas reales: Sustitución de baselines estáticos por ofertas reales de `supervmarket.db` con `descuento >= 15` verificadas con HTTP 200 para links e imágenes en `deals.py` y `web/src/data/gondolasData.ts`.
+- **UI Shielding & 100 Search Audit Suite (`web/src/components/`, `scripts/audit_100_searches.py`)**:
+  - Blindaje de botones "Ver" / "Ver web" en `OffersSheet.tsx`, `GondolaCard.tsx`, `ProductCard.tsx` con fallback automático al buscador de la tienda, `referrerPolicy="no-referrer"` en imágenes y decoración UTM/afiliados.
+  - Arnés automatizado de 100 búsquedas comunes (60 supermercado/farmacia/mascotas + 40 electro/tecnología/hogar) validando 0 accesorios en Top 10, 100% HTTP 200 OK en links e imágenes, construcción de carrito y exportación a `api/_lib/audit_100_searches_report.json`.
+  - Mantenimiento estricto del 100% de los 328+ tests de Vitest en verde.
 
 ---
 
-## Feature Inventory (Fase 1: Smart Cart)
-Todas las funcionalidades relevadas en la auditoría técnica y su asignación de hito:
+## Feature Inventory & Classification Matrix (24 Components)
 
 | # | Feature | Descripción | Clasificación | Milestone | Fuente |
 |---|---------|-------------|---------------|-----------|--------|
-| 1 | Buscador Multitienda en Vivo | Consulta simultánea por EAN/término en 12 cadenas | MANTENER | M6 | Survey E1, E3 |
-| 2 | Escáner de Código de Barras Góndola | Detección 60 FPS con BarcodeDetector y @zxing | MANTENER | M6 | Survey E1 |
-| 3 | Integración Oficial Mercado Libre | Catálogo MLA, seller reputation, envíos FULL, flete dinámico | MANTENER | M2, M6 | R1, Survey E1, E3 |
-| 4 | Asistente IA (Tickets y Recetas) | OCR Vision Gemini Flash y Prompt-to-Cart | MANTENER | M6 | R1, Survey E1 |
-| 5 | Hoja de Ofertas (OffersSheet) | Bottom sheet con detalles por supermercado y ML | MANTENER | M6 | Survey E1 |
-| 6 | Geolocalización GPS y CP | Cobertura regional de entrega y geocodificación inversa | MANTENER | M2, M3 | Survey E1 |
-| 7 | Opción Más Barata (Smart Cart) | Split óptimo 2-3 súper con ahorro $ cuantificado vs súper único | MEJORAR | M2, M3 | R2, Survey E2, E3 |
-| 8 | Opción Equilibrada (Smart Cart) | Balance Pareto de ahorro vs cantidad de comercios | MEJORAR | M2, M3 | R2, Survey E2, E3 |
-| 9 | Opción Cómoda (Smart Cart) | Todo en 1 solo supermercado de máxima cobertura | MEJORAR | M2, M3 | R2, Survey E2, E3 |
-| 10 | Desglose de Productos Faltantes | Detalle estructurado de faltantes y alternativas en otros súper | MEJORAR | M2, M3 | R2, Survey E2, E3 |
-| 11 | Desglose de Promos y Beneficios | Descuentos por volumen (2x1, 2do %) y reintegros bancarios | MEJORAR | M2, M3 | R2, Survey E2, E3 |
-| 12 | Cotización y Progreso de Flete | Costo de envío real y barra de progreso hacia envío gratis | MEJORAR | M2, M3 | R2, Survey E2, E3 |
-| 13 | Tarjetas de Supermercado (StoreCart) | Rediseño de tarjeta por súper con actions 1-click limpias | MEJORAR | M3 | R2, Survey E2 |
-| 14 | Jerarquía Mobile en ListScreen | Héroe de escenarios arriba; productos en drawer colapsable | MEJORAR | M3 | R2, Survey E1, E2 |
-| 15 | Touch Targets en Mobile | Botones y steppers ampliados a mínimo 44x44px | MEJORAR | M3 | R5, Survey E1, E2 |
-| 16 | Barra de Configuración Compacta | Agrupación de CP, día/tarjeta y envío en barra contextual | SIMPLIFICAR | M3 | Survey E1, E2 |
-| 17 | Flujo de Coto Digital en StoreCart | Acción simplificada de copiado y apertura web | SIMPLIFICAR | M3 | Survey E1, E2 |
-| 18 | Limpieza de Alertas y Gradientes | Reducción de fatiga visual y estandarización cromática | SIMPLIFICAR | M3 | Survey E1, E2 |
-| 19 | Modal de Anuncio Recompensado | Reducción de fricción y timer en accesos IA | SIMPLIFICAR | M1 | Survey E1 |
-| 20 | Limpieza Callback OAuth en App.tsx | Remoción de alerta bloqueante en componente raíz | ELIMINAR | M3 | Survey E1 |
-| 21 | Mi Lista Habitual sin Fricción | Guardado 1-tap en localStorage/PWA sin login previo | AGREGAR | M4 | R3, Survey E1, E2 |
-| 22 | Seguimiento de Precio de Canasta | Monitor histórico de compra mensual con delta de ahorro | AGREGAR | M4 | R3, Survey E1, E2 |
-| 23 | Monetización por Afiliación / CPA | Parámetros de tracking oficiales en links VTEX y Mercado Libre | AGREGAR | M5 | R4, Survey E1, E2 |
-| 24 | Cupones de Marca y Ofertas Patrocinadas | Especificación de cashback FMCG y sponsored ads transparentes | AGREGAR | M5 | R4, Survey E1 |
+| 1 | Buscador Multitienda en Vivo | Troncal fundacional: consulta concurrente por EAN o texto en 12 cadenas en tiempo real sin base de datos pesada. | MANTENER | M6 | R1 |
+| 2 | Escáner Góndola 60 FPS + Beep | Alta retención física: permite chequear al instante en la sucursal física si el producto está más barato en otro súper. | MANTENER | M6 | R1 |
+| 3 | Integración Oficial Mercado Libre | Stock garantizado por FULL, catálogo MLA oficial, reputación de vendedor y cotización dinámica de flete por CP. | MANTENER | M2, M6 | R1 |
+| 4 | Asistente IA (Tickets y Recetas) | Ingesta masiva sin tipear: OCR Vision de tickets y Prompt-to-Cart de recetas con fallbacks locales en memoria. | MANTENER | M6 | R1 |
+| 5 | Hoja de Ofertas (OffersSheet) | Patrón bottom sheet tipo Turismocity que permite explorar todas las alternativas por tienda sin perder el contexto. | MANTENER | M6 | R1 |
+| 6 | Geolocalización GPS y CP | Imprescindible para filtrar tiendas que no tienen cobertura en el radio de entrega del usuario y cotizar envíos reales. | MANTENER | M2, M3 | R1 |
+| 7 | Opción Más Barata (Smart Cart) | Algoritmo de split óptimo 2-3 supermercados con cuantificación explícita del ahorro en pesos ($) respecto al súper único. | MEJORAR | M2, M3 | R2 |
+| 8 | Opción Equilibrada (Smart Cart) | Balance de frontera de Pareto (≥ $3.500 ARS y ≥ 5%) limitando a 2 comercios para evitar fricción logística innecesaria. | MEJORAR | M2, M3 | R2 |
+| 9 | Opción Cómoda (Smart Cart) | Escenario de máxima comodidad: compra resuelta en 1 solo supermercado con máxima cobertura y menor costo posible. | MEJORAR | M2, M3 | R2 |
+| 10 | Desglose de Faltantes y Alternativas | Reemplazo de alerta de texto plano por desglose estructurado con detección de tiendas alternativas y botón 1-tap. | MEJORAR | M2, M3 | R2 |
+| 11 | Desglose de Promos y Bancos | Detalle transparente de promociones por volumen (2x1, 2do al X%) y reintegros bancarios (MODO, Cuenta DNI, Galicia). | MEJORAR | M2, M3 | R2 |
+| 12 | Progreso de Flete a Envío Gratis | Cotización de flete real y barra de progreso hacia entrega gratuita ("Te faltan $X para envío gratis en Carrefour"). | MEJORAR | M2, M3 | R2 |
+| 13 | Tarjetas de Tienda (StoreCart) | Rediseño ergonómico con botón de checkout 1-click directo para VTEX y guía limpia para Coto. | MEJORAR | M3 | R2 |
+| 14 | Jerarquía Mobile en ListScreen | Inversión de jerarquía: Héroe comparativo arriba visible en 0ms; productos agregados en cajón colapsable (Drawer). | MEJORAR | M3 | R2 |
+| 15 | Touch Targets en Mobile (≥ 44px) | Ampliación de todos los botones táctiles, steppers y chips a un mínimo de 44×44px bajo WCAG 2.5.5 AAA. | MEJORAR | M3 | R5 |
+| 16 | Barra de Configuración Compacta | Fusión de 3 tarjetas dispersas (CP, tarjetas y flete) en una sola barra horizontal contextual de 44px de alto. | SIMPLIFICAR | M3 | R2 |
+| 17 | Flujo de Coto Digital en StoreCart | Transformación del extenso párrafo de advertencia en una acción directa: "Copiar lista y abrir Coto Digital". | SIMPLIFICAR | M3 | R2 |
+| 18 | Estandarización Cromática | Supresión de gradientes estridentes y reducción de señales de badges competitivos a 4 tonos semánticos limpios. | SIMPLIFICAR | M3 | R5 |
+| 19 | Modal de Anuncio Recompensado IA | Reducción del temporizador forzoso de 15s a 5s con opción de cierre o patrocinio directo sin fricción. | SIMPLIFICAR | M1 | R4 |
+| 20 | Callback OAuth en App.tsx | Eliminación del alert() modal síncrono del navegador en el componente raíz que bloquea el hilo de renderizado. | ELIMINAR | M3 | R5 |
+| 21 | Controles de Audio Inerte en Ad Modal | Remoción de controles de audio inerte e implementación de audio dinámico | AGREGAR | M1 | R4 |
+| 22 | Mi Lista Habitual sin Fricción | Guardado y recarga en 1 toque en localStorage / IndexedDB / PWA sin requerir creación previa de cuenta. | AGREGAR | M4 | R3 |
+| 23 | Monitor Histórico y Delta de Inflación | Registro de 52 semanas y cálculo de variación: "Tu compra hoy cuesta $X, ahorrás $Y vs semana pasada". | AGREGAR | M4 | R3 |
+| 24 | Motor de Afiliación / CPA y Cupones FMCG | Inyección transparente de parámetros de afiliación (MeLi y redes VTEX) y cupones de marcas FMCG con firewall ético. | AGREGAR | M5 | R4 |
 
 ---
 
-## Feature Inventory (Fase 2: Marketplaces & Dual Unification)
-Todas las funcionalidades identificadas en el relevamiento técnico de marketplaces y su asignación de hito:
+## Feature Inventory (Master Plan: R1, R2, R3, R4)
 
 | # | Feature | Descripción | Milestone | Fuente |
 |---|---------|-------------|-----------|--------|
-| 1 | Conectores Marketplaces Generales | Conexión y consulta en vivo a Provincia Compras y On City (`sc=2`) con parsing estructurado | M1 | Survey E1, R1 |
-| 2 | Conectores Cadenas Electro y Tecnología | Conexión en vivo a Frávega, Cetrogar, Naldo, Pardo y Coppel | M1 | Survey E1, R1 |
-| 3 | Conectores Tiendas Oficiales de Marca | Conexión a Samsung, Philips, Whirlpool, Moulinex/Tefal (`sc=3`) y Sony Store AR | M1 | Survey E1, R1 |
-| 4 | Conectores Hogar, Perfumería, Mascotas y Súper | Conexión a Easy, Perfumerías Pigmento, Puppis, Josimar (`sc=5`) y Toledo Digital / Cordiez | M1 | Survey E1, R1 |
-| 5 | Conectores Niche y Shopify Adicionales | Conexión a Bodegas Bianchi (Shopify), Musimundo (VTEX), Oster (VTEX) y StyleStore (VTEX) | M1 | Survey E1, R1 |
-| 6 | Resolución Dinámica de `seller_id` | Extracción de seller en marketplaces (`sellers[].sellerId`) y propagación a enlaces de carrito `seller={seller_id}` | M1 | Survey E1, R1 |
-| 7 | Normalización de Respuesta en Vivo de Conectores | Generación consistente de dict `{title, precio_venta, precio_lista, disponible, ean, modelo, link, imagen, supermercado, seller_id}` | M1 | Survey E1, R1 |
-| 8 | Validación EAN-13 Checksum Modulo 10 | Validación de códigos GS1 EAN-13 mediante suma ponderada impar/par*3 mod 10 | M2 | Survey E2, R2 |
-| 9 | Limpieza y Conversión Universal de Códigos de Barra | Conversión de UPC-A (12 dígitos a 13) y GTIN-14 con cero inicial, sanitización de caracteres | M2 | Survey E2, R2 |
-| 10 | Ruteo de Prefijos GS1 (Nacional vs Balanza) | Detección de prefijos `20`-`29` de balanza interna para aislamiento de EANs globales | M2 | Survey E2, R2 |
-| 11 | Extractor de Modelo desde Metadatos | Extracción de modelo de fabricante desde `productReference`, `referenceId`, `Modelo` y `allSpecifications` | M2 | Survey E2, R2 |
-| 12 | Extractor de Modelo por Regex de Título | Extracción de código alfanumérico priorizado (Smart TVs, línea blanca, celulares, audio, herramientas) | M2 | Survey E2, R2 |
-| 13 | Limpieza de Sufijos Regionales y Formato | Eliminación de sufijos `/77`, `GCZB`, `/DS`, `-KA1AR`, etc., y estandarización alfanumérica | M2 | Survey E2, R2 |
-| 14 | Generación de Clave Canónica de Identidad | Formulación de `MODEL_{BRAND}_{CANONICAL_MODEL}[_{VARIANT}]` para electro/hogar sin EAN | M2 | Survey E2, R2 |
-| 15 | Discriminación de Variantes de Capacidad | Preservación de sufijo de almacenamiento (`128GB`, `256GB`, `512GB`) para no fusionar memorias distintas | M2 | Survey E2, R2 |
-| 16 | Guarda de Aislamiento de Accesorios | Detección de accesorios (`funda`, `soporte`, `vidrio`, `cargador`, `repuesto`) para no contaminar aparatos | M2 | Survey E2, R2 |
-| 17 | Guarda de Razón de Precio en Agrupación | Rechazo de fusión si precio del candidato es `< 0.35` o `> 2.8` veces el precio promedio | M2 | Survey E2, R2 |
-| 18 | Agrupación Jerárquica Multitienda de 4 Niveles | Agrupación en `ProductGroup`: Nivel 1 EAN-13, Nivel 2 Modelo Canónico, Nivel 3 Perecederos, Nivel 4 Firma GS1 | M2 | Survey E2, R2 |
-| 19 | Aliasing Bidireccional EAN <-> Modelo | Unificación de comercios que envían EAN con comercios que envían solo Modelo bajo la misma tarjeta | M2 | Survey E2, R2 |
-| 20 | Poblado y Migración de Esquema de Base de Datos | Poblado de columnas `modelo` y `tipo` en `productos`, y registro de `seller_id` y `store_type` en `precios` | M2 | Survey E2, R2 |
-| 21 | Desbloqueo Contextual `NON_GROCERY_MARKETPLACE_KEYWORDS` | Parámetro `grocery_only: bool = False` para habilitar productos de tecnología y hogar en búsqueda general | M2 | Survey E2, R3 |
-| 22 | Desbloqueo Contextual `NON_GROCERY_CATEGORY_KEYWORDS` | Filtrado de categorías no comestibles condicionado estrictamente a `grocery_only=True` | M2 | Survey E2, R3 |
-| 23 | Actualización de Firma de Pipeline en Parsers | Extensión de `parse_vtex_product` y `parse_coto_record` con soporte `grocery_only` y fallback sin EAN | M2 | Survey E2, R3 |
-| 24 | Clasificación y Metadatos de Tiendas por Vertical | Extensión de `web/src/lib/stores.ts` y `api/_lib/stores.py` con tipado `StoreVertical` (`supermarket`, `marketplace`, `electro`, etc.) | M4 | Survey E3, R4 |
-| 25 | UI de Búsqueda Diferenciada por Vertical | Selector por chips (`Todos`, `Supermercados`, `Marketplaces / Electro`) y dropdown categorizado en `SearchScreen.tsx` | M4 | Survey E3, R4 |
-| 26 | Endpoint `/api/search` con Filtro por Vertical | Soporte de parámetros `vertical`, `store_type` y `grocery_only` en backend FastAPI | M3 | Survey E3, R4 |
-| 27 | Carruseles Dedicados de Ofertas de Marketplaces | Carruseles independientes para Marketplaces, Electro y Hogar en `OffersScreen.tsx` con badges de cuotas | M4 | Survey E3, R4 |
-| 28 | Endpoint `/api/offers` con `marketplace_tiers` | Soporte de ofertas curadas para marketplaces y electrodomésticos en backend | M3 | Survey E3, R4 |
-| 29 | Suite Automatizada de Verificación de Conectores en Vivo | Script `scratch/verify_connectors_live.py` comprobando HTTP 200, precios, stock y seller_id dinámico | M5 | Survey E1, E3 |
-| 30 | Suite Automatizada de Normalización y Unificación | Script `scratch/verify_normalization_live.py` comprobando Modulo 10, extracción de modelos, guardas y aliasing | M5 | Survey E2, E3 |
-| 31 | Suite Automatizada de Endpoints Diferenciados | Script `scratch/verify_endpoints_live.py` comprobando `/api/search` por vertical y `/api/offers` carruseles | M5 | Survey E3 |
-| 32 | Suite Frontend Vitest para Búsqueda y Carruseles | Pruebas de integración React en `web/src/components/__tests__/DifferentiatedSearchAndCarousels.test.tsx` | M5 | Survey E3 |
-| 33 | Aceptación Final E2E y Blindaje Adversarial (Tier 5) | Validación del 100% de pruebas E2E, auditoría forense de integridad, estrés de concurrencia y build limpio | M6 | Survey Master |
+| 1 | DDL y Esquema `raw_catalog` | Tabla `raw_catalog` con columnas para todos los atributos crudos, payload `raw_json` y constraint UNIQUE | M1 | R1, Survey E1 |
+| 2 | Ingesta Dual-Write Zero-Drop | Guardado simultáneo en `raw_catalog` y `productos`/`precios` sin descartar productos sin EAN ni no-equipamiento | M1 | R1, Survey E1 |
+| 3 | Generador de Clave Sintética para No-EAN | Asignación de `{STORE_SLUG}-{external_id}` para productos de marketplaces/electro sin GTIN-13 | M1 | R1, Survey E1 |
+| 4 | Barrido por Árbol de Categorías VTEX | Crawling jerárquico vía `/api/catalog_system/pub/category/tree/2` evitando el límite VTEX de 2500 ítems | M1 | R1, Survey E1 |
+| 5 | Semillero Departamental de 100 Consultas | Barrido de semillas de alta demanda (Smart TVs, Celulares, Heladeras, Almacén, Lácteos, etc.) | M1 | R1, Survey E1 |
+| 6 | Motor de Concurrencia y Rate-Limiting | Semáforos por dominio (`Semaphore(2)`), delay de 200ms y reintentos exponenciales contra HTTP 429 | M1 | R1, Survey E1 |
+| 7 | Conectores No-VTEX (Coto, Shopify, Tiendanube) | Integración de endpoints JSON de Coto Digital, Shopify (Bianchi, CCU) y Tiendanube | M1 | R1, Survey E1 |
+| 8 | Ejecutor CLI de Ingesta Masiva | Script `scripts/harvest_all_stores.py` con transacciones por lote (200-500 ítems) y modo WAL | M1 | R1, Survey E1 |
+| 9 | Cobertura Total de las 35+ Tiendas | Ingesta de todas las tiendas de `STORE_REGISTRY` en `supervmarket.db` | M1 | R1, Survey E1 |
+| 10 | Índice Global en Memoria para Entity Resolution | Mapeo `(marca_norm, modelo_norm, variante) -> ean_canonico` con prioridad para EAN-13 GS1 | M2 | R2, Survey E2 |
+| 11 | Vinculación Cross-Store de Tiendas sin EAN | Re-apuntado automático de ofertas de Frávega, Coppel y tiendas oficiales al EAN canónico existente | M2 | R2, Survey E2 |
+| 12 | Vinculación de Consumo Masivo sin EAN | Resolución de productos de almacén por `(marca_norm, nombre_base_norm, peso_volumen, unidad)` | M2 | R2, Survey E2 |
+| 13 | Guarda de Razón de Precio ($0.35 - 2.80) | Aislamiento de combos o repuestos mal catalogados para evitar fusiones erróneas | M2 | R2, Survey E2 |
+| 14 | Discriminación de Capacidad/Memoria | Preservación de variantes de almacenamiento (`128GB`, `256GB`, `512GB`) sin fusionar hardware distinto | M2 | R2, Survey E2 |
+| 15 | Segregación Estricta de Muebles y Accesorios | Clasificación previa de `muebles_racks` y `soportes_accesorios` antes de `televisores` | M2 | R2, Survey E2 |
+| 16 | Lookaheads Negativos Anti-Falsos Positivos | Prevención de falsos positivos en alimentos ("Rack de cordero", "Colchón de frutilla", "Repuesto CIF") | M2 | R2, Survey E2 |
+| 17 | Cobertura 100% de `categoria_normalizada` | Clasificación canónica del 100% de filas en `productos` de `supervmarket.db` (0 NULLs) | M2 | R2, Survey E2 |
+| 18 | Creación de Índice `idx_productos_cat_norm` | `CREATE INDEX IF NOT EXISTS idx_productos_cat_norm ON productos(categoria_normalizada)` | M2 | R2, Survey E2 |
+| 19 | Módulo y Runner de Normalización | `api/_lib/catalog_normalizer.py` y script ejecutable `scripts/normalize_database.py` | M2 | R2, Survey E2 |
+| 20 | Clasificador de Intención de Búsqueda | Detección de categoría objetivo en `api/_lib/db.py` (`tv` -> `televisores`, `rack tv` -> `muebles_racks`) | M3 | R3, Survey E3 |
+| 21 | Ranking SQL Basado en Intención | Ordenamiento SQL priorizando coincidencia de categoría objetivo (`intent_score DESC`) sobre precio | M3 | R3, Survey E3 |
+| 22 | Cero Accesorios en Top 10 de Equipos | Invariante estricto: ningún rack ni soporte en las primeras 10 posiciones de búsquedas de TV/celular | M3 | R3, Survey E3 |
+| 23 | Búsqueda Híbrida Paralela (DB + ML en Vivo) | Consulta concurrente a `supervmarket.db` (<15ms) y a la API de Mercado Libre en `/api/search` | M3 | R3, Survey E3 |
+| 24 | Flexibilización de Dominios en Mercado Libre | Desbloqueo de dominios de tecnología (`MLA-CELLPHONES`, etc.) en `mercadolibre.py` para búsqueda híbrida | M3 | R3, Survey E3 |
+| 25 | Fusión Híbrida de Ofertas ML con DB | Unificación de resultados de Mercado Libre con grupos de la DB por EAN o `(marca, modelo)` | M3 | R3, Survey E3 |
+| 26 | Sustitución de Góndolas por Productos Reales | Reemplazo de baselines estáticos en `deals.py` y `gondolasData.ts` con ofertas reales de `supervmarket.db` | M3 | R3, Survey E3 |
+| 27 | Verificación HTTP 200 de Góndolas | Validación previa con `httpx` de que links e imágenes de ofertas respondan HTTP 200 OK | M3 | R3, Survey E3 |
+| 28 | Curaduría de Góndolas en `audit_and_heal.py` | Extensión del script de sanación para refrescar góndolas de marketplace y electro desde la DB | M3 | R3, Survey E3 |
+| 29 | Blindaje de Botones "Ver" con Fallback | Enlaces en `OffersSheet.tsx` y cards con resolución a dominio y fallback al buscador de la tienda | M4 | R4, Survey E3 |
+| 30 | Blindaje Anti-Hotlink de Imágenes UI | Atributo `referrerPolicy="no-referrer"` en todas las etiquetas `<img>` de componentes UI | M4 | R4, Survey E3 |
+| 31 | Decoración de Afiliados y UTM en UI | Invocación consistente de `decorateOutboundUrl` en todos los botones "Ver" / "Ver web" | M4 | R4, Survey E3 |
+| 32 | Suite de 100 Búsquedas Comunes | Script `scripts/audit_100_searches.py` ejecutando las 60 consultas de súper + 40 de electro | M4 | R4, Survey E3 |
+| 33 | Validación de 0 Accesorios en Top 10 | Verificación automatizada de 0 racks/accesorios en Top 10 para consultas de equipamiento | M4 | R4, Survey E3 |
+| 34 | Validación 100% HTTP 200 Links e Imágenes | Verificación automatizada de salud HTTP 200 en links y fotos del Top 5 y góndolas | M4 | R4, Survey E3 |
+| 35 | Verificación de Armado de Carrito | Comprobación de que `api/_lib/carts.py` arme carritos válidos para productos testeados | M4 | R4, Survey E3 |
+| 36 | Reporte de Auditoría Exportable JSON | Generación del reporte `api/_lib/audit_100_searches_report.json` | M4 | R4, Survey E3 |
+| 37 | Mantenimiento de Suite Vitest (328+ Tests) | Conservación de los 328+ tests existentes en verde, incluyendo `ProductDiagnosisMatrix.test.ts` | M4 | R4, Survey E3 |
+| 38 | Aceptación Final E2E y Auditoría Forense | Validación integral del sistema, stress testing adversarial Tier 5 y auditoría forense CLEAN | M5 | Master |
 
 ---
 
@@ -98,120 +101,143 @@ Todas las funcionalidades identificadas en el relevamiento técnico de marketpla
 
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|--------------|--------|
-| M1 | Conectores e Integración de Tiendas y Marketplaces (R1) | Registro e implementación de llamadas y scrapers para las 17 tiendas + tiendas adicionales viables, resolución de `sc` y `seller_id` dinámico para carrito VTEX | none | DONE |
-| M2 | Normalización de Catálogo, Dual Unification y Desbloqueo de Filtros (R2, R3) | Implementación de `grocery_only=False` en `parsers.py`, validación EAN-13, extracción de Modelo Alfanumérico Canónico, aliasing EAN <-> Modelo, guardas y actualización de schema | M1 | DONE |
-| M3 | Endpoints Backend de Búsqueda y Ofertas Diferenciadas (R3, R4) | Parámetros `vertical` y `grocery_only` en `/api/search`, generación de `marketplace_tiers` en `/api/offers` (`deals.py`) y optimización con `asyncio.gather` y cache | M1, M2 | DONE |
-| M4 | Frontend: Búsqueda Diferenciada y Carruseles de Ofertas (R4) | Chips de filtrado por vertical en `SearchScreen.tsx`, clasificación en `stores.ts`, carruseles dedicados de marketplaces en `OffersScreen.tsx` | M3 | DONE |
-| M5 | E2E Testing Track: Suites de Verificación Automatizada | Suites `verify_connectors_live.py`, `verify_normalization_live.py`, `verify_endpoints_live.py` y pruebas Vitest en frontend; publicación de `TEST_READY.md` | none (Parallel) | DONE |
-| M6 | Aceptación E2E 100%, Blindaje Adversarial y Auditoría Forense | Ejecución de todas las suites E2E Tiers 1-4, generación adversarial de casos límite (Tier 5), build productivo y auditoría forense | M4, M5 | DONE |
+| M1 | Harvester Masivo Multitienda con Preservación de Base Cruda (R1) | DDL `raw_catalog`, dual-write zero-drop (`raw_catalog` + `productos`/`precios`), claves sintéticas no-EAN, crawler VTEX tree + query seeds, conectores no-VTEX, ejecutor `scripts/harvest_all_stores.py` y `api/_lib/harvester.py` | none | DONE |
+| M2 | Normalización Global, Resolución de Entidades y Categorización (R2) | Índice global ER `(marca, modelo) -> ean_canonico`, re-apuntado de ofertas sin EAN, taxonomía canónica 19 categorías con lookahead negativo (100% productos sin NULLs), `idx_productos_cat_norm`, `api/_lib/catalog_normalizer.py` y `scripts/normalize_database.py` | M1 | DONE |
+| M3 | Motor de Búsqueda Híbrido y Góndolas 100% Reales (R3) | Intent matching en `db.py` (0 accesorios en Top 10), ranking SQL por relevancia de intención, búsqueda híbrida paralela en `/api/search` (DB + Mercado Libre en vivo), flexibilización de dominios ML, sustitución de baselines por ofertas reales HTTP 200 en `deals.py` y `gondolasData.ts` | M2 | DONE |
+| M4 | Blindaje de Botones "Ver" en UI y Suite de 100 Búsquedas (R4) | Fallback de botones "Ver" al buscador de la tienda, `referrerPolicy="no-referrer"`, decoración de afiliados, script `scripts/audit_100_searches.py` (60 súper + 40 electro, 0 accesorios, 100% HTTP 200, carritos), reporte JSON y 328+ Vitest en verde | M3 | DONE |
+| M5 | Aceptación Final E2E, Blindaje Adversarial (Tier 5) y Auditoría Forense de Integridad | Verificación integral de todas las suites, stress tests de concurrencia y edge-cases, build limpio y auditoría forense con veredicto CLEAN | M1, M2, M3, M4 | DONE |
 
 ---
 
 ## Interface Contracts
 
-### 1. Store Connector & Live Offer Dict Contract (`api/_lib/stores.py` & `vtex_mcp.py`)
+### 1. Raw Catalog Table Schema Contract (`supervmarket.db`)
+```sql
+CREATE TABLE IF NOT EXISTS raw_catalog (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    store_name TEXT NOT NULL,
+    external_id TEXT NOT NULL,
+    ean_raw TEXT,
+    title_raw TEXT NOT NULL,
+    brand_raw TEXT,
+    categories_raw TEXT,
+    link_raw TEXT NOT NULL,
+    image_raw TEXT,
+    price_raw REAL NOT NULL,
+    list_price_raw REAL,
+    stock_raw INTEGER DEFAULT 1,
+    seller_id_raw TEXT DEFAULT '1',
+    raw_json TEXT NOT NULL,
+    scraped_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (store_name, external_id, seller_id_raw)
+);
+
+CREATE INDEX IF NOT EXISTS idx_raw_catalog_store ON raw_catalog(store_name);
+CREATE INDEX IF NOT EXISTS idx_raw_catalog_ean ON raw_catalog(ean_raw);
+CREATE INDEX IF NOT EXISTS idx_raw_catalog_ext ON raw_catalog(external_id);
+```
+
+### 2. Harvester Engine Interface Contract (`api/_lib/harvester.py`)
 ```python
-class StoreMeta(TypedDict):
-    id: str
-    nombre: str
-    dominio: str
-    plataforma: Literal["vtex", "shopify", "custom"]
-    sales_channel: int
-    vertical: Literal["supermarket", "marketplace", "electro", "specialty", "pharmacy"]
-    is_marketplace: bool
-    supports_cart: bool
-    color: str
+class HarvesterItem(TypedDict):
+    store_name: str
+    external_id: str
+    ean_raw: str
+    title_raw: str
+    brand_raw: str
+    categories_raw: str
+    link_raw: str
+    image_raw: str
+    price_raw: float
+    list_price_raw: float
+    stock_raw: int
+    seller_id_raw: str
+    raw_json: str
 
-class LiveOffer(TypedDict):
-    ean: str
-    nombre: str
-    marca: str
-    modelo: str  # Alphanumeric canonical model (or empty for pure grocery)
-    tipo: str    # Product vertical or category
-    precio_venta: float
-    precio_lista: float
-    descuento: float
-    disponible: bool
-    supermercado: str
-    seller_id: str  # Dynamic seller identifier (e.g. "1", "diggit632", "fravegasellerprod346")
-    link: str       # Purchase link with seller={seller_id}
-    imagen: str
+async def harvest_store(
+    store_key: str,
+    categories_or_seeds: Optional[List[str]] = None,
+    max_items: Optional[int] = None
+) -> AsyncIterator[HarvesterItem]:
+    """
+    Asynchronously yields harvested raw items from a designated store
+    with automatic rate limiting, backoff, and pagination handling.
+    """
 ```
 
-### 2. Contextual Parsing Contract (`api/_lib/parsers.py`)
+### 3. Catalog Normalizer Contract (`api/_lib/catalog_normalizer.py`)
 ```python
-def parse_vtex_product(
-    prod: dict,
-    store_name: str,
-    fallback_url: str = "",
-    grocery_only: bool = False,
-    store_type: str = "supermarket"
-) -> Optional[dict]:
+def classify_canonical_category(title: str, categories: str = "", brand: str = "") -> str:
     """
-    Parses a raw VTEX product payload into a standardized product dictionary.
-    If grocery_only is True, applies NON_GROCERY_MARKETPLACE_KEYWORDS and NON_GROCERY_CATEGORY_KEYWORDS.
-    If grocery_only is False, preserves technology, electro, and home products.
-    Extracts dynamic sellerId from sellers[].sellerId and embeds into cart link.
-    Extracts canonical model code if EAN is absent.
+    Classifies a product into one of the 19 canonical categories.
+    Strictly evaluates 'muebles_racks' and 'soportes_accesorios' BEFORE 'televisores'.
+    Applies negative lookaheads to protect groceries.
+    """
+
+def normalize_catalog(db_path: str = "supervmarket.db") -> dict:
+    """
+    Executes full offline entity resolution and category classification:
+    1. Builds in-memory (brand, model, variant) -> canonical EAN index.
+    2. Re-points prices for non-EAN items to canonical EANs where valid.
+    3. Populates 100% of categoria_normalizada in productos.
+    4. Ensures idx_productos_cat_norm exists.
+    Returns summary statistics {total, classified, re_pointed, categories_distribution}.
     """
 ```
 
-### 3. Frontend Store Metadata Contract (`web/src/lib/stores.ts`)
-```typescript
-export type StoreVertical = 'supermarket' | 'marketplace' | 'electro' | 'specialty' | 'pharmacy'
-
-export interface StoreMeta {
-  label: string
-  color: string
-  vertical: StoreVertical
-  isMarketplace?: boolean
-  supportsCart?: boolean
-}
-
-export type StoreMap = Record<string, StoreMeta>
+### 4. Hybrid Search Contract (`api/_lib/db.py` & `api/index.py`)
+```python
+def search_grouped(
+    query: str,
+    db_path: str = "supervmarket.db",
+    vertical: Optional[str] = None,
+    store_type: Optional[str] = None,
+    limit: int = 50
+) -> List[dict]:
+    """
+    Detects intent category from query.
+    Executes SQL ranking with intent_score DESC to guarantee 0 accessories in Top 10 for equipment queries.
+    """
 ```
 
-### 4. Search API Request / Response Contract (`api/index.py` <-> `web/src/api.ts`)
-```typescript
-// Query params: /api/search?q={query}&sort={sort}&vertical={vertical}&only_offers={bool}&cp={cp}
-export interface ProductGroup {
-  id: string // EAN or MODEL_BRAND_CODE
-  ean: string
-  nombre: string
-  marca: string
-  modelo?: string
-  tipo?: string
-  imagen: string
-  categoria_normalizada?: string
-  vertical?: 'supermarket' | 'marketplace' | 'electro' | 'specialty'
-  best_offer: Offer
-  offers: Offer[]
-}
+### 5. 100 Search Audit Suite Contract (`scripts/audit_100_searches.py`)
+```python
+class AuditReport(TypedDict):
+    timestamp: str
+    total_searches: int
+    passed_searches: int
+    failed_searches: int
+    accessory_infiltration_count: int  # Must be 0
+    images_health_pct: float            # Must be 100.0%
+    links_health_pct: float             # Must be 100.0%
+    cart_health_pct: float              # Must be 100.0%
+    details: List[dict]
 ```
 
 ---
 
 ## Code Layout
-- Backend Store Integrations:
-  - `api/_lib/stores.py` (Exclusively owned by M1)
-  - `api/_lib/vtex_mcp.py` (Store querying exclusively owned by M1; grouping owned by M2)
-- Backend Normalization & Parsers:
-  - `api/_lib/parsers.py` (Exclusively owned by M2)
-  - `api/_lib/normalization.py` (New normalization module owned by M2)
-  - `api/_lib/db.py` (Schema & migrations owned by M2)
-- Backend Search & Deals Endpoints:
-  - `api/index.py` (Exclusively owned by M3)
-  - `api/_lib/deals.py` (Exclusively owned by M3)
-- Frontend Store Config, Search & Carousels:
-  - `web/src/lib/stores.ts` (Exclusively owned by M4)
-  - `web/src/types.ts` (Exclusively owned by M4)
-  - `web/src/api.ts` (Exclusively owned by M4)
-  - `web/src/components/SearchScreen.tsx` (Exclusively owned by M4)
-  - `web/src/components/OffersScreen.tsx` (Exclusively owned by M4)
-  - `web/src/components/OffersSheet.tsx` (Exclusively owned by M4)
-- Verification & E2E Testing Track:
-  - `scratch/verify_connectors_live.py` (Exclusively owned by M5)
-  - `scratch/verify_normalization_live.py` (Exclusively owned by M5)
-  - `scratch/verify_endpoints_live.py` (Exclusively owned by M5)
-  - `web/src/components/__tests__/DifferentiatedSearchAndCarousels.test.tsx` (Exclusively owned by M5)
-  - `TEST_INFRA.md`, `TEST_READY.md` (Exclusively owned by M5)
+- Milestone 1 (Harvester & Raw Catalog):
+  - `api/_lib/harvester.py`
+  - `scripts/harvest_all_stores.py`
+  - `scripts/migrate_raw_catalog.py`
+- Milestone 2 (Global Normalization & Entity Resolution):
+  - `api/_lib/catalog_normalizer.py`
+  - `scripts/normalize_database.py`
+  - `api/_lib/normalization.py`
+- Milestone 3 (Hybrid Search & Real Deals):
+  - `api/_lib/db.py`
+  - `api/index.py`
+  - `api/_lib/mercadolibre.py`
+  - `api/_lib/deals.py`
+  - `web/src/data/gondolasData.ts`
+  - `scripts/audit_and_heal.py`
+- Milestone 4 (UI "Ver" Shielding & 100 Search Audit Suite):
+  - `web/src/components/OffersSheet.tsx`
+  - `web/src/components/GondolaCard.tsx`
+  - `web/src/components/ProductCard.tsx`
+  - `web/src/components/SponsoredGondolaCard.tsx`
+  - `scripts/audit_100_searches.py`
+  - `api/_lib/audit_100_searches_report.json`
+- Milestone 5 (Final Acceptance & Adversarial Hardening):
+  - Automated test suites in `scratch/` and `web/src/__tests__/`

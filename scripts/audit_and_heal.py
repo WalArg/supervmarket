@@ -36,6 +36,7 @@ BLACKLISTED_IMAGE_PATTERNS = [
 ]
 
 EXPECTED_TIER_IDS = ["tier-70-80", "tier-60", "tier-50", "tier-40"]
+EXPECTED_MP_TIER_IDS = ["tier-mp-electro", "tier-mp-hogar", "tier-mp-destacadas"]
 SNAPSHOT_PATH = os.path.join(API_DIR, "_lib", "verified_offers_snapshot.json")
 
 
@@ -144,33 +145,41 @@ async def run_audit_and_heal(heal: bool = True, check_all_images: bool = True) -
 
     live_payload = await deals.get_live_discount_tiers(force=True)
     tiers = live_payload.get("tiers") or []
+    mp_tiers = live_payload.get("marketplace_tiers") or []
     baseline_by_id = {t["id"]: t for t in getattr(deals, "BASELINE_TIERS", [])}
+    baseline_by_id.update({t["id"]: t for t in getattr(deals, "BASELINE_MARKETPLACE_TIERS", [])})
 
     tier_ids_found = [t.get("id") for t in tiers]
+    mp_tier_ids_found = [t.get("id") for t in mp_tiers]
     missing_tiers = [tid for tid in EXPECTED_TIER_IDS if tid not in tier_ids_found]
+    missing_mp_tiers = [tid for tid in EXPECTED_MP_TIER_IDS if tid not in mp_tier_ids_found]
 
     summary_rows: list[dict] = []
     unhealed_issues: list[str] = []
     healed_count = 0
 
+    all_target_tiers = [("supermarket", t) for t in tiers] + [("marketplace", t) for t in mp_tiers]
+
     async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as client:
-        for tier in tiers:
+        for t_type, tier in all_target_tiers:
             tid = tier.get("id", "unknown")
             b_tier = baseline_by_id.get(tid, {})
 
-            # 1. Auditar y curar meliSponsored
-            sp_errs = validate_sponsored_entry(tid, tier.get("meliSponsored") or {})
-            sp_img = ((tier.get("meliSponsored") or {}).get("product") or {}).get("imagen") or ""
-            sp_img_ok, _ = await verify_image_http(client, sp_img)
-            if not sp_img_ok:
-                sp_errs.append(f"{tid} [meliSponsored]: imagen no responde 200 image/* ({sp_img})")
+            # 1. Auditar y curar meliSponsored (solo en supermercados)
+            sp_errs = []
+            if t_type == "supermarket":
+                sp_errs = validate_sponsored_entry(tid, tier.get("meliSponsored") or {})
+                sp_img = ((tier.get("meliSponsored") or {}).get("product") or {}).get("imagen") or ""
+                sp_img_ok, _ = await verify_image_http(client, sp_img)
+                if not sp_img_ok:
+                    sp_errs.append(f"{tid} [meliSponsored]: imagen no responde 200 image/* ({sp_img})")
 
-            if sp_errs and heal and b_tier.get("meliSponsored"):
-                tier["meliSponsored"] = b_tier["meliSponsored"]
-                healed_count += 1
-                sp_errs = validate_sponsored_entry(tid, tier["meliSponsored"])
+                if sp_errs and heal and b_tier.get("meliSponsored"):
+                    tier["meliSponsored"] = b_tier["meliSponsored"]
+                    healed_count += 1
+                    sp_errs = validate_sponsored_entry(tid, tier["meliSponsored"])
 
-            unhealed_issues.extend(sp_errs)
+                unhealed_issues.extend(sp_errs)
 
             # 2. Auditar y curar productos del carrusel
             products = tier.get("products") or []
@@ -222,7 +231,7 @@ async def run_audit_and_heal(heal: bool = True, check_all_images: bool = True) -
             summary_rows.append(
                 {
                     "tier_id": tid,
-                    "sponsored_ok": "OK" if not sp_errs else "FAIL",
+                    "sponsored_ok": "OK" if (t_type != "supermarket" or not sp_errs) else "FAIL",
                     "products_count": len(tier.get("products") or []),
                     "images_verified": checked_images_ok,
                     "healed_items": removed_in_tier,
@@ -231,21 +240,24 @@ async def run_audit_and_heal(heal: bool = True, check_all_images: bool = True) -
 
     if missing_tiers:
         for mt in missing_tiers:
-            unhealed_issues.append(f"Falta el nivel obligatorio: {mt}")
+            unhealed_issues.append(f"Falta el nivel obligatorio de supermercado: {mt}")
+    if missing_mp_tiers:
+        for mmt in missing_mp_tiers:
+            unhealed_issues.append(f"Falta el nivel obligatorio de marketplace: {mmt}")
 
     # Imprimir tabla resumen legible
     print(
-        f"{'TIER ID':<14} | {'MELI FULL':<10} | {'PRODUCTOS':<10} | {'IMGS 200 OK':<12} | {'CURADOS':<8}"
+        f"{'TIER ID':<22} | {'MELI FULL':<10} | {'PRODUCTOS':<10} | {'IMGS 200 OK':<12} | {'CURADOS':<8}"
     )
     print("-" * 78)
     for row in summary_rows:
         print(
-            f"{row['tier_id']:<14} | {row['sponsored_ok']:<10} | "
+            f"{row['tier_id']:<22} | {row['sponsored_ok']:<10} | "
             f"{row['products_count']:<10} | {row['images_verified']:<12} | {row['healed_items']:<8}"
         )
     print("-" * 78)
 
-    total_products = sum(len(t.get("products") or []) for t in tiers)
+    total_products = sum(len(t.get("products") or []) for t in tiers) + sum(len(t.get("products") or []) for t in mp_tiers)
     live_payload["total_deals"] = total_products
     live_payload["audited_at"] = datetime.now(timezone.utc).isoformat()
     live_payload["audit_status"] = "healthy" if not unhealed_issues else "degraded"
@@ -257,7 +269,7 @@ async def run_audit_and_heal(heal: bool = True, check_all_images: bool = True) -
         print(f"[HEAL] Snapshot verificado guardado en: {SNAPSHOT_PATH}")
 
     print(
-        f"[RESUMEN] Niveles: {len(tiers)}/4 | Total Productos: {total_products} | "
+        f"[RESUMEN] Niveles Super: {len(tiers)}/4 | Niveles MP: {len(mp_tiers)}/3 | Total Productos: {total_products} | "
         f"Items Auto-Curados: {healed_count} | Problemas pendientes: {len(unhealed_issues)}"
     )
 

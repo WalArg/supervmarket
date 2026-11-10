@@ -72,6 +72,8 @@ export const STORES: StoreMap = {
   Farmaonline: { id: 'farmaonline', label: 'Farmaonline', color: '#0891b2', vertical: 'pharmacy', isMarketplace: false, supportsCart: true, dominio: 'https://www.farmaonline.com' },
   Farmaplus: { id: 'farmaplus', label: 'Farmaplus', color: '#0284c7', vertical: 'pharmacy', isMarketplace: false, supportsCart: true, dominio: 'https://www.farmaplus.com.ar' },
   Puppis: { id: 'puppis', label: 'Puppis', color: '#ff6b00', vertical: 'specialty', isMarketplace: false, supportsCart: true, dominio: 'https://www.puppis.com.ar' },
+  Catycan: { id: 'catycan', label: 'Catycan', color: '#ff5500', vertical: 'specialty', isMarketplace: false, supportsCart: true, dominio: 'https://www.catycan.com.ar' },
+  'Natural Life': { id: 'naturallife', label: 'Natural Life', color: '#16a34a', vertical: 'specialty', isMarketplace: false, supportsCart: true, dominio: 'https://www.natural-life.com.ar' },
   StyleStore: { id: 'stylestore', label: 'StyleStore', color: '#1a1a1a', vertical: 'specialty', isMarketplace: false, supportsCart: true, dominio: 'https://www.stylestore.com.ar' },
   'Bodegas Bianchi': { id: 'bodegasbianchi', label: 'Bodegas Bianchi', color: '#581845', vertical: 'specialty', isMarketplace: false, supportsCart: false, dominio: 'https://www.bodegasbianchi.com.ar' },
   LaBarraCCU: { id: 'labarraccu', label: 'La Barra', color: '#475569', vertical: 'specialty', isMarketplace: false, supportsCart: false, dominio: 'https://labarraccu.com.ar' },
@@ -98,6 +100,9 @@ export const STORES: StoreMap = {
   bodegasbianchi: { id: 'bodegasbianchi', label: 'Bodegas Bianchi', color: '#581845', vertical: 'specialty', isMarketplace: false, supportsCart: false, dominio: 'https://www.bodegasbianchi.com.ar' },
   'La Barra': { id: 'labarraccu', label: 'La Barra', color: '#475569', vertical: 'specialty', isMarketplace: false, supportsCart: false, dominio: 'https://labarraccu.com.ar' },
   'Arcor en Casa': { id: 'arcorencasa', label: 'Arcor en Casa', color: '#0284c7', vertical: 'supermarket', isMarketplace: false, supportsCart: false, dominio: 'https://arcorencasa.com' },
+  catycan: { id: 'catycan', label: 'Catycan', color: '#ff5500', vertical: 'specialty', isMarketplace: false, supportsCart: true, dominio: 'https://www.catycan.com.ar' },
+  'NaturalLife': { id: 'naturallife', label: 'Natural Life', color: '#16a34a', vertical: 'specialty', isMarketplace: false, supportsCart: true, dominio: 'https://www.natural-life.com.ar' },
+  naturallife: { id: 'naturallife', label: 'Natural Life', color: '#16a34a', vertical: 'specialty', isMarketplace: false, supportsCart: true, dominio: 'https://www.natural-life.com.ar' },
 }
 
 export function normalizeStoreKey(s: string): string {
@@ -131,3 +136,44 @@ export const storeColor = (s: string): string => getStoreMeta(s)?.color ?? '#647
 export const storeVertical = (s: string): StoreVertical => getStoreMeta(s)?.vertical ?? 'supermarket'
 export const isMarketplaceStore = (s: string): boolean => Boolean(getStoreMeta(s)?.isMarketplace)
 export const storeSupportsCart = (s: string): boolean => Boolean(getStoreMeta(s)?.supportsCart)
+
+export const STORE_DOMAINS: Record<string, string> = Object.fromEntries(
+  Object.entries(STORES)
+    .filter(([_, meta]) => Boolean(meta.dominio))
+    .map(([key, meta]) => [key, meta.dominio!])
+)
+
+export function getStoreDomain(s?: string | null): string {
+  if (!s) return 'https://www.mercadolibre.com.ar'
+  const meta = getStoreMeta(s)
+  if (meta?.dominio) return meta.dominio
+  return 'https://www.mercadolibre.com.ar'
+}
+
+export function resolveOutboundUrl(
+  rawLink: string | null | undefined,
+  store: string,
+  productTitle?: string,
+  sellerId?: string | null,
+): string {
+  let url = (rawLink || '').trim()
+  const domain = getStoreDomain(store).replace(/\/+$/, '')
+
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    // Keep absolute
+  } else if (url.startsWith('/')) {
+    url = `${domain}${url}`
+  } else if (url.length > 0) {
+    url = `${domain}/${url}`
+  } else {
+    const q = productTitle ? encodeURIComponent(productTitle.trim()) : ''
+    url = `${domain}/search?q=${q}`
+  }
+
+  if (sellerId && sellerId !== '1' && sellerId !== 'default' && !url.includes('seller=')) {
+    const sep = url.includes('?') ? '&' : '?'
+    url = `${url}${sep}seller=${encodeURIComponent(sellerId)}`
+  }
+
+  return url
+}

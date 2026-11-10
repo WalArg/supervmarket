@@ -142,6 +142,7 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
               loading="lazy"
               className="max-h-full max-w-full object-contain"
               onError={handleImgError}
+              referrerPolicy="no-referrer"
             />
           ) : (
             <div

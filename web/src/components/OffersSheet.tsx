@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, ExternalLink, Flame, CreditCard, MapPinOff, Plus, Minus, Check, Package } from 'lucide-react'
 import type { ProductGroup } from '../types'
-import { storeColor, storeLabel } from '../lib/stores'
+import { storeColor, storeLabel, getStoreDomain } from '../lib/stores'
+import { decorateOutboundUrl } from '../lib/affiliate'
 import { formatPrice } from '../lib/pricing'
 import { useCart, getItemKey } from '../cart/CartContext'
 import type { OfferRow } from './ProductCard'
@@ -69,7 +70,20 @@ const OffersSheet: React.FC<{
   }
 
   const buildOutboundOfferUrl = (offer: any): string => {
-    let url = offer?.link || ''
+    let url = (offer?.link || '').trim()
+    const store = offer?.supermercado || ''
+    const domain = (getStoreDomain(store) || 'https://www.mercadolibre.com.ar').replace(/\/+$/, '')
+
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      // already absolute
+    } else if (url.startsWith('/')) {
+      url = `${domain}${url}`
+    } else if (url.length > 0) {
+      url = `${domain}/${url}`
+    } else {
+      url = `${domain}/search?q=${encodeURIComponent(group.nombre || '')}`
+    }
+
     if (offer?.seller_id && offer.seller_id !== '1' && url && !url.includes('seller=')) {
       const sep = url.includes('?') ? '&' : '?'
       url = `${url}${sep}seller=${encodeURIComponent(offer.seller_id)}`
@@ -123,6 +137,7 @@ const OffersSheet: React.FC<{
                   alt={group.nombre}
                   className="w-12 h-12 object-contain shrink-0"
                   onError={handleImgError}
+                  referrerPolicy="no-referrer"
                 />
               ) : (
                 <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center text-slate-400 shrink-0 select-none">
@@ -349,19 +364,17 @@ const OffersSheet: React.FC<{
                           </button>
                         )}
 
-                        {/* Enlace secundario opcional y discreto hacia la web oficial */}
-                        {r.o.link && r.o.link.startsWith('http') && (
-                          <a
-                            href={buildOutboundOfferUrl(r.o)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-1 text-[11px] text-slate-400 hover:text-blue-600 flex items-center gap-0.5"
-                            title={`Abrir página oficial de ${storeLabel(r.o.supermercado)}`}
-                          >
-                            <span>Ver web</span>
-                            <ExternalLink size={10} />
-                          </a>
-                        )}
+                        {/* Enlace verificado y blindado hacia la web oficial */}
+                        <a
+                          href={buildOutboundOfferUrl(r.o)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 text-[11px] text-slate-400 hover:text-blue-600 flex items-center gap-0.5"
+                          title={`Abrir página oficial de ${storeLabel(r.o.supermercado)}`}
+                        >
+                          <span>Ver web</span>
+                          <ExternalLink size={10} />
+                        </a>
                       </div>
                     </div>
 
@@ -492,17 +505,18 @@ const OffersSheet: React.FC<{
                                       </button>
                                     )}
 
-                                    {opt.link && (
-                                      <a
-                                        href={opt.link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="p-1 text-slate-400 hover:text-blue-600"
-                                        title="Ver en Mercado Libre"
-                                      >
-                                        <ExternalLink size={11} />
-                                      </a>
-                                    )}
+                                    <a
+                                      href={buildOutboundOfferUrl({
+                                        link: opt.link,
+                                        supermercado: 'MercadoLibre',
+                                      })}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="p-1 text-slate-400 hover:text-blue-600"
+                                      title="Ver en Mercado Libre"
+                                    >
+                                      <ExternalLink size={11} />
+                                    </a>
                                   </div>
                                 </div>
                               )

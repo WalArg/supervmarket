@@ -237,6 +237,7 @@ export const MeliCartAssistantModal: React.FC<MeliCartAssistantModalProps> = ({
                     src={i.imagen}
                     alt=""
                     className="w-12 h-12 rounded-xl object-contain bg-white border border-slate-200/80 p-1 shrink-0"
+                    referrerPolicy="no-referrer"
                   />
                 ) : (
                   <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200/80 flex items-center justify-center shrink-0 text-slate-400">

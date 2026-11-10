@@ -169,6 +169,7 @@ const ProductCard: React.FC<{
               loading="lazy"
               className="max-w-full max-h-full object-contain"
               onError={handleImgError}
+              referrerPolicy="no-referrer"
             />
           ) : (
             <div className="w-full h-full rounded-lg bg-slate-50 flex flex-col items-center justify-center text-slate-400 select-none">

@@ -9,6 +9,8 @@ import sys
 import time
 import json
 import sqlite3
+import threading
+import functools
 import asyncio
 import unicodedata
 from .stores import supports_cart
@@ -38,18 +40,23 @@ SQLITE_MIGRATIONS = [
     "ALTER TABLE precios ADD COLUMN store_type TEXT DEFAULT 'supermarket'",
     "ALTER TABLE productos ADD COLUMN modelo TEXT",
     "ALTER TABLE productos ADD COLUMN tipo TEXT",
+    "ALTER TABLE productos ADD COLUMN search_text TEXT",
     "CREATE INDEX IF NOT EXISTS idx_precios_seller ON precios (seller_id)",
     "CREATE INDEX IF NOT EXISTS idx_precios_store_type ON precios (store_type)",
     "CREATE INDEX IF NOT EXISTS idx_productos_modelo ON productos (modelo)",
     "CREATE INDEX IF NOT EXISTS idx_productos_tipo ON productos (tipo)",
+    "CREATE INDEX IF NOT EXISTS idx_productos_search_text ON productos (search_text)",
+    "CREATE INDEX IF NOT EXISTS idx_productos_cat_search ON productos (categoria_normalizada, search_text)",
 ]
 
+_TRANS = str.maketrans('áéíóúÁÉÍÓÚñÑüÜàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛãõÃÕ', 'aeiouAEIOUnNuUaeiouAEIOUaeiouAEIOUaeiouAEIOUaoAO')
 
+
+@functools.lru_cache(maxsize=32768)
 def _py_unaccent(text: str) -> str:
     if text is None:
         return ""
-    return "".join(c for c in unicodedata.normalize("NFD", str(text))
-                   if unicodedata.category(c) != "Mn")
+    return str(text).translate(_TRANS)
 
 
 def _norm(text: str) -> str:
@@ -67,8 +74,11 @@ def _sqlite_path() -> str:
 # ---------- Conexiones ----------
 _pg_pool = None
 _pg_loop = None
+_local = threading.local()
 _sqlite_conn: sqlite3.Connection | None = None
 _sqlite_is_memory: bool = False
+_sqlite_init_lock = threading.Lock()
+_sqlite_initialized: bool = False
 
 
 async def get_pool():
@@ -83,69 +93,99 @@ async def get_pool():
 
 
 def _get_sqlite() -> sqlite3.Connection:
-    global _sqlite_conn, _sqlite_is_memory
-    if _sqlite_conn is None:
+    global _sqlite_conn, _sqlite_is_memory, _sqlite_initialized
+    conn = getattr(_local, "conn", None)
+    if conn is None:
         path = _sqlite_path()
         try:
             if not os.path.exists(path):
-                _sqlite_conn = sqlite3.connect(":memory:", check_same_thread=False)
+                conn = sqlite3.connect(":memory:", check_same_thread=False)
                 _sqlite_is_memory = True
             else:
-                _sqlite_conn = sqlite3.connect(path, check_same_thread=False, timeout=30)
+                conn = sqlite3.connect(path, timeout=30)
                 _sqlite_is_memory = False
         except Exception:
-            _sqlite_conn = sqlite3.connect(":memory:", check_same_thread=False)
+            conn = sqlite3.connect(":memory:", check_same_thread=False)
             _sqlite_is_memory = True
-        _sqlite_conn.row_factory = sqlite3.Row
-        _sqlite_conn.create_function("unaccent", 1, _py_unaccent)
-        for stmt in SQLITE_MIGRATIONS:
-            try:
-                _sqlite_conn.execute(stmt)
-            except Exception:
-                pass
+        conn.row_factory = sqlite3.Row
+        conn.create_function("unaccent", 1, _py_unaccent, deterministic=True)
         try:
-            _sqlite_conn.execute(
-                "CREATE TABLE IF NOT EXISTS verified_deals_cache (cp TEXT PRIMARY KEY, updated_at REAL, payload_json TEXT)"
-            )
-            # Safe backfill for existing rows
-            _sqlite_conn.execute(
-                "UPDATE precios SET seller_id = '1' WHERE seller_id IS NULL OR seller_id = ''"
-            )
-            _sqlite_conn.execute(
-                "UPDATE precios SET store_type = 'pharmacy' WHERE supermercado IN ('Farmacity', 'Farmaplus', 'Farmaonline', 'Simplicity', 'Pigmento') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
-            )
-            _sqlite_conn.execute(
-                "UPDATE precios SET store_type = 'specialty' WHERE supermercado = 'TheFoodMarket' AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
-            )
-            _sqlite_conn.execute(
-                "UPDATE precios SET store_type = 'electro' WHERE supermercado IN ('Fravega', 'Cetrogar', 'Naldo', 'Pardo', 'Coppel', 'Samsung', 'Philips', 'Whirlpool', 'Moulinex', 'Sony') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
-            )
-            _sqlite_conn.execute(
-                "UPDATE precios SET store_type = 'marketplace' WHERE supermercado IN ('Provincia Compras', 'On City') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
-            )
-            _sqlite_conn.execute(
-                "UPDATE precios SET store_type = 'supermarket' WHERE store_type IS NULL OR store_type = ''"
-            )
-            _sqlite_conn.execute(
-                "UPDATE productos SET tipo = 'pharmacy' WHERE (tipo IS NULL OR tipo = '') AND (supermercado_origen IN ('Farmacity', 'Farmaplus', 'Farmaonline', 'Simplicity', 'Pigmento') OR categorias LIKE '%Salud%' OR categorias LIKE '%Belleza%' OR categorias LIKE '%Perfumer%')"
-            )
-            _sqlite_conn.execute(
-                "UPDATE productos SET tipo = 'electro' WHERE (tipo IS NULL OR tipo = '') AND (categorias LIKE '%Electro%' OR categorias LIKE '%Celulares%' OR categorias LIKE '%Informatica%' OR categorias LIKE '%Calefacc%')"
-            )
-            _sqlite_conn.execute(
-                "UPDATE productos SET tipo = 'supermarket' WHERE tipo IS NULL OR tipo = ''"
-            )
-            rows_tech = _sqlite_conn.execute(
-                "SELECT ean, nombre, marca FROM productos WHERE (modelo IS NULL OR modelo = '') AND (tipo = 'electro' OR categorias LIKE '%Electro%' OR categorias LIKE '%Celular%')"
-            ).fetchall()
-            for row in rows_tech:
-                m = extract_model(row["nombre"] or "", row["marca"] or "")
-                if m:
-                    _sqlite_conn.execute("UPDATE productos SET modelo = ? WHERE ean = ?", (m, row["ean"]))
-            _sqlite_conn.commit()
+            conn.execute("PRAGMA cache_size = -64000")
+            conn.execute("PRAGMA synchronous = NORMAL")
         except Exception:
             pass
-    return _sqlite_conn
+        _local.conn = conn
+        _sqlite_conn = conn
+
+        if not _sqlite_initialized:
+            with _sqlite_init_lock:
+                if not _sqlite_initialized:
+                    for stmt in SQLITE_MIGRATIONS:
+                        try:
+                            conn.execute(stmt)
+                        except Exception:
+                            pass
+                    try:
+                        conn.execute(
+                            "CREATE TABLE IF NOT EXISTS verified_deals_cache (cp TEXT PRIMARY KEY, updated_at REAL, payload_json TEXT)"
+                        )
+                        # Safe backfill for existing rows
+                        conn.execute(
+                            "UPDATE precios SET seller_id = '1' WHERE seller_id IS NULL OR seller_id = ''"
+                        )
+                        conn.execute(
+                            "UPDATE precios SET store_type = 'pharmacy' WHERE supermercado IN ('Farmacity', 'Farmaplus', 'Farmaonline', 'Simplicity', 'Pigmento') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
+                        )
+                        conn.execute(
+                            "UPDATE precios SET store_type = 'specialty' WHERE supermercado = 'TheFoodMarket' AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
+                        )
+                        conn.execute(
+                            "UPDATE precios SET store_type = 'electro' WHERE supermercado IN ('Fravega', 'Cetrogar', 'Naldo', 'Pardo', 'Coppel', 'Samsung', 'Philips', 'Whirlpool', 'Moulinex', 'Sony') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
+                        )
+                        conn.execute(
+                            "UPDATE precios SET store_type = 'marketplace' WHERE supermercado IN ('Provincia Compras', 'On City') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
+                        )
+                        conn.execute(
+                            "UPDATE precios SET store_type = 'supermarket' WHERE store_type IS NULL OR store_type = ''"
+                        )
+                        conn.execute(
+                            "UPDATE productos SET tipo = 'pharmacy' WHERE (tipo IS NULL OR tipo = '') AND (supermercado_origen IN ('Farmacity', 'Farmaplus', 'Farmaonline', 'Simplicity', 'Pigmento') OR categorias LIKE '%Salud%' OR categorias LIKE '%Belleza%' OR categorias LIKE '%Perfumer%')"
+                        )
+                        conn.execute(
+                            "UPDATE productos SET tipo = 'electro' WHERE (tipo IS NULL OR tipo = '') AND (categorias LIKE '%Electro%' OR categorias LIKE '%Celulares%' OR categorias LIKE '%Informatica%' OR categorias LIKE '%Calefacc%')"
+                        )
+                        conn.execute(
+                            "UPDATE productos SET tipo = 'supermarket' WHERE tipo IS NULL OR tipo = ''"
+                        )
+                        rows_tech = conn.execute(
+                            "SELECT ean, nombre, marca FROM productos WHERE (modelo IS NULL OR modelo = '') AND (tipo = 'electro' OR categorias LIKE '%Electro%' OR categorias LIKE '%Celular%')"
+                        ).fetchall()
+                        for row in rows_tech:
+                            m = extract_model(row["nombre"] or "", row["marca"] or "")
+                            if m:
+                                conn.execute("UPDATE productos SET modelo = ? WHERE ean = ?", (m, row["ean"]))
+                        rows_missing = conn.execute(
+                            "SELECT ean, nombre, marca, categorias FROM productos WHERE search_text IS NULL"
+                        ).fetchall()
+                        if rows_missing:
+                            conn.executemany(
+                                "UPDATE productos SET search_text = ? WHERE ean = ?",
+                                [
+                                    (
+                                        (str(r["nombre"] or "").translate(_TRANS).lower() + " " +
+                                         str(r["marca"] or "").translate(_TRANS).lower() + " " +
+                                         str(r["ean"] or "") + " " +
+                                         str(r["categorias"] or "").translate(_TRANS).lower()),
+                                        r["ean"]
+                                    )
+                                    for r in rows_missing
+                                ]
+                            )
+                        conn.commit()
+                    except Exception:
+                        pass
+                    _sqlite_initialized = True
+    return conn
 
 
 async def _fetch(sql_sqlite: str, sql_pg: str, args: list):
@@ -214,7 +254,124 @@ def _offer_row(r) -> dict:
     }
 
 
+# ---------- Intención de Búsqueda y Relevancia ----------
+EQUIPMENT_INTENTS = {
+    "televisores", "celulares", "notebooks_tablets", "heladeras_freezers",
+    "lavado", "cocina_hornos", "climatizacion"
+}
+
+
+def detect_search_intent(query: str) -> str | None:
+    """Detecta la categoría canónica objetivo de una búsqueda de texto.
+
+    Da prioridad estricta a intenciones de accesorios y muebles para evitar
+    que consultas como 'soporte tv' o 'rack tv' se clasifiquen como equipamiento.
+    """
+    if not query or not query.strip():
+        return None
+
+    q = _norm(query).strip()
+
+    # 1. Accesorios y Soportes (Prioridad Máxima sobre equipamiento)
+    if any(k in q for k in (
+        "soporte", "funda", "cargador", "cable", "vidrio templado",
+        "protector de pantalla", "film", "hidrogel", "control remoto",
+        "porta celular", "phone bag", "boton para celular", "anillo celular",
+        "popsocket", "palo selfie", "tripode", "auricular con cable",
+        "mochila", "bolso porta notebook", "porta notebook"
+    )):
+        return "soportes_accesorios"
+
+    # 2. Muebles y Racks (Prioridad Máxima sobre TVs)
+    if any(k in q for k in (
+        "rack", "mesa tv", "mesa para tv", "mueble tv", "mueble para tv",
+        "panel tv", "panel para tv", "modular tv", "escritorio", "biblioteca",
+        "comoda", "placard", "sommier", "colchon", "mesa de luz"
+    )):
+        return "muebles_racks"
+
+    # 3. Equipos de Tecnología / Electro
+    # Televisores
+    if any(tok in q for tok in ("smart tv", "smarttv", "smart-tv", "televisor", "televisores", "led tv", "qled", "oled", "neo qled", "the frame", "4k tv")):
+        return "televisores"
+    q_words = set(q.split())
+    if "tv" in q_words or "tvs" in q_words:
+        return "televisores"
+
+    # Celulares
+    if any(k in q for k in ("celular", "celulares", "smartphone", "smartphones", "telefono movil", "telefonos moviles", "iphone", "galaxy", "moto g", "motorola moto", "redmi note", "xiaomi redmi")):
+        return "celulares"
+
+    # Notebooks y Tablets
+    if any(k in q for k in ("notebook", "notebooks", "laptop", "laptops", "tablet", "tablets", "ipad", "netbook", "macbook", "chromebook", "all in one", "computadora", "pc gamer", "monitor")):
+        return "notebooks_tablets"
+
+    # Heladeras y Freezers
+    if any(k in q for k in ("heladera", "heladeras", "freezer", "freezers", "frigobar", "refrigerador")):
+        return "heladeras_freezers"
+
+    # Lavado
+    if any(k in q for k in ("lavarropas", "secarropas", "lavasecarropas", "lavavajillas")):
+        return "lavado"
+
+    # Cocina y Hornos
+    if any(k in q for k in ("cocina", "cocinas", "horno", "hornos", "anafe", "anafes", "campana extractora")):
+        return "cocina_hornos"
+
+    # Climatización
+    if any(k in q for k in ("aire acondicionado", "aires acondicionados", "split", "calefactor", "estufa", "ventilador", "ventiladores", "climatizador", "termotanque", "calefon")):
+        return "climatizacion"
+
+    # Audio y Video
+    if any(k in q for k in ("auricular", "auriculares", "headphone", "headphones", "earbuds", "airpods", "parlante", "parlantes", "soundbar", "barra de sonido", "sound tower", "home theater", "microfono", "proyector")):
+        return "audio_video"
+
+    # Pequeños Electro
+    if any(k in q for k in ("microondas", "cafetera", "pava electrica", "licuadora", "batidora", "tostadora", "procesadora", "freidora", "air fryer", "plancha", "aspiradora")):
+        return "pequenos_electro"
+
+    # Herramientas y Construcción
+    if any(k in q for k in ("taladro", "amoladora", "destornillador", "martillo", "pintura", "tornillos", "escalera")):
+        return "herramientas_construccion"
+
+    # 4. Supermercado, Farmacia y Mascotas
+    # Lácteos Frescos
+    if any(k in q for k in ("leche", "yogur", "yogurt", "queso", "manteca", "crema de leche", "dulce de leche")):
+        return "lacteos_frescos"
+
+    # Bebidas
+    if any(k in q for k in ("cerveza", "vino", "gaseosa", "coca cola", "pepsi", "sprite", "fanta", "fernet", "gin", "vodka", "whisky", "agua mineral", "jugo")):
+        return "bebidas"
+
+    # Almacén
+    if any(k in q for k in ("fideos", "arroz", "aceite", "harina", "azucar", "galletitas", "galletas", "atun", "yerba", "cafe", "te", "conserva", "legumbres", "mermelada", "mayonesa", "ketchup", "pure de tomate")):
+        return "almacen"
+
+    # Carnes y Verdulería
+    if any(k in q for k in ("carne", "pollo", "asado", "vacio", "matambre", "nalga", "lomo", "peceto", "pescado", "fruta", "verdura", "tomate", "papa", "cebolla", "manzana", "banana")):
+        return "carnes_verduleria"
+
+    # Limpieza
+    if any(k in q for k in ("detergente", "lavandina", "jabon liquido", "suavizante", "desodorante de ambiente", "papel higienico", "rollo de cocina", "limpiador", "desinfectante", "esponja")):
+        return "limpieza"
+
+    # Perfumería y Farmacia
+    if any(k in q for k in ("shampoo", "acondicionador", "desodorante", "jabon de tocador", "dentifrico", "pasta dental", "cepillo dental", "panales", "protector solar", "crema facial", "perfume", "repelente")):
+        return "perfumeria_farmacia"
+
+    # Mascotas
+    if any(k in q for k in ("alimento perro", "alimento gato", "comida perro", "comida gato", "piedras sanitarias", "pedigree", "whiskas", "royal canin", "cat chow", "dog chow", "pro plan", "catycan")):
+        return "mascotas"
+
+    return None
+
+
 # ---------- API pública ----------
+_SEARCH_CACHE: dict[tuple, tuple[float, list[dict]]] = {}
+_SEARCH_CACHE_TTL_SECONDS = 60.0
+_SEARCH_CACHE_LOCK = threading.Lock()
+
+
 async def search_grouped(
     query: str,
     sort_by: str = "price_asc",
@@ -224,6 +381,17 @@ async def search_grouped(
     store_type: str | None = None,
     grocery_only: bool = False,
 ) -> list[dict]:
+    cache_key = (
+        _norm(query), sort_by, bool(only_offers), int(limit or 120),
+        str(vertical or ""), str(store_type or ""), bool(grocery_only)
+    )
+    now = time.time()
+    with _SEARCH_CACHE_LOCK:
+        if cache_key in _SEARCH_CACHE:
+            ts, cached_val = _SEARCH_CACHE[cache_key]
+            if (now - ts) < _SEARCH_CACHE_TTL_SECONDS:
+                return cached_val
+
     tokens = [t for t in query.split() if t]
     order_col = (
         "pr.precio_por_unidad"
@@ -242,8 +410,8 @@ async def search_grouped(
 
     if IS_SQLITE:
         search_expr = (
-            "unaccent(lower(p.nombre || ' ' || COALESCE(p.marca, '') || ' ' || "
-            "p.ean || ' ' || COALESCE(pr.supermercado, '') || ' ' || COALESCE(p.categorias, '')))"
+            "COALESCE(p.search_text, unaccent(lower(p.nombre || ' ' || COALESCE(p.marca, '') || ' ' || "
+            "p.ean || ' ' || COALESCE(pr.supermercado, '') || ' ' || COALESCE(p.categorias, ''))))"
         )
         conds.extend([f"{search_expr} LIKE ?" for _ in tokens])
         args.extend([f"%{_norm(t)}%" for t in tokens])
@@ -278,35 +446,85 @@ async def search_grouped(
         conds.append("((pr.promo_etiqueta IS NOT NULL AND pr.requiere_club = 0) OR pr.descuento >= 5)")
 
     where_clause = " AND ".join(conds) if conds else "1=1"
-    safe_limit = max(20, min(int(limit or 120), 300))
+    safe_limit = max(1, min(int(limit or 120), 300))
 
     # Si el usuario buscó un término, priorizamos los productos cuyo nombre empieza con la palabra buscada
     # (ej: buscando "leche" aparece "Leche La Serenísima" antes que "Pepitas de dulce de leche").
     if tokens and IS_SQLITE:
         first_tok = _norm(tokens[0]).replace("'", "''")
         starts_expr = (
-            f"MAX(CASE WHEN unaccent(lower(p.nombre)) LIKE '{first_tok}%' THEN 2 "
-            f"WHEN unaccent(lower(p.nombre)) LIKE '% {first_tok}%' THEN 1 ELSE 0 END)"
+            f"MAX(CASE WHEN lower(p.nombre) LIKE '{first_tok}%' THEN 2 "
+            f"WHEN lower(p.nombre) LIKE '% {first_tok}%' THEN 1 ELSE 0 END)"
         )
     else:
         starts_expr = "1"
 
-    ean_sql = (
-        f"SELECT p.ean, MIN({order_col}) AS best, COUNT(DISTINCT pr.supermercado) AS stores_cnt, "
-        f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
-        f"{starts_expr} AS name_rel "
-        f"FROM productos p "
-        f"JOIN precios pr ON pr.ean = p.ean "
-        f"WHERE {where_clause} AND pr.stock > 0 AND {order_col} IS NOT NULL "
-        f"GROUP BY p.ean ORDER BY name_rel DESC, stores_cnt DESC, has_promo DESC, best ASC LIMIT {safe_limit}"
-    )
-    ean_rows = await _fetch(ean_sql, ean_sql, args)
+    target_intent = detect_search_intent(query)
+
+    if target_intent and IS_SQLITE:
+        # Aceleración por índice idx_productos_cat_norm: resolución <15ms
+        target_sql = (
+            f"SELECT p.ean, MIN({order_col}) AS best, COUNT(DISTINCT pr.supermercado) AS stores_cnt, "
+            f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
+            f"{starts_expr} AS name_rel, 3 AS intent_score "
+            f"FROM productos p "
+            f"JOIN precios pr ON pr.ean = p.ean "
+            f"WHERE p.categoria_normalizada = ? AND {where_clause} AND pr.stock > 0 AND {order_col} IS NOT NULL "
+            f"GROUP BY p.ean ORDER BY intent_score DESC, name_rel DESC, stores_cnt DESC, has_promo DESC, best ASC LIMIT {safe_limit}"
+        )
+        target_rows = await _fetch(target_sql, target_sql, [target_intent] + args)
+        if len(target_rows) < safe_limit and target_intent in EQUIPMENT_INTENTS:
+            cat_broad_sql = (
+                f"SELECT p.ean, MIN({order_col}) AS best, COUNT(DISTINCT pr.supermercado) AS stores_cnt, "
+                f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
+                f"{starts_expr} AS name_rel, 3 AS intent_score "
+                f"FROM productos p "
+                f"JOIN precios pr ON pr.ean = p.ean "
+                f"WHERE p.categoria_normalizada = ? AND pr.stock > 0 AND {order_col} IS NOT NULL "
+                f"GROUP BY p.ean ORDER BY intent_score DESC, name_rel DESC, stores_cnt DESC, has_promo DESC, best ASC LIMIT {safe_limit}"
+            )
+            cat_broad_rows = await _fetch(cat_broad_sql, cat_broad_sql, [target_intent])
+            seen_eans = {r["ean"] for r in target_rows}
+            target_rows = list(target_rows) + [r for r in cat_broad_rows if r["ean"] not in seen_eans]
+            target_rows = target_rows[:safe_limit]
+
+        if not target_rows:
+            if target_intent in EQUIPMENT_INTENTS:
+                other_score = (
+                    "CASE WHEN p.categoria_normalizada IN ('soportes_accesorios', 'muebles_racks', 'perfumeria_farmacia', 'almacen', 'carnes_verduleria', 'limpieza', 'bebidas', 'lacteos_frescos', 'mascotas') THEN 0 ELSE 1 END"
+                )
+            else:
+                other_score = "1"
+            other_sql = (
+                f"SELECT p.ean, MIN({order_col}) AS best, COUNT(DISTINCT pr.supermercado) AS stores_cnt, "
+                f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
+                f"{starts_expr} AS name_rel, {other_score} AS intent_score "
+                f"FROM productos p "
+                f"JOIN precios pr ON pr.ean = p.ean "
+                f"WHERE p.categoria_normalizada != ? AND {where_clause} AND pr.stock > 0 AND {order_col} IS NOT NULL "
+                f"GROUP BY p.ean ORDER BY intent_score DESC, name_rel DESC, stores_cnt DESC, has_promo DESC, best ASC LIMIT {safe_limit}"
+            )
+            ean_rows = await _fetch(other_sql, other_sql, [target_intent] + args)
+        else:
+            ean_rows = target_rows
+    else:
+        ean_sql = (
+            f"SELECT p.ean, MIN({order_col}) AS best, COUNT(DISTINCT pr.supermercado) AS stores_cnt, "
+            f"MAX(CASE WHEN pr.promo_etiqueta IS NOT NULL THEN 1 ELSE 0 END) AS has_promo, "
+            f"{starts_expr} AS name_rel, 1 AS intent_score "
+            f"FROM productos p "
+            f"JOIN precios pr ON pr.ean = p.ean "
+            f"WHERE {where_clause} AND pr.stock > 0 AND {order_col} IS NOT NULL "
+            f"GROUP BY p.ean ORDER BY intent_score DESC, name_rel DESC, stores_cnt DESC, has_promo DESC, best ASC LIMIT {safe_limit}"
+        )
+        ean_rows = await _fetch(ean_sql, ean_sql, args)
+
     eans = [r["ean"] for r in ean_rows]
     if not eans:
         return []
 
     cols = (
-        "p.ean, p.nombre, p.marca, p.modelo, p.tipo, p.categorias, p.imagen, pr.supermercado, pr.precio_venta, "
+        "p.ean, p.nombre, p.marca, p.modelo, p.tipo, p.categorias, p.categoria_normalizada, p.imagen, pr.supermercado, pr.precio_venta, "
         "pr.precio_lista, pr.stock, pr.link, pr.internal_id, pr.precio_por_unidad, "
         "pr.unidad_medida, pr.descuento, pr.promo_etiqueta, pr.promo_tipo, "
         "pr.promo_min_qty, pr.precio_promo_unit, pr.requiere_club, pr.seller_id, pr.store_type"
@@ -326,6 +544,7 @@ async def search_grouped(
         keys = r.keys()
         st_val = r["store_type"] if "store_type" in keys and r["store_type"] else ""
         tp_val = r["tipo"] if "tipo" in keys and r["tipo"] else ""
+        cat_norm_val = r["categoria_normalizada"] if "categoria_normalizada" in keys and r["categoria_normalizada"] else ""
         if grocery_only:
             cat_val = r["categorias"] if "categorias" in keys and r["categorias"] else ""
             norm_nom = _norm(r["nombre"])
@@ -344,6 +563,7 @@ async def search_grouped(
             "modelo": r["modelo"] if "modelo" in keys and r["modelo"] else "",
             "tipo": tp_val,
             "vertical": tp_val or st_val or "supermarket",
+            "categoria_normalizada": cat_norm_val,
             "imagen": r["imagen"],
             "offers": [],
         })
@@ -369,6 +589,12 @@ async def search_grouped(
             g["offers"].sort(key=lambda o: o.get("promo_unit_price") or o["precio"])
         g["best_offer"] = g["offers"][0] if g["offers"] else None
         results.append(g)
+
+    with _SEARCH_CACHE_LOCK:
+        if len(_SEARCH_CACHE) > 500:
+            _SEARCH_CACHE.clear()
+        _SEARCH_CACHE[cache_key] = (now, results)
+
     return results
 
 
