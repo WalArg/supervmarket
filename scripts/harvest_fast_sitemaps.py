@@ -206,6 +206,7 @@ class ThreadedDatabaseWriter:
             self.total_written += 1
             self.store_counts[store_name] += 1
 
+        t_flush_0 = time.perf_counter()
         try:
             cur.execute("BEGIN IMMEDIATE;")
             if raw_rows:
@@ -283,6 +284,11 @@ class ThreadedDatabaseWriter:
                 self.total_empty += len(empty_buffer)
 
             conn.commit()
+            t_flush_elapsed = time.perf_counter() - t_flush_0
+            logger.info(
+                "[DBWriter] Committed batch: %d items, %d empty slugs in %.3fs (Total Ingested: %d)",
+                len(buffer), len(empty_buffer), t_flush_elapsed, self.total_written
+            )
         except Exception as e:
             conn.rollback()
             logger.error("Error executing database batch commit (%d items): %s", len(buffer), e)
