@@ -48,6 +48,7 @@ logger = logging.getLogger("supervmarket.ultra_harvest")
 
 # Store configuration for high-speed sitemap harvesting
 SITEMAP_STORE_CONFIG = {
+    # --- Supermercados Principales ---
     "Carrefour": {
         "domain": "https://www.carrefour.com.ar",
         "sitemap_url": "https://www.carrefour.com.ar/sitemap.xml",
@@ -72,6 +73,114 @@ SITEMAP_STORE_CONFIG = {
         "domain": "https://diaonline.supermercadosdia.com.ar",
         "sitemap_url": "https://diaonline.supermercadosdia.com.ar/sitemap.xml",
         "workers": 15,
+    },
+    "Más Online": {
+        "domain": "https://www.masonline.com.ar",
+        "sitemap_url": "https://www.masonline.com.ar/sitemap.xml",
+        "workers": 25,
+    },
+    "Toledo Digital": {
+        "domain": "https://www.toledodigital.com.ar",
+        "sitemap_url": "https://www.toledodigital.com.ar/sitemap.xml",
+        "workers": 15,
+    },
+    "Cordiez": {
+        "domain": "https://www.cordiez.com.ar",
+        "sitemap_url": "https://www.cordiez.com.ar/sitemap.xml",
+        "workers": 15,
+    },
+
+    # --- Hogar, Construcción & Marketplaces ---
+    "Easy": {
+        "domain": "https://www.easy.com.ar",
+        "sitemap_url": "https://www.easy.com.ar/sitemap.xml",
+        "workers": 25,
+    },
+    "On City": {
+        "domain": "https://www.oncity.com",
+        "sitemap_url": "https://www.oncity.com/sitemap.xml",
+        "workers": 25,
+    },
+    "Cetrogar": {
+        "domain": "https://www.cetrogar.com.ar",
+        "sitemap_url": "https://www.cetrogar.com.ar/sitemap.xml",
+        "workers": 15,
+    },
+    "Naldo": {
+        "domain": "https://www.naldo.com.ar",
+        "sitemap_url": "https://www.naldo.com.ar/sitemap.xml",
+        "workers": 15,
+    },
+    "Pardo": {
+        "domain": "https://www.pardo.com.ar",
+        "sitemap_url": "https://www.pardo.com.ar/sitemap.xml",
+        "workers": 15,
+    },
+    "StyleStore": {
+        "domain": "https://www.stylestore.com.ar",
+        "sitemap_url": "https://www.stylestore.com.ar/sitemap.xml",
+        "workers": 15,
+    },
+
+    # --- Farmacias & Perfumerías ---
+    "Farmacity": {
+        "domain": "https://www.farmacity.com",
+        "sitemap_url": "https://www.farmacity.com/sitemap.xml",
+        "workers": 20,
+    },
+    "Simplicity": {
+        "domain": "https://www.simplicity.com.ar",
+        "sitemap_url": "https://www.simplicity.com.ar/sitemap.xml",
+        "workers": 15,
+    },
+    "Perfumerías Pigmento": {
+        "domain": "https://www.perfumeriaspigmento.com.ar",
+        "sitemap_url": "https://www.perfumeriaspigmento.com.ar/sitemap.xml",
+        "workers": 15,
+    },
+
+    # --- Mascotas ---
+    "Puppis": {
+        "domain": "https://www.puppis.com.ar",
+        "sitemap_url": "https://www.puppis.com.ar/sitemap.xml",
+        "workers": 15,
+    },
+    "Catycan": {
+        "domain": "https://www.catycan.com.ar",
+        "sitemap_url": "https://www.catycan.com.ar/sitemap.xml",
+        "workers": 15,
+    },
+    "Natural Life": {
+        "domain": "https://www.natural-life.com.ar",
+        "sitemap_url": "https://www.natural-life.com.ar/sitemap.xml",
+        "workers": 15,
+    },
+
+    # --- Tiendas Oficiales ---
+    "Samsung": {
+        "domain": "https://shop.samsung.com.ar",
+        "sitemap_url": "https://shop.samsung.com.ar/sitemap.xml",
+        "workers": 10,
+    },
+    "Philips": {
+        "domain": "https://www.tienda.philips.com.ar",
+        "sitemap_url": "https://www.tienda.philips.com.ar/sitemap.xml",
+        "workers": 10,
+    },
+    "Whirlpool": {
+        "domain": "https://www.whirlpool.com.ar",
+        "sitemap_url": "https://www.whirlpool.com.ar/sitemap.xml",
+        "workers": 10,
+    },
+    "Oster": {
+        "domain": "https://www.osterargentina.com",
+        "sitemap_url": "https://www.osterargentina.com/sitemap.xml",
+        "workers": 10,
+    },
+    "Moulinex / Tefal": {
+        "domain": "https://tienda.moulinex.com.ar",
+        "sitemap_url": "https://tienda.moulinex.com.ar/sitemap.xml",
+        "workers": 10,
     },
 }
 
@@ -388,6 +497,8 @@ async def harvest_store_pipeline(
     existing_slugs = get_existing_slugs_from_db(db_path, store_name)
     if store_name == "Dia":
         existing_slugs.update(get_existing_slugs_from_db(db_path, "Día"))
+    elif store_name == "Más Online":
+        existing_slugs.update(get_existing_slugs_from_db(db_path, "Masonline"))
 
     logger.info("[%s] Existing slugs in raw_catalog: %d", store_name, len(existing_slugs))
 
@@ -498,7 +609,10 @@ async def main():
     parser.add_argument("--limit-per-store", type=int, default=None, help="Max delta slugs to fetch per store")
     args = parser.parse_args()
 
-    target_stores = [s.strip() for s in args.stores.split(",") if s.strip()]
+    if args.stores.strip().lower() == "all":
+        target_stores = list(SITEMAP_STORE_CONFIG.keys())
+    else:
+        target_stores = [s.strip() for s in args.stores.split(",") if s.strip()]
     logger.info("=================================================================")
     logger.info("ULTRA-FAST HARVEST: Launching %d stores in PARALLEL: %s", len(target_stores), target_stores)
     logger.info("=================================================================")
