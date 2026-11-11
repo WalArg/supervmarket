@@ -134,58 +134,6 @@ def _get_sqlite() -> sqlite3.Connection:
                         conn.execute(
                             "CREATE TABLE IF NOT EXISTS verified_deals_cache (cp TEXT PRIMARY KEY, updated_at REAL, payload_json TEXT)"
                         )
-                        # Safe backfill for existing rows
-                        conn.execute(
-                            "UPDATE precios SET seller_id = '1' WHERE seller_id IS NULL OR seller_id = ''"
-                        )
-                        conn.execute(
-                            "UPDATE precios SET store_type = 'pharmacy' WHERE supermercado IN ('Farmacity', 'Farmaplus', 'Farmaonline', 'Simplicity', 'Pigmento') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
-                        )
-                        conn.execute(
-                            "UPDATE precios SET store_type = 'specialty' WHERE supermercado = 'TheFoodMarket' AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
-                        )
-                        conn.execute(
-                            "UPDATE precios SET store_type = 'electro' WHERE supermercado IN ('Fravega', 'Cetrogar', 'Naldo', 'Pardo', 'Coppel', 'Samsung', 'Philips', 'Whirlpool', 'Moulinex', 'Sony') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
-                        )
-                        conn.execute(
-                            "UPDATE precios SET store_type = 'marketplace' WHERE supermercado IN ('Provincia Compras', 'On City') AND (store_type IS NULL OR store_type = '' OR store_type = 'supermarket')"
-                        )
-                        conn.execute(
-                            "UPDATE precios SET store_type = 'supermarket' WHERE store_type IS NULL OR store_type = ''"
-                        )
-                        conn.execute(
-                            "UPDATE productos SET tipo = 'pharmacy' WHERE (tipo IS NULL OR tipo = '') AND (supermercado_origen IN ('Farmacity', 'Farmaplus', 'Farmaonline', 'Simplicity', 'Pigmento') OR categorias LIKE '%Salud%' OR categorias LIKE '%Belleza%' OR categorias LIKE '%Perfumer%')"
-                        )
-                        conn.execute(
-                            "UPDATE productos SET tipo = 'electro' WHERE (tipo IS NULL OR tipo = '') AND (categorias LIKE '%Electro%' OR categorias LIKE '%Celulares%' OR categorias LIKE '%Informatica%' OR categorias LIKE '%Calefacc%')"
-                        )
-                        conn.execute(
-                            "UPDATE productos SET tipo = 'supermarket' WHERE tipo IS NULL OR tipo = ''"
-                        )
-                        rows_tech = conn.execute(
-                            "SELECT ean, nombre, marca FROM productos WHERE (modelo IS NULL OR modelo = '') AND (tipo = 'electro' OR categorias LIKE '%Electro%' OR categorias LIKE '%Celular%')"
-                        ).fetchall()
-                        for row in rows_tech:
-                            m = extract_model(row["nombre"] or "", row["marca"] or "")
-                            if m:
-                                conn.execute("UPDATE productos SET modelo = ? WHERE ean = ?", (m, row["ean"]))
-                        rows_missing = conn.execute(
-                            "SELECT ean, nombre, marca, categorias FROM productos WHERE search_text IS NULL"
-                        ).fetchall()
-                        if rows_missing:
-                            conn.executemany(
-                                "UPDATE productos SET search_text = ? WHERE ean = ?",
-                                [
-                                    (
-                                        (str(r["nombre"] or "").translate(_TRANS).lower() + " " +
-                                         str(r["marca"] or "").translate(_TRANS).lower() + " " +
-                                         str(r["ean"] or "") + " " +
-                                         str(r["categorias"] or "").translate(_TRANS).lower()),
-                                        r["ean"]
-                                    )
-                                    for r in rows_missing
-                                ]
-                            )
                         conn.commit()
                     except Exception:
                         pass
