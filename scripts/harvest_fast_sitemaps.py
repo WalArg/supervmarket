@@ -84,8 +84,10 @@ class ThreadedDatabaseWriter:
         self.batch_size = batch_size
         self.flush_interval = flush_interval
         self.q = queue.Queue(maxsize=50000)
+        self.empty_q = queue.Queue(maxsize=100000)
         self.stop_event = threading.Event()
         self.total_written = 0
+        self.total_empty = 0
         self.store_counts: Dict[str, int] = defaultdict(int)
         self.thread: Optional[threading.Thread] = None
 
@@ -101,36 +103,61 @@ class ThreadedDatabaseWriter:
     def enqueue(self, item: HarvesterItem):
         self.q.put_nowait(item)
 
+    def enqueue_empty(self, store_name: str, slug: str):
+        try:
+            self.empty_q.put_nowait((store_name, slug))
+        except queue.Full:
+            pass
+
     def _run(self):
         conn = sqlite3.connect(self.db_path, timeout=30.0)
         cur = conn.cursor()
         cur.execute("PRAGMA journal_mode = WAL;")
         cur.execute("PRAGMA synchronous = NORMAL;")
         cur.execute("PRAGMA busy_timeout = 30000;")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS harvested_empty_slugs (
+                store_name TEXT NOT NULL,
+                slug TEXT NOT NULL,
+                checked_at TEXT NOT NULL,
+                PRIMARY KEY (store_name, slug)
+            );
+        """)
+        conn.commit()
 
         buffer: List[HarvesterItem] = []
+        empty_buffer: List[Tuple[str, str, str]] = []
         last_flush = time.time()
 
-        while not self.stop_event.is_set() or not self.q.empty():
+        while not self.stop_event.is_set() or not self.q.empty() or not self.empty_q.empty():
             try:
                 item = self.q.get(timeout=0.1)
                 buffer.append(item)
-                if len(buffer) >= self.batch_size or ((time.time() - last_flush) >= self.flush_interval and buffer):
-                    self._flush(cur, conn, buffer)
-                    buffer.clear()
-                    last_flush = time.time()
             except queue.Empty:
-                if buffer:
-                    self._flush(cur, conn, buffer)
-                    buffer.clear()
-                    last_flush = time.time()
+                pass
 
-        if buffer:
-            self._flush(cur, conn, buffer)
+            # Drain up to batch_size empty items
+            while not self.empty_q.empty() and len(empty_buffer) < 1000:
+                try:
+                    st, sl = self.empty_q.get_nowait()
+                    empty_buffer.append((st, sl, time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())))
+                except queue.Empty:
+                    break
+
+            now = time.time()
+            if len(buffer) >= self.batch_size or len(empty_buffer) >= 1000 or ((now - last_flush) >= self.flush_interval and (buffer or empty_buffer)):
+                self._flush(cur, conn, buffer, empty_buffer)
+                buffer.clear()
+                empty_buffer.clear()
+                last_flush = now
+
+        if buffer or empty_buffer:
+            self._flush(cur, conn, buffer, empty_buffer)
             buffer.clear()
+            empty_buffer.clear()
         conn.close()
 
-    def _flush(self, cur: sqlite3.Cursor, conn: sqlite3.Connection, buffer: List[HarvesterItem]):
+    def _flush(self, cur: sqlite3.Cursor, conn: sqlite3.Connection, buffer: List[HarvesterItem], empty_buffer: List[Tuple[str, str, str]]):
         raw_rows = []
         prod_rows = []
         price_rows = []
@@ -181,71 +208,80 @@ class ThreadedDatabaseWriter:
 
         try:
             cur.execute("BEGIN IMMEDIATE;")
-            cur.executemany("""
-                INSERT INTO raw_catalog (
-                    store_name, external_id, ean_raw, title_raw, brand_raw, categories_raw,
-                    link_raw, image_raw, price_raw, list_price_raw, stock_raw, seller_id_raw,
-                    raw_json, scraped_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(store_name, external_id, seller_id_raw) DO UPDATE SET
-                    ean_raw = excluded.ean_raw,
-                    title_raw = excluded.title_raw,
-                    brand_raw = excluded.brand_raw,
-                    categories_raw = excluded.categories_raw,
-                    link_raw = excluded.link_raw,
-                    image_raw = excluded.image_raw,
-                    price_raw = excluded.price_raw,
-                    list_price_raw = excluded.list_price_raw,
-                    stock_raw = excluded.stock_raw,
-                    raw_json = excluded.raw_json,
-                    scraped_at = excluded.scraped_at;
-            """, raw_rows)
+            if raw_rows:
+                cur.executemany("""
+                    INSERT INTO raw_catalog (
+                        store_name, external_id, ean_raw, title_raw, brand_raw, categories_raw,
+                        link_raw, image_raw, price_raw, list_price_raw, stock_raw, seller_id_raw,
+                        raw_json, scraped_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(store_name, external_id, seller_id_raw) DO UPDATE SET
+                        ean_raw = excluded.ean_raw,
+                        title_raw = excluded.title_raw,
+                        brand_raw = excluded.brand_raw,
+                        categories_raw = excluded.categories_raw,
+                        link_raw = excluded.link_raw,
+                        image_raw = excluded.image_raw,
+                        price_raw = excluded.price_raw,
+                        list_price_raw = excluded.list_price_raw,
+                        stock_raw = excluded.stock_raw,
+                        raw_json = excluded.raw_json,
+                        scraped_at = excluded.scraped_at;
+                """, raw_rows)
 
-            cur.executemany("""
-                INSERT INTO productos (
-                    ean, nombre, marca, modelo, tipo, imagen, supermercado_origen, categorias, actualizado
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(ean) DO UPDATE SET
-                    nombre = excluded.nombre,
-                    marca = excluded.marca,
-                    modelo = CASE WHEN excluded.modelo != '' THEN excluded.modelo ELSE productos.modelo END,
-                    imagen = CASE WHEN excluded.imagen != '' THEN excluded.imagen ELSE productos.imagen END,
-                    categorias = excluded.categorias,
-                    actualizado = excluded.actualizado;
-            """, prod_rows)
+                cur.executemany("""
+                    INSERT INTO productos (
+                        ean, nombre, marca, modelo, tipo, imagen, supermercado_origen, categorias, actualizado
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(ean) DO UPDATE SET
+                        nombre = excluded.nombre,
+                        marca = excluded.marca,
+                        modelo = CASE WHEN excluded.modelo != '' THEN excluded.modelo ELSE productos.modelo END,
+                        imagen = CASE WHEN excluded.imagen != '' THEN excluded.imagen ELSE productos.imagen END,
+                        categorias = excluded.categorias,
+                        actualizado = excluded.actualizado;
+                """, prod_rows)
 
-            cur.executemany("""
-                INSERT INTO precios (
-                    ean, supermercado, precio_venta, precio_lista, descuento,
-                    stock, internal_id, link, fecha, seller_id, store_type
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(ean, supermercado) DO UPDATE SET
-                    precio_venta = CASE 
-                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.precio_venta
-                        WHEN precios.stock <= 0 AND excluded.stock <= 0 AND excluded.precio_venta > 0 THEN excluded.precio_venta
-                        ELSE precios.precio_venta END,
-                    precio_lista = CASE 
-                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.precio_lista
-                        ELSE precios.precio_lista END,
-                    descuento = CASE 
-                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.descuento
-                        ELSE precios.descuento END,
-                    stock = CASE 
-                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.stock
-                        WHEN precios.stock <= 0 AND excluded.stock > 0 THEN excluded.stock
-                        ELSE precios.stock END,
-                    internal_id = CASE 
-                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.internal_id
-                        ELSE precios.internal_id END,
-                    link = CASE 
-                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.link
-                        ELSE precios.link END,
-                    fecha = excluded.fecha,
-                    seller_id = CASE 
-                        WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.seller_id
-                        ELSE precios.seller_id END,
-                    store_type = excluded.store_type;
-            """, price_rows)
+                cur.executemany("""
+                    INSERT INTO precios (
+                        ean, supermercado, precio_venta, precio_lista, descuento,
+                        stock, internal_id, link, fecha, seller_id, store_type
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(ean, supermercado) DO UPDATE SET
+                        precio_venta = CASE 
+                            WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.precio_venta
+                            WHEN precios.stock <= 0 AND excluded.stock <= 0 AND excluded.precio_venta > 0 THEN excluded.precio_venta
+                            ELSE precios.precio_venta END,
+                        precio_lista = CASE 
+                            WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.precio_lista
+                            ELSE precios.precio_lista END,
+                        descuento = CASE 
+                            WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.descuento
+                            ELSE precios.descuento END,
+                        stock = CASE 
+                            WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.stock
+                            WHEN precios.stock <= 0 AND excluded.stock > 0 THEN excluded.stock
+                            ELSE precios.stock END,
+                        internal_id = CASE 
+                            WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.internal_id
+                            ELSE precios.internal_id END,
+                        link = CASE 
+                            WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.link
+                            ELSE precios.link END,
+                        fecha = excluded.fecha,
+                        seller_id = CASE 
+                            WHEN excluded.stock > 0 AND (precios.stock <= 0 OR excluded.precio_venta < precios.precio_venta) THEN excluded.seller_id
+                            ELSE precios.seller_id END,
+                        store_type = excluded.store_type;
+                """, price_rows)
+
+            if empty_buffer:
+                cur.executemany("""
+                    INSERT OR IGNORE INTO harvested_empty_slugs (store_name, slug, checked_at)
+                    VALUES (?, ?, ?);
+                """, empty_buffer)
+                self.total_empty += len(empty_buffer)
+
             conn.commit()
         except Exception as e:
             conn.rollback()
@@ -253,7 +289,7 @@ class ThreadedDatabaseWriter:
 
 
 def get_existing_slugs_from_db(db_path: str, store_name: str) -> Set[str]:
-    """Retrieves all product slugs already ingested in raw_catalog for a store."""
+    """Retrieves all product slugs already ingested in raw_catalog and harvested_empty_slugs for a store."""
     if not os.path.exists(db_path):
         return set()
     conn = sqlite3.connect(db_path)
@@ -267,6 +303,12 @@ def get_existing_slugs_from_db(db_path: str, store_name: str) -> Set[str]:
                 slugs.add(m.group(1))
         if ext_id:
             slugs.add(str(ext_id))
+    try:
+        cur.execute("SELECT slug FROM harvested_empty_slugs WHERE store_name = ?", (store_name,))
+        for (sl,) in cur.fetchall():
+            slugs.add(sl)
+    except Exception:
+        pass
     conn.close()
     return slugs
 
@@ -350,7 +392,7 @@ async def harvest_store_pipeline(
         "Accept-Encoding": "gzip, deflate, br",
     }
 
-    async with httpx.AsyncClient(timeout=10.0, limits=limits, headers=headers, follow_redirects=True) as client:
+    async with httpx.AsyncClient(timeout=15.0, limits=limits, headers=headers, follow_redirects=True) as client:
         all_slugs = await fetch_all_sitemap_slugs(client, sitemap_url)
         if not all_slugs:
             logger.warning("[%s] No slugs found in sitemap.", store_name)
@@ -390,18 +432,30 @@ async def harvest_store_pipeline(
                     break
 
                 url = f"{domain}/api/catalog_system/pub/products/search/{s}/p"
+                requeue = False
                 try:
                     res = await client.get(url)
                     if res.status_code == 200:
                         data = res.json()
-                        if data and isinstance(data, list):
+                        if data and isinstance(data, list) and len(data) > 0:
                             items = _parse_vtex_product(data[0], store_name, domain)
                             for it in items:
                                 db_writer.enqueue(it)
                                 total_items_yielded += 1
+                        else:
+                            db_writer.enqueue_empty(store_name, s)
+                    elif res.status_code == 429:
+                        requeue = True
+                        logger.warning("[%s] 429 Rate limit, backoff 2.0s...", store_name)
+                        await asyncio.sleep(2.0)
+                    elif res.status_code in (404, 301, 302, 400):
+                        db_writer.enqueue_empty(store_name, s)
                 except Exception as e:
                     logger.debug("[%s] Error fetching slug %s: %s", store_name, s, e)
-                finally:
+
+                if requeue:
+                    await slug_queue.put(s)
+                else:
                     slugs_processed += 1
                     slug_queue.task_done()
                     now = time.perf_counter()
@@ -412,8 +466,8 @@ async def harvest_store_pipeline(
                         pct = (slugs_processed / len(delta_slugs)) * 100.0
                         eta = (len(delta_slugs) - slugs_processed) / max(0.1, slugs_processed / elapsed)
                         logger.info(
-                            "[%s] Progress: %d/%d slugs (%.1f%%) | Items Ingested: %d | Rate: %.1f items/s | ETA: %.0fs (%.1fm)",
-                            store_name, slugs_processed, len(delta_slugs), pct, total_items_yielded, rate, eta, eta / 60.0
+                            "[%s] Progress: %d/%d slugs (%.1f%%) | Items: %d (Empty: %d) | Rate: %.1f items/s | ETA: %.0fs (%.1fm)",
+                            store_name, slugs_processed, len(delta_slugs), pct, total_items_yielded, db_writer.total_empty, rate, eta, eta / 60.0
                         )
 
         # Launch continuous workers
