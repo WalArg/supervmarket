@@ -120,7 +120,10 @@ const SearchScreen: React.FC = () => {
             const allowedVerts = chip.queryParam.split(',')
             const matchesVertical =
               (g.vertical && allowedVerts.includes(g.vertical)) ||
-              g.offers.some(o => allowedVerts.includes(o.vertical || storeVertical(o.supermercado)))
+              g.offers.some(o => {
+                const ov = o.vertical || (allowedVerts.includes('supermarket') && o.supermercado === 'MercadoLibre' ? 'supermarket' : storeVertical(o.supermercado))
+                return allowedVerts.includes(ov)
+              })
             if (!matchesVertical) return false
           }
         }

@@ -72,7 +72,6 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group, className }) =>
   if (!best) return null
 
   const multiStoreCount = group.offers.length
-  const hasMeli = group.offers.some(o => o.supermercado === 'MercadoLibre')
   const maxEff = Math.max(...rows.map(r => r.eff))
   const savePct = rows.length > 1 && maxEff > best.eff ? Math.round(((maxEff - best.eff) / maxEff) * 100) : 0
 
@@ -194,26 +193,16 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group, className }) =>
           )}
         </div>
 
-        {/* Chips de competencia multitienda y Mercado Libre en vivo */}
-        {(multiStoreCount > 1 || hasMeli) && (
+        {/* Chip de competencia multitienda en vivo */}
+        {multiStoreCount > 1 && (
           <div className="mt-1 flex flex-wrap items-center gap-1">
-            {multiStoreCount > 1 && (
-              <span
-                className="inline-flex items-center gap-1 text-[9.5px] font-black px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 truncate max-w-full"
-                title={`Disponible en ${multiStoreCount} tiendas`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                {multiStoreCount} tiendas {savePct >= 5 ? `· Ahorro ${savePct}%` : ''}
-              </span>
-            )}
-            {hasMeli && (
-              <span
-                className="inline-flex items-center gap-0.5 text-[9.5px] font-black px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs"
-                title="Opción disponible y comparada en Mercado Libre"
-              >
-                ⚡ MeLi
-              </span>
-            )}
+            <span
+              className="inline-flex items-center gap-1 text-[9.5px] font-black px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 truncate max-w-full"
+              title={`Disponible en ${multiStoreCount} tiendas`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              {multiStoreCount} tiendas {savePct >= 5 ? `· Ahorro ${savePct}%` : ''}
+            </span>
           </div>
         )}
 

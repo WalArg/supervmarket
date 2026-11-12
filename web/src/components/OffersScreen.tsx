@@ -140,38 +140,43 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
     return [...tiers, ...marketplaceTiers]
   }, [selectedVertical, tiers, marketplaceTiers])
 
-  // La Ganga del Día: Mejor oportunidad verificada de Mercado Libre (generador de afiliados CPA)
-  const topMeliDeal = useMemo(() => {
-    const meliCandidates: Array<{
-      product: ProductGroup
-      offer: SupermarketOffer
-    }> = []
-
-    for (const t of [...tiers, ...marketplaceTiers]) {
+  // La Ganga del Día: Supermercados (Oportunidad verificada de Mercado Libre)
+  const topSuperMeliDeal = useMemo(() => {
+    const candidates: Array<{ product: ProductGroup; offer: SupermarketOffer }> = []
+    for (const t of tiers) {
       if (t.meliSponsored?.product && t.meliSponsored?.offer && t.meliSponsored.offer.precio > 0) {
-        meliCandidates.push({
-          product: t.meliSponsored.product,
-          offer: t.meliSponsored.offer,
-        })
+        candidates.push({ product: t.meliSponsored.product, offer: t.meliSponsored.offer })
       }
       for (const p of t.products || []) {
         const mOffer = p.offers?.find(o => o.supermercado === 'MercadoLibre' && o.precio > 0)
         if (mOffer) {
-          meliCandidates.push({ product: p, offer: mOffer })
+          candidates.push({ product: p, offer: mOffer })
         }
       }
     }
+    if (!candidates.length) return null
+    candidates.sort((a, b) => (b.offer.discount || 0) - (a.offer.discount || 0))
+    return candidates[0]
+  }, [tiers])
 
-    if (!meliCandidates.length) return null
-
-    meliCandidates.sort((a, b) => {
-      const discA = a.offer.discount || 0
-      const discB = b.offer.discount || 0
-      return discB - discA
-    })
-
-    return meliCandidates[0]
-  }, [tiers, marketplaceTiers])
+  // La Ganga del Día: Marketplaces & Electro (Oportunidad verificada de Mercado Libre)
+  const topTechMeliDeal = useMemo(() => {
+    const candidates: Array<{ product: ProductGroup; offer: SupermarketOffer }> = []
+    for (const t of marketplaceTiers) {
+      if (t.meliSponsored?.product && t.meliSponsored?.offer && t.meliSponsored.offer.precio > 0) {
+        candidates.push({ product: t.meliSponsored.product, offer: t.meliSponsored.offer })
+      }
+      for (const p of t.products || []) {
+        const mOffer = p.offers?.find(o => o.supermercado === 'MercadoLibre' && o.precio > 0)
+        if (mOffer) {
+          candidates.push({ product: p, offer: mOffer })
+        }
+      }
+    }
+    if (!candidates.length) return null
+    candidates.sort((a, b) => (b.offer.discount || 0) - (a.offer.discount || 0))
+    return candidates[0]
+  }, [marketplaceTiers])
 
   const renderTier = (tier: DiscountTier, idx: number) => {
     const isMp = tier.id.startsWith('tier-mp-') || tier.vertical === 'electro' || tier.vertical === 'marketplace'
@@ -507,66 +512,134 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
       </header>
 
       <main className="px-4 pt-3 space-y-6">
-        {/* HERO: La Ganga del Día — Mejor oferta con enlace directo y monetización de afiliados */}
-        {selectedVertical === 'all' && selectedFilter === 'all' && topMeliDeal && (
-          <div
-            onClick={() => {
-              const url = decorateOutboundUrl(topMeliDeal.offer.link, 'MercadoLibre', 'item')
-              trackOutboundAffiliateClick('MercadoLibre', 'item', url, topMeliDeal.offer.precio)
-              window.open(url, '_blank', 'noopener,noreferrer')
-            }}
-            className="rounded-3xl p-4 sm:p-5 bg-gradient-to-br from-rose-900 via-rose-800 to-indigo-950 text-white shadow-lg cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden group border border-rose-500/30"
-          >
-            <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-rose-500/20 blur-3xl pointer-events-none" />
-            <div className="flex items-center justify-between gap-2 mb-2.5">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-rose-500 text-white shadow-xs">
-                <Flame size={13} className="fill-white" /> La Ganga del Día
-              </span>
-              {topMeliDeal.offer.discount > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full text-[12px] font-black bg-amber-400 text-slate-950 shadow-xs">
-                  -{Math.round(topMeliDeal.offer.discount)}% OFF
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-2xl p-1.5 shrink-0 flex items-center justify-center border border-white/20 shadow-xs">
-                <img
-                  src={topMeliDeal.product.imagen}
-                  alt={`Destacado: ${topMeliDeal.product.nombre}`}
-                  className="max-h-full max-w-full object-contain"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-rose-200">
-                  {topMeliDeal.product.marca}
-                </span>
-                <h4 className="text-[14px] sm:text-[15px] font-black text-white leading-tight line-clamp-2 mt-0.5">
-                  {`⚡ Oportunidad: ${topMeliDeal.product.nombre}`}
-                </h4>
-                <div className="mt-1 flex items-center gap-2 flex-wrap">
-                  <span className="text-[18px] sm:text-[20px] font-black text-amber-300">
-                    {formatPrice(topMeliDeal.offer.precio)}
+        {/* HERO: Las Gangas del Día — Supermercados y Marketplaces/Tech (Directo con afiliados) */}
+        {selectedFilter === 'all' && (
+          <div className="space-y-3">
+            {/* Ganga de Supermercado */}
+            {(selectedVertical === 'all' || selectedVertical === 'supermarket') && topSuperMeliDeal && (
+              <div
+                onClick={() => {
+                  const url = decorateOutboundUrl(topSuperMeliDeal.offer.link, 'MercadoLibre', 'item')
+                  trackOutboundAffiliateClick('MercadoLibre', 'item', url, topSuperMeliDeal.offer.precio)
+                  window.open(url, '_blank', 'noopener,noreferrer')
+                }}
+                className="rounded-3xl p-4 sm:p-5 bg-gradient-to-br from-rose-950 via-rose-900 to-amber-950 text-white shadow-lg cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden group border border-rose-500/30"
+              >
+                <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-rose-500/20 blur-3xl pointer-events-none" />
+                <div className="flex items-center justify-between gap-2 mb-2.5">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-rose-600 text-white shadow-xs">
+                    <Flame size={13} className="fill-white" /> La Ganga del Día — Supermercado
                   </span>
-                  {topMeliDeal.offer.precio_lista > topMeliDeal.offer.precio && (
-                    <span className="text-[12px] text-white/50 line-through">
-                      {formatPrice(topMeliDeal.offer.precio_lista)}
+                  {topSuperMeliDeal.offer.discount > 0 && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[12px] font-black bg-amber-400 text-slate-950 shadow-xs">
+                      -{Math.round(topSuperMeliDeal.offer.discount)}% OFF
                     </span>
                   )}
                 </div>
-                <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
-                  <span className="text-[11px] text-amber-200 font-bold flex items-center gap-1">
-                    <span>⚡ Envío FULL directo a tu domicilio</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-extrabold bg-white text-rose-700 px-2.5 py-1 rounded-full shadow-xs group-hover:bg-amber-300 group-hover:text-slate-950 transition-colors">
-                    <span>Aprovechar ganga</span>
-                    <ExternalLink size={11} />
-                  </span>
+
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-2xl p-1.5 shrink-0 flex items-center justify-center border border-white/20 shadow-xs">
+                    <img
+                      src={topSuperMeliDeal.product.imagen}
+                      alt={`Destacado: ${topSuperMeliDeal.product.nombre}`}
+                      className="max-h-full max-w-full object-contain"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-rose-200">
+                      {topSuperMeliDeal.product.marca}
+                    </span>
+                    <h4 className="text-[14px] sm:text-[15px] font-black text-white leading-tight line-clamp-2 mt-0.5">
+                      {`⚡ Oportunidad: ${topSuperMeliDeal.product.nombre}`}
+                    </h4>
+                    <div className="mt-1 flex items-center gap-2 flex-wrap">
+                      <span className="text-[18px] sm:text-[20px] font-black text-amber-300">
+                        {formatPrice(topSuperMeliDeal.offer.precio)}
+                      </span>
+                      {topSuperMeliDeal.offer.precio_lista > topSuperMeliDeal.offer.precio && (
+                        <span className="text-[12px] text-white/50 line-through">
+                          {formatPrice(topSuperMeliDeal.offer.precio_lista)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
+                      <span className="text-[11px] text-amber-200 font-bold flex items-center gap-1">
+                        <span>⚡ Envío FULL directo a tu domicilio</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-extrabold bg-white text-rose-700 px-2.5 py-1 rounded-full shadow-xs group-hover:bg-amber-300 group-hover:text-slate-950 transition-colors">
+                        <span>Aprovechar ganga</span>
+                        <ExternalLink size={11} />
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Ganga de Marketplaces & Electro */}
+            {(selectedVertical === 'all' || selectedVertical === 'marketplace') && topTechMeliDeal && (
+              <div
+                onClick={() => {
+                  const url = decorateOutboundUrl(topTechMeliDeal.offer.link, 'MercadoLibre', 'item')
+                  trackOutboundAffiliateClick('MercadoLibre', 'item', url, topTechMeliDeal.offer.precio)
+                  window.open(url, '_blank', 'noopener,noreferrer')
+                }}
+                className="rounded-3xl p-4 sm:p-5 bg-gradient-to-br from-indigo-950 via-slate-900 to-violet-950 text-white shadow-lg cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden group border border-indigo-500/30"
+              >
+                <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none" />
+                <div className="flex items-center justify-between gap-2 mb-2.5">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-indigo-600 text-white shadow-xs">
+                    <Zap size={13} className="fill-white" /> La Ganga del Día — Electro & Marketplaces
+                  </span>
+                  {topTechMeliDeal.offer.discount > 0 && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[12px] font-black bg-amber-400 text-slate-950 shadow-xs">
+                      -{Math.round(topTechMeliDeal.offer.discount)}% OFF
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-2xl p-1.5 shrink-0 flex items-center justify-center border border-white/20 shadow-xs">
+                    <img
+                      src={topTechMeliDeal.product.imagen}
+                      alt={`Destacado: ${topTechMeliDeal.product.nombre}`}
+                      className="max-h-full max-w-full object-contain"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-indigo-200">
+                      {topTechMeliDeal.product.marca}
+                    </span>
+                    <h4 className="text-[14px] sm:text-[15px] font-black text-white leading-tight line-clamp-2 mt-0.5">
+                      {`⚡ Oportunidad: ${topTechMeliDeal.product.nombre}`}
+                    </h4>
+                    <div className="mt-1 flex items-center gap-2 flex-wrap">
+                      <span className="text-[18px] sm:text-[20px] font-black text-amber-300">
+                        {formatPrice(topTechMeliDeal.offer.precio)}
+                      </span>
+                      {topTechMeliDeal.offer.precio_lista > topTechMeliDeal.offer.precio && (
+                        <span className="text-[12px] text-white/50 line-through">
+                          {formatPrice(topTechMeliDeal.offer.precio_lista)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
+                      <span className="text-[11px] text-indigo-200 font-bold flex items-center gap-1">
+                        <span>⚡ Envío FULL directo a tu domicilio</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-extrabold bg-white text-indigo-700 px-2.5 py-1 rounded-full shadow-xs group-hover:bg-amber-300 group-hover:text-slate-950 transition-colors">
+                        <span>Aprovechar ganga</span>
+                        <ExternalLink size={11} />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

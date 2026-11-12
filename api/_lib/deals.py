@@ -49,7 +49,7 @@ BASELINE_TIERS = [
                 "nombre": "Yerba Mate Playadito Despalada Bajo Polvo 500g",
                 "marca": "Playadito",
                 "imagen": "https://http2.mlstatic.com/D_NQ_NP_636867-MLA99433947676_112025-F.jpg",
-                "offers": [],
+                "offers": []
             },
             "offer": {
                 "supermercado": "MercadoLibre",
@@ -62,8 +62,8 @@ BASELINE_TIERS = [
                 "discount": 36,
                 "promo_label": "36% OFF",
                 "unit_measure": "kg",
-                "unit_price": 6978,
-            },
+                "unit_price": 6978
+            }
         },
         "products": [
             {
@@ -72,6 +72,50 @@ BASELINE_TIERS = [
                 "marca": "Oreo",
                 "imagen": "https://farmacityar.vteximg.com.br/arquivos/ids/298494/251535_galletitas-oreo-x-118-g_imagen-1.jpg?v=639229342479300000",
                 "offers": [
+                    {
+                        "supermercado": "Dia",
+                        "precio": 810,
+                        "precio_lista": 1350,
+                        "stock": 120,
+                        "link": "https://diaonline.supermercadosdia.com.ar/galletitas-oreo-rellenas-con-crema-sabor-original-menos-sodio-118-gr-271629/p",
+                        "discount": 40,
+                        "promo_label": "40% OFF Directo",
+                        "unit_measure": "kg",
+                        "unit_price": 6864
+                    },
+                    {
+                        "supermercado": "Masonline",
+                        "precio": 798,
+                        "precio_lista": 1200,
+                        "stock": 80,
+                        "link": "https://www.masonline.com.ar/galletitas-dulces-oreo-con-relleno-sabor-a-vainilla-118-gr-13865/p",
+                        "discount": 33,
+                        "promo_label": "33% OFF",
+                        "unit_measure": "kg",
+                        "unit_price": 6762
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 1230,
+                        "precio_lista": 1230,
+                        "stock": 60,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-galletitas-oreo-rellenas-118-gr/_/A-00503124-00503124-200/p",
+                        "unit_measure": "kg",
+                        "unit_price": 10423
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 1890,
+                        "precio_lista": 2490,
+                        "stock": 90,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA19754890",
+                        "discount": 24,
+                        "promo_label": "24% OFF · FULL",
+                        "seller_name": "Mercado Libre Supermercado",
+                        "is_full": True,
+                        "unit_measure": "kg",
+                        "unit_price": 16016
+                    },
                     {
                         "supermercado": "Carrefour",
                         "precio": 2639,
@@ -82,21 +126,9 @@ BASELINE_TIERS = [
                         "promo_label": "2do al 70% ($1.715 c/u x2)",
                         "promo_min_qty": 2,
                         "unit_measure": "kg",
-                        "unit_price": 22364,
-                    },
-                    {
-                        "supermercado": "Dia",
-                        "precio": 2639,
-                        "precio_lista": 2639,
-                        "stock": 1024,
-                        "link": "https://diaonline.supermercadosdia.com.ar/galletitas-oreo-rellenas-con-crema-sabor-original-menos-sodio-118-gr-271629/p",
-                        "discount": 25,
-                        "promo_label": "2do al 50% ($1.979 c/u x2)",
-                        "promo_min_qty": 2,
-                        "unit_measure": "kg",
-                        "unit_price": 22364,
-                    },
-                ],
+                        "unit_price": 22364
+                    }
+                ]
             },
             {
                 "ean": "7791290796430",
@@ -104,6 +136,17 @@ BASELINE_TIERS = [
                 "marca": "Skip",
                 "imagen": "https://farmaonline.vteximg.com.br/arquivos/ids/1458225/8144165_0.jpg?v=639252564197900000",
                 "offers": [
+                    {
+                        "supermercado": "Dia",
+                        "precio": 2821,
+                        "precio_lista": 4340,
+                        "stock": 90,
+                        "link": "https://diaonline.supermercadosdia.com.ar/jabon-liquido-para-ropa-skip-bio-enzimas-doypack-800-ml-14660/p",
+                        "discount": 35,
+                        "promo_label": "35% OFF Directo",
+                        "unit_measure": "lt",
+                        "unit_price": 3526
+                    },
                     {
                         "supermercado": "Carrefour",
                         "precio": 3084,
@@ -113,9 +156,42 @@ BASELINE_TIERS = [
                         "discount": 35,
                         "promo_label": "35% OFF Directo",
                         "unit_measure": "lt",
-                        "unit_price": 3855,
+                        "unit_price": 3855
                     },
-                ],
+                    {
+                        "supermercado": "Farmacity",
+                        "precio": 3626,
+                        "precio_lista": 4835,
+                        "stock": 45,
+                        "link": "https://www.farmacity.com/jabon-liquido-skip-bio-enzimas-800-ml/p",
+                        "discount": 25,
+                        "promo_label": "25% OFF Directo",
+                        "unit_measure": "lt",
+                        "unit_price": 4532
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 3490,
+                        "precio_lista": 4990,
+                        "stock": 100,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA28475920",
+                        "discount": 30,
+                        "promo_label": "30% OFF · FULL",
+                        "seller_name": "Tienda Oficial Unilever",
+                        "is_full": True,
+                        "unit_measure": "lt",
+                        "unit_price": 4362
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 4346,
+                        "precio_lista": 4346,
+                        "stock": 70,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-jabon-liquido-skip-bio-enzimas-doypack-800-ml/_/A-00498765-00498765-200/p",
+                        "unit_measure": "lt",
+                        "unit_price": 5432
+                    }
+                ]
             },
             {
                 "ean": "8480017311238",
@@ -132,9 +208,9 @@ BASELINE_TIERS = [
                         "discount": 80,
                         "promo_label": "80% OFF Liquidación",
                         "unit_measure": "ml",
-                        "unit_price": 5235,
-                    },
-                ],
+                        "unit_price": 5235
+                    }
+                ]
             },
             {
                 "ean": "8480017006529",
@@ -151,9 +227,9 @@ BASELINE_TIERS = [
                         "discount": 30,
                         "promo_label": "30% OFF Liquidación",
                         "unit_measure": "kg",
-                        "unit_price": 46433,
-                    },
-                ],
+                        "unit_price": 46433
+                    }
+                ]
             },
             {
                 "ean": "7790040133464",
@@ -171,11 +247,11 @@ BASELINE_TIERS = [
                         "promo_label": "2do al 50% ($1.860 c/u x2)",
                         "promo_min_qty": 2,
                         "unit_measure": "kg",
-                        "unit_price": 20840,
-                    },
-                ],
-            },
-        ],
+                        "unit_price": 20840
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": "tier-60",
@@ -189,8 +265,8 @@ BASELINE_TIERS = [
                 "ean": "7790990003220",
                 "nombre": "Jabón Líquido Para Ropa Ariel Platinum 2.7 Lt",
                 "marca": "Ariel",
-                "imagen": "https://http2.mlstatic.com/D_NQ_NP_965238-MLA99857152273_112025-F.jpg",
-                "offers": [],
+                "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/362701/Jabon-Liquido-Para-Ropa-Ariel-Platinum-Doypack-3-Lt-_1.jpg?v=639003522645770000",
+                "offers": []
             },
             "offer": {
                 "supermercado": "MercadoLibre",
@@ -203,8 +279,8 @@ BASELINE_TIERS = [
                 "discount": 25,
                 "promo_label": "25% OFF",
                 "unit_measure": "lt",
-                "unit_price": 5555,
-            },
+                "unit_price": 5555
+            }
         },
         "products": [
             {
@@ -222,16 +298,58 @@ BASELINE_TIERS = [
                         "discount": 73,
                         "promo_label": "73% OFF Liquidación",
                         "unit_measure": "lt",
-                        "unit_price": 1816,
+                        "unit_price": 1816
                     },
-                ],
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 1490,
+                        "precio_lista": 2200,
+                        "stock": 50,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA24589211",
+                        "discount": 32,
+                        "promo_label": "32% OFF · FULL",
+                        "seller_name": "Bebidas Oficial",
+                        "is_full": True,
+                        "unit_measure": "lt",
+                        "unit_price": 3921
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 1890,
+                        "precio_lista": 1890,
+                        "stock": 40,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-whisky-petakon-380-ml/_/A-00412345-00412345-200/p",
+                        "unit_measure": "lt",
+                        "unit_price": 4973
+                    },
+                    {
+                        "supermercado": "Dia",
+                        "precio": 1990,
+                        "precio_lista": 1990,
+                        "stock": 35,
+                        "link": "https://diaonline.supermercadosdia.com.ar/whisky-petakon-petaca-380-ml-19823/p",
+                        "unit_measure": "lt",
+                        "unit_price": 5236
+                    }
+                ]
             },
             {
                 "ean": "7798138555999",
                 "nombre": "Bolsa de residuos Trash 45x60 x 10 uni",
                 "marca": "Trash",
-                "imagen": "https://carrefourar.vtexassets.com/arquivos/ids/444211/7798138555999_02.jpg",
+                "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/461042/2695706000003_01.jpg",
                 "offers": [
+                    {
+                        "supermercado": "Disco",
+                        "precio": 228,
+                        "precio_lista": 380,
+                        "stock": 60,
+                        "link": "https://www.disco.com.ar/bolsa-residuos-trash-45x60-x10/p",
+                        "discount": 40,
+                        "promo_label": "40% OFF Directo",
+                        "unit_measure": "u",
+                        "unit_price": 23
+                    },
                     {
                         "supermercado": "Carrefour",
                         "precio": 300,
@@ -241,16 +359,82 @@ BASELINE_TIERS = [
                         "discount": 62,
                         "promo_label": "62% OFF Directo",
                         "unit_measure": "u",
-                        "unit_price": 30,
+                        "unit_price": 30
                     },
-                ],
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 399,
+                        "precio_lista": 590,
+                        "stock": 120,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA28911420",
+                        "discount": 32,
+                        "promo_label": "32% OFF · FULL",
+                        "seller_name": "Tienda Oficial Trash",
+                        "is_full": True,
+                        "unit_measure": "u",
+                        "unit_price": 40
+                    },
+                    {
+                        "supermercado": "Dia",
+                        "precio": 450,
+                        "precio_lista": 450,
+                        "stock": 75,
+                        "link": "https://diaonline.supermercadosdia.com.ar/bolsas-de-residuos-trash-45x60-10-uni-18491/p",
+                        "unit_measure": "u",
+                        "unit_price": 45
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 550,
+                        "precio_lista": 550,
+                        "stock": 50,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-bolsas-residuos-trash-45x60/_/A-00512890-00512890-200/p",
+                        "unit_measure": "u",
+                        "unit_price": 55
+                    }
+                ]
             },
             {
                 "ean": "7790520023027",
                 "nombre": "Insecticida Raid Mata Moscas y Mosquitos 370 ml",
                 "marca": "Raid",
-                "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/896173/7790520023027_02.jpg",
+                "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/891977/7790520997623_01.jpg",
                 "offers": [
+                    {
+                        "supermercado": "Dia",
+                        "precio": 2100,
+                        "precio_lista": 3500,
+                        "stock": 80,
+                        "link": "https://diaonline.supermercadosdia.com.ar/insecticida-raid-mata-moscas-y-mosquitos-370-ml-12903/p",
+                        "discount": 40,
+                        "promo_label": "40% OFF Directo",
+                        "unit_measure": "lt",
+                        "unit_price": 5675
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 2490,
+                        "precio_lista": 3990,
+                        "stock": 100,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA21345678",
+                        "discount": 38,
+                        "promo_label": "38% OFF · FULL",
+                        "seller_name": "Tienda Oficial SC Johnson",
+                        "is_full": True,
+                        "unit_measure": "lt",
+                        "unit_price": 6729
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 2823,
+                        "precio_lista": 3764,
+                        "stock": 65,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-insecticida-raid-aerosol-370-ml/_/A-00481234-00481234-200/p",
+                        "discount": 25,
+                        "promo_label": "25% OFF Directo",
+                        "unit_measure": "lt",
+                        "unit_price": 7630
+                    },
                     {
                         "supermercado": "Carrefour",
                         "precio": 3119,
@@ -260,9 +444,20 @@ BASELINE_TIERS = [
                         "discount": 58,
                         "promo_label": "58% OFF Directo",
                         "unit_measure": "lt",
-                        "unit_price": 8430,
+                        "unit_price": 8430
                     },
-                ],
+                    {
+                        "supermercado": "Farmaonline",
+                        "precio": 3328,
+                        "precio_lista": 4160,
+                        "stock": 40,
+                        "link": "https://www.farmaonline.com/insecticida-raid-moscas-mosquitos-370-ml/p",
+                        "discount": 20,
+                        "promo_label": "20% OFF Directo",
+                        "unit_measure": "lt",
+                        "unit_price": 8994
+                    }
+                ]
             },
             {
                 "ean": "7794450000781",
@@ -271,20 +466,53 @@ BASELINE_TIERS = [
                 "imagen": "https://ardiaprod.vteximg.com.br/arquivos/ids/314458/Vino-Tinto-Alamos-Malbec-750-Ml-_1.jpg?v=638599428555500000",
                 "offers": [
                     {
+                        "supermercado": "MercadoLibre",
+                        "precio": 9999,
+                        "precio_lista": 14500,
+                        "stock": 110,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA14389201",
+                        "discount": 31,
+                        "promo_label": "31% OFF · FULL",
+                        "seller_name": "Tienda Oficial Catena Zapata",
+                        "is_full": True,
+                        "unit_measure": "lt",
+                        "unit_price": 13332
+                    },
+                    {
                         "supermercado": "Carrefour",
                         "precio": 11265,
-                        "precio_lista": 11265,
-                        "stock": 80,
-                        "link": "https://www.carrefour.com.ar/vino-tinto-malbec-seleccion-alamos-750-cc/p",
+                        "precio_lista": 16900,
+                        "stock": 60,
+                        "link": "https://www.carrefour.com.ar/vino-tinto-malbec-alamos-750-cc-20275/p",
                         "discount": 33,
-                        "promo_label": "3x2 ($7.510 c/u x3)",
+                        "promo_label": "3x2 ($11.265 c/u x3)",
                         "promo_min_qty": 3,
                         "unit_measure": "lt",
-                        "unit_price": 15020,
+                        "unit_price": 15020
                     },
-                ],
-            },
-        ],
+                    {
+                        "supermercado": "Masonline",
+                        "precio": 12500,
+                        "precio_lista": 15600,
+                        "stock": 40,
+                        "link": "https://www.masonline.com.ar/vino-tinto-alamos-malbec-750-ml-18923/p",
+                        "discount": 20,
+                        "promo_label": "20% OFF",
+                        "unit_measure": "lt",
+                        "unit_price": 16666
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 13200,
+                        "precio_lista": 13200,
+                        "stock": 50,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-vino-fino-tinto-alamos-malbec-750-ml/_/A-00123984-00123984-200/p",
+                        "unit_measure": "lt",
+                        "unit_price": 17600
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": "tier-50",
@@ -299,7 +527,7 @@ BASELINE_TIERS = [
                 "nombre": "Chocolate Águila Clásico Semi Amargo 100g",
                 "marca": "Águila",
                 "imagen": "https://http2.mlstatic.com/D_NQ_NP_799008-MLA99335082066_112025-F.jpg",
-                "offers": [],
+                "offers": []
             },
             "offer": {
                 "supermercado": "MercadoLibre",
@@ -312,8 +540,8 @@ BASELINE_TIERS = [
                 "discount": 27,
                 "promo_label": "27% OFF",
                 "unit_measure": "kg",
-                "unit_price": 53850,
-            },
+                "unit_price": 53850
+            }
         },
         "products": [
             {
@@ -331,9 +559,40 @@ BASELINE_TIERS = [
                         "discount": 43,
                         "promo_label": "43% OFF Directo",
                         "unit_measure": "kg",
-                        "unit_price": 2100,
+                        "unit_price": 2100
                     },
-                ],
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 1290,
+                        "precio_lista": 1750,
+                        "stock": 90,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA19348911",
+                        "discount": 26,
+                        "promo_label": "26% OFF · FULL",
+                        "seller_name": "Mercado Libre Supermercado",
+                        "is_full": True,
+                        "unit_measure": "kg",
+                        "unit_price": 2580
+                    },
+                    {
+                        "supermercado": "Carrefour",
+                        "precio": 1450,
+                        "precio_lista": 1450,
+                        "stock": 70,
+                        "link": "https://www.carrefour.com.ar/fideos-tirabuzon-lucchetti-500-g-15491/p",
+                        "unit_measure": "kg",
+                        "unit_price": 2900
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 1520,
+                        "precio_lista": 1520,
+                        "stock": 60,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-fideos-secos-tirabuzon-lucchetti-500-gr/_/A-00389123-00389123-200/p",
+                        "unit_measure": "kg",
+                        "unit_price": 3040
+                    }
+                ]
             },
             {
                 "ean": "7798342410321",
@@ -350,9 +609,52 @@ BASELINE_TIERS = [
                         "discount": 50,
                         "promo_label": "50% OFF Directo",
                         "unit_measure": "lt",
-                        "unit_price": 3572,
+                        "unit_price": 3572
                     },
-                ],
+                    {
+                        "supermercado": "Carrefour",
+                        "precio": 1884,
+                        "precio_lista": 3140,
+                        "stock": 45,
+                        "link": "https://www.carrefour.com.ar/cerveza-honey-lazybee-bierhaus-473-ml-720914/p",
+                        "discount": 40,
+                        "promo_label": "40% OFF Directo",
+                        "unit_measure": "lt",
+                        "unit_price": 3983
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 2190,
+                        "precio_lista": 3200,
+                        "stock": 80,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA25678912",
+                        "discount": 32,
+                        "promo_label": "32% OFF · FULL",
+                        "seller_name": "Tienda Oficial Bierhaus",
+                        "is_full": True,
+                        "unit_measure": "lt",
+                        "unit_price": 4629
+                    },
+                    {
+                        "supermercado": "Vea",
+                        "precio": 2400,
+                        "precio_lista": 3000,
+                        "stock": 30,
+                        "link": "https://www.vea.com.ar/cerveza-bierhaus-honey-473-ml/p",
+                        "discount": 20,
+                        "unit_measure": "lt",
+                        "unit_price": 5073
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 3395,
+                        "precio_lista": 3395,
+                        "stock": 50,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-cerveza-artesanal-honey-bierhaus-473-ml/_/A-00523456-00523456-200/p",
+                        "unit_measure": "lt",
+                        "unit_price": 7177
+                    }
+                ]
             },
             {
                 "ean": "7798060850026",
@@ -369,9 +671,9 @@ BASELINE_TIERS = [
                         "discount": 15,
                         "promo_label": "15% Tarjeta Carrefour",
                         "unit_measure": "kg",
-                        "unit_price": 21995,
-                    },
-                ],
+                        "unit_price": 21995
+                    }
+                ]
             },
             {
                 "ean": "7798138555186",
@@ -388,11 +690,11 @@ BASELINE_TIERS = [
                         "discount": 0,
                         "promo_label": "Precio Ahorro Dia",
                         "unit_measure": "u",
-                        "unit_price": 64,
-                    },
-                ],
-            },
-        ],
+                        "unit_price": 64
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": "tier-40",
@@ -407,7 +709,7 @@ BASELINE_TIERS = [
                 "nombre": "Aceite Cocinero Girasol 1.5 Lt",
                 "marca": "Cocinero",
                 "imagen": "https://http2.mlstatic.com/D_NQ_NP_698462-MLA99441253166_112025-F.jpg",
-                "offers": [],
+                "offers": []
             },
             "offer": {
                 "supermercado": "MercadoLibre",
@@ -420,8 +722,8 @@ BASELINE_TIERS = [
                 "discount": 14,
                 "promo_label": "14% OFF",
                 "unit_measure": "lt",
-                "unit_price": 4866,
-            },
+                "unit_price": 4866
+            }
         },
         "products": [
             {
@@ -439,9 +741,9 @@ BASELINE_TIERS = [
                         "discount": 25,
                         "promo_label": "25% OFF Directo",
                         "unit_measure": "lt",
-                        "unit_price": 2269,
-                    },
-                ],
+                        "unit_price": 2269
+                    }
+                ]
             },
             {
                 "ean": "7790310985571",
@@ -449,6 +751,40 @@ BASELINE_TIERS = [
                 "marca": "Doritos",
                 "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904460/7790310985571_E01.jpg",
                 "offers": [
+                    {
+                        "supermercado": "Dia",
+                        "precio": 1500,
+                        "precio_lista": 2500,
+                        "stock": 75,
+                        "link": "https://diaonline.supermercadosdia.com.ar/snack-nachos-queso-doritos-200-gr-18491/p",
+                        "discount": 40,
+                        "promo_label": "40% OFF Directo",
+                        "unit_measure": "kg",
+                        "unit_price": 7500
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 2150,
+                        "precio_lista": 2500,
+                        "stock": 50,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-nachos-doritos-queso-200-gr/_/A-00456123-00456123-200/p",
+                        "discount": 14,
+                        "unit_measure": "kg",
+                        "unit_price": 10750
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 2890,
+                        "precio_lista": 3800,
+                        "stock": 85,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA16789432",
+                        "discount": 24,
+                        "promo_label": "24% OFF · FULL",
+                        "seller_name": "Mercado Libre Supermercado",
+                        "is_full": True,
+                        "unit_measure": "kg",
+                        "unit_price": 14450
+                    },
                     {
                         "supermercado": "Carrefour",
                         "precio": 5699,
@@ -459,9 +795,9 @@ BASELINE_TIERS = [
                         "promo_label": "40% OFF Directo",
                         "promo_min_qty": 1,
                         "unit_measure": "kg",
-                        "unit_price": 28495,
-                    },
-                ],
+                        "unit_price": 28495
+                    }
+                ]
             },
             {
                 "ean": "7790310985793",
@@ -469,6 +805,39 @@ BASELINE_TIERS = [
                 "marca": "Cheetos",
                 "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904233/7790310985793_E01.jpg",
                 "offers": [
+                    {
+                        "supermercado": "Dia",
+                        "precio": 2500,
+                        "precio_lista": 3500,
+                        "stock": 60,
+                        "link": "https://diaonline.supermercadosdia.com.ar/chizitos-queso-cheetos-140-gr-19234/p",
+                        "discount": 29,
+                        "unit_measure": "kg",
+                        "unit_price": 17857
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 2500,
+                        "precio_lista": 3200,
+                        "stock": 55,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-chizitos-cheetos-140-gr/_/A-00478123-00478123-200/p",
+                        "discount": 22,
+                        "unit_measure": "kg",
+                        "unit_price": 17857
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 2690,
+                        "precio_lista": 3500,
+                        "stock": 90,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA17894561",
+                        "discount": 23,
+                        "promo_label": "23% OFF · FULL",
+                        "seller_name": "Mercado Libre Supermercado",
+                        "is_full": True,
+                        "unit_measure": "kg",
+                        "unit_price": 19214
+                    },
                     {
                         "supermercado": "Carrefour",
                         "precio": 3509,
@@ -478,9 +847,9 @@ BASELINE_TIERS = [
                         "discount": 40,
                         "promo_label": "40% OFF Directo",
                         "unit_measure": "kg",
-                        "unit_price": 25064,
-                    },
-                ],
+                        "unit_price": 25064
+                    }
+                ]
             },
             {
                 "ean": "7790310985588",
@@ -488,6 +857,40 @@ BASELINE_TIERS = [
                 "marca": "Lays",
                 "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/904216/7790310985588_E01.jpg",
                 "offers": [
+                    {
+                        "supermercado": "Dia",
+                        "precio": 2500,
+                        "precio_lista": 4200,
+                        "stock": 70,
+                        "link": "https://diaonline.supermercadosdia.com.ar/papas-fritas-lays-clasicas-330-gr-12904/p",
+                        "discount": 40,
+                        "promo_label": "40% OFF Directo",
+                        "unit_measure": "kg",
+                        "unit_price": 7575
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 2500,
+                        "precio_lista": 3800,
+                        "stock": 65,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-papas-fritas-lays-clasicas-330-gr/_/A-00490123-00490123-200/p",
+                        "discount": 34,
+                        "unit_measure": "kg",
+                        "unit_price": 7575
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 3490,
+                        "precio_lista": 4800,
+                        "stock": 80,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA18904512",
+                        "discount": 27,
+                        "promo_label": "27% OFF · FULL",
+                        "seller_name": "Mercado Libre Supermercado",
+                        "is_full": True,
+                        "unit_measure": "kg",
+                        "unit_price": 10575
+                    },
                     {
                         "supermercado": "Carrefour",
                         "precio": 6299,
@@ -497,9 +900,9 @@ BASELINE_TIERS = [
                         "discount": 40,
                         "promo_label": "40% OFF Directo",
                         "unit_measure": "kg",
-                        "unit_price": 19087,
-                    },
-                ],
+                        "unit_price": 19087
+                    }
+                ]
             },
             {
                 "ean": "7790717150857",
@@ -516,12 +919,64 @@ BASELINE_TIERS = [
                         "discount": 42,
                         "promo_label": "42% OFF Directo",
                         "unit_measure": "lt",
-                        "unit_price": 3079,
+                        "unit_price": 3079
                     },
-                ],
-            },
-        ],
-    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 1490,
+                        "precio_lista": 2100,
+                        "stock": 100,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA15678901",
+                        "discount": 29,
+                        "promo_label": "29% OFF · FULL",
+                        "seller_name": "Tienda Oficial Quilmes",
+                        "is_full": True,
+                        "unit_measure": "lt",
+                        "unit_price": 4209
+                    },
+                    {
+                        "supermercado": "Masonline",
+                        "precio": 1724,
+                        "precio_lista": 2200,
+                        "stock": 45,
+                        "link": "https://www.masonline.com.ar/cerveza-quilmes-1890-lata-354-ml-19234/p",
+                        "discount": 22,
+                        "unit_measure": "lt",
+                        "unit_price": 4870
+                    },
+                    {
+                        "supermercado": "Carrefour",
+                        "precio": 1885,
+                        "precio_lista": 2350,
+                        "stock": 60,
+                        "link": "https://www.carrefour.com.ar/cerveza-quilmes-1890-354-ml-18901/p",
+                        "discount": 20,
+                        "unit_measure": "lt",
+                        "unit_price": 5324
+                    },
+                    {
+                        "supermercado": "Josimar",
+                        "precio": 1955,
+                        "precio_lista": 2300,
+                        "stock": 30,
+                        "link": "https://www.josimar.com.ar/cerveza-rubia-quilmes-1890-lata-354-cc/p",
+                        "discount": 15,
+                        "unit_measure": "lt",
+                        "unit_price": 5522
+                    },
+                    {
+                        "supermercado": "Coto",
+                        "precio": 2300,
+                        "precio_lista": 2300,
+                        "stock": 50,
+                        "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-cerveza-1890-quilmes-354-ml/_/A-00349012-00349012-200/p",
+                        "unit_measure": "lt",
+                        "unit_price": 6497
+                    }
+                ]
+            }
+        ]
+    }
 ]
 
 
@@ -547,80 +1002,80 @@ BASELINE_MARKETPLACE_TIERS = [
                 "categoria_normalizada": "televisores",
                 "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/878516/image-d4fd1a3579af41af8df13fa091239900.jpg?v=639149656309630000",
                 "offers": [
-                        {
-                                                "supermercado": "Coppel",
-                                                "precio": 699999.0,
-                                                "precio_lista": 799999.0,
-                                                "stock": 45,
-                                                "disponible": True,
-                                                "discount": 13,
-                                                "promo_label": "13% OFF",
-                                                "seller_name": "Coppel",
-                                                "seller_id": "1",
-                                                "store_type": "electro",
-                                                "link": "https://www.coppel.com.ar/smart-qled-tv-4k-55--samsung-55q60aa-231525/p"
-                        },
-                        {
-                                                "supermercado": "Frávega",
-                                                "precio": 763635.0,
-                                                "precio_lista": 923999.0,
-                                                "stock": 80,
-                                                "disponible": True,
-                                                "discount": 17,
-                                                "promo_label": "17% OFF",
-                                                "seller_name": "Frávega",
-                                                "seller_id": "1",
-                                                "store_type": "electro",
-                                                "link": "https://www.fravega.com/smart-tv-samsung-55-uhd-4k-cu7000-990062277/p"
-                        },
-                        {
-                                                "supermercado": "MercadoLibre",
-                                                "precio": 799999.0,
-                                                "precio_lista": 1099999.0,
-                                                "stock": 50,
-                                                "disponible": True,
-                                                "discount": 27,
-                                                "promo_label": "27% OFF · FULL",
-                                                "seller_name": "Tienda Oficial Samsung",
-                                                "is_full": True,
-                                                "free_shipping": True,
-                                                "link": "https://www.mercadolibre.com.ar/p/MLA36544675"
-                        },
-                        {
-                                                "supermercado": "Samsung",
-                                                "precio": 819999.0,
-                                                "precio_lista": 1099999.0,
-                                                "stock": 99999,
-                                                "disponible": True,
-                                                "discount": 25,
-                                                "promo_label": "25% OFF",
-                                                "seller_name": "Samsung",
-                                                "seller_id": "1",
-                                                "store_type": "electro",
-                                                "link": "https://www.samsung.com/ar/tvs/qled-tv/q60d-55-inch-qled-4k-tizen-os-smart-tv-qn55q65dagczb/"
-                        },
-                        {
-                                                "supermercado": "Carrefour",
-                                                "precio": 1193000.0,
-                                                "precio_lista": 1193000.0,
-                                                "stock": 20,
-                                                "disponible": True,
-                                                "discount": 0,
-                                                "seller_name": "Carrefour",
-                                                "link": "https://www.carrefour.com.ar/smart-tv-samsung-55-4k-un55au7000gczb-gris/p"
-                        },
-                        {
-                                                "supermercado": "Naldo",
-                                                "precio": 1399999.0,
-                                                "precio_lista": 1999999.0,
-                                                "stock": 30,
-                                                "disponible": True,
-                                                "discount": 30,
-                                                "promo_label": "30% OFF",
-                                                "seller_name": "Naldo",
-                                                "link": "https://www.naldo.com.ar/smart-tv-samsung-55-4k-qled-505680/p"
-                        }
-                    ],
+                    {
+                        "supermercado": "Coppel",
+                        "precio": 699999,
+                        "precio_lista": 799999,
+                        "stock": 45,
+                        "disponible": True,
+                        "discount": 13,
+                        "promo_label": "13% OFF",
+                        "seller_name": "Coppel",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "link": "https://www.coppel.com.ar/smart-qled-tv-4k-55--samsung-55q60aa-231525/p"
+                    },
+                    {
+                        "supermercado": "Frávega",
+                        "precio": 763635,
+                        "precio_lista": 923999,
+                        "stock": 80,
+                        "disponible": True,
+                        "discount": 17,
+                        "promo_label": "17% OFF",
+                        "seller_name": "Frávega",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "link": "https://www.fravega.com/smart-tv-samsung-55-uhd-4k-cu7000-990062277/p"
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 799999,
+                        "precio_lista": 1099999,
+                        "stock": 50,
+                        "disponible": True,
+                        "discount": 27,
+                        "promo_label": "27% OFF · FULL",
+                        "seller_name": "Tienda Oficial Samsung",
+                        "is_full": True,
+                        "free_shipping": True,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA36544675"
+                    },
+                    {
+                        "supermercado": "Samsung",
+                        "precio": 819999,
+                        "precio_lista": 1099999,
+                        "stock": 99999,
+                        "disponible": True,
+                        "discount": 25,
+                        "promo_label": "25% OFF",
+                        "seller_name": "Samsung",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "link": "https://www.samsung.com/ar/tvs/qled-tv/q60d-55-inch-qled-4k-tizen-os-smart-tv-qn55q65dagczb/"
+                    },
+                    {
+                        "supermercado": "Carrefour",
+                        "precio": 1193000,
+                        "precio_lista": 1193000,
+                        "stock": 20,
+                        "disponible": True,
+                        "discount": 0,
+                        "seller_name": "Carrefour",
+                        "link": "https://www.carrefour.com.ar/smart-tv-samsung-55-4k-un55au7000gczb-gris/p"
+                    },
+                    {
+                        "supermercado": "Naldo",
+                        "precio": 1399999,
+                        "precio_lista": 1999999,
+                        "stock": 30,
+                        "disponible": True,
+                        "discount": 30,
+                        "promo_label": "30% OFF",
+                        "seller_name": "Naldo",
+                        "link": "https://www.naldo.com.ar/smart-tv-samsung-55-4k-qled-505680/p"
+                    }
+                ]
             },
             {
                 "id": "8806099122164",
@@ -634,66 +1089,66 @@ BASELINE_MARKETPLACE_TIERS = [
                 "categoria_normalizada": "celulares",
                 "imagen": "https://samsungar.vteximg.com.br/arquivos/ids/220508/SM-A075MZKEARO.png?v=639112765534100000",
                 "offers": [
-                        {
-                                                "supermercado": "Frávega",
-                                                "precio": 194048.0,
-                                                "precio_lista": 293499.0,
-                                                "stock": 80,
-                                                "disponible": True,
-                                                "discount": 34,
-                                                "promo_label": "34% OFF",
-                                                "seller_name": "Frávega",
-                                                "link": "https://www.fravega.com/celular-samsung-a07-4-gb-ram-64-gb-memoriia-interna-liberado-verde-990680781/p"
-                        },
-                        {
-                                                "supermercado": "MercadoLibre",
-                                                "precio": 229999.0,
-                                                "precio_lista": 299999.0,
-                                                "stock": 120,
-                                                "disponible": True,
-                                                "discount": 23,
-                                                "promo_label": "23% OFF · FULL",
-                                                "seller_name": "Tienda Oficial Samsung",
-                                                "is_full": True,
-                                                "free_shipping": True,
-                                                "link": "https://www.mercadolibre.com.ar/p/MLA40192843"
-                        },
-                        {
-                                                "supermercado": "Provincia Compras",
-                                                "precio": 236099.0,
-                                                "precio_lista": 299999.0,
-                                                "stock": 50,
-                                                "disponible": True,
-                                                "discount": 21,
-                                                "promo_label": "21% OFF",
-                                                "seller_name": "Provincia Compras",
-                                                "link": "https://www.provinciacompras.com.ar/celular-samsung-galaxy-a07-64gb-279466/p"
-                        },
-                        {
-                                                "supermercado": "Naldo",
-                                                "precio": 299999.0,
-                                                "precio_lista": 699999.0,
-                                                "stock": 100,
-                                                "disponible": True,
-                                                "discount": 57,
-                                                "promo_label": "57% OFF",
-                                                "seller_name": "Naldo",
-                                                "seller_id": "1",
-                                                "store_type": "electro",
-                                                "link": "https://www.naldo.com.ar/galaxy-a07-black-4-64gb-6-7--407140/p"
-                        },
-                        {
-                                                "supermercado": "Masonline",
-                                                "precio": 299999.0,
-                                                "precio_lista": 349999.0,
-                                                "stock": 40,
-                                                "disponible": True,
-                                                "discount": 14,
-                                                "promo_label": "14% OFF",
-                                                "seller_name": "Más Online",
-                                                "link": "https://www.masonline.com.ar/celular-samsung-galaxy-a07-64gb-sm-a075m-ds-violeta/p"
-                        }
-                    ],
+                    {
+                        "supermercado": "Frávega",
+                        "precio": 194048,
+                        "precio_lista": 293499,
+                        "stock": 80,
+                        "disponible": True,
+                        "discount": 34,
+                        "promo_label": "34% OFF",
+                        "seller_name": "Frávega",
+                        "link": "https://www.fravega.com/celular-samsung-a07-4-gb-ram-64-gb-memoriia-interna-liberado-verde-990680781/p"
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 229999,
+                        "precio_lista": 299999,
+                        "stock": 120,
+                        "disponible": True,
+                        "discount": 23,
+                        "promo_label": "23% OFF · FULL",
+                        "seller_name": "Tienda Oficial Samsung",
+                        "is_full": True,
+                        "free_shipping": True,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA40192843"
+                    },
+                    {
+                        "supermercado": "Provincia Compras",
+                        "precio": 236099,
+                        "precio_lista": 299999,
+                        "stock": 50,
+                        "disponible": True,
+                        "discount": 21,
+                        "promo_label": "21% OFF",
+                        "seller_name": "Provincia Compras",
+                        "link": "https://www.provinciacompras.com.ar/celular-samsung-galaxy-a07-64gb-279466/p"
+                    },
+                    {
+                        "supermercado": "Naldo",
+                        "precio": 299999,
+                        "precio_lista": 699999,
+                        "stock": 100,
+                        "disponible": True,
+                        "discount": 57,
+                        "promo_label": "57% OFF",
+                        "seller_name": "Naldo",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "link": "https://www.naldo.com.ar/galaxy-a07-black-4-64gb-6-7--407140/p"
+                    },
+                    {
+                        "supermercado": "Masonline",
+                        "precio": 299999,
+                        "precio_lista": 349999,
+                        "stock": 40,
+                        "disponible": True,
+                        "discount": 14,
+                        "promo_label": "14% OFF",
+                        "seller_name": "Más Online",
+                        "link": "https://www.masonline.com.ar/celular-samsung-galaxy-a07-64gb-sm-a075m-ds-violeta/p"
+                    }
+                ]
             },
             {
                 "id": "7790894902162",
@@ -707,55 +1162,55 @@ BASELINE_MARKETPLACE_TIERS = [
                 "categoria_normalizada": "celulares",
                 "imagen": "https://naldoar.vteximg.com.br/arquivos/ids/243342/Copy-of-2025_AVENGER_BASICPACK_SILHOUETTE_PDP-HERO-copia.jpg?v=639293952450330000",
                 "offers": [
-                        {
-                                                "supermercado": "Frávega",
-                                                "precio": 778468.0,
-                                                "precio_lista": 1066395.0,
-                                                "stock": 45,
-                                                "disponible": True,
-                                                "discount": 27,
-                                                "promo_label": "27% OFF",
-                                                "seller_name": "Frávega",
-                                                "link": "https://www.fravega.com/reacondicionado-motorola-edge-60-fusion-256gb-color-gris-23140529/p"
-                        },
-                        {
-                                                "supermercado": "MercadoLibre",
-                                                "precio": 849999.0,
-                                                "precio_lista": 1099999.0,
-                                                "stock": 80,
-                                                "disponible": True,
-                                                "discount": 23,
-                                                "promo_label": "23% OFF · FULL",
-                                                "seller_name": "Tienda Oficial Motorola",
-                                                "is_full": True,
-                                                "free_shipping": True,
-                                                "link": "https://www.mercadolibre.com.ar/p/MLA37894021"
-                        },
-                        {
-                                                "supermercado": "Naldo",
-                                                "precio": 899999.0,
-                                                "precio_lista": 2099999.0,
-                                                "stock": 99999,
-                                                "disponible": True,
-                                                "discount": 57,
-                                                "promo_label": "57% OFF",
-                                                "seller_name": "Naldo",
-                                                "seller_id": "1",
-                                                "store_type": "electro",
-                                                "link": "https://www.naldo.com.ar/moto-edge70-fusion-5g-azul-12-256gb-407209/p"
-                        },
-                        {
-                                                "supermercado": "Carrefour",
-                                                "precio": 999999.0,
-                                                "precio_lista": 1199999.0,
-                                                "stock": 25,
-                                                "disponible": True,
-                                                "discount": 17,
-                                                "promo_label": "17% OFF",
-                                                "seller_name": "Carrefour",
-                                                "link": "https://www.carrefour.com.ar/celular-libre-motorola-edge-fusion-256gb/p"
-                        }
-                    ],
+                    {
+                        "supermercado": "Frávega",
+                        "precio": 778468,
+                        "precio_lista": 1066395,
+                        "stock": 45,
+                        "disponible": True,
+                        "discount": 27,
+                        "promo_label": "27% OFF",
+                        "seller_name": "Frávega",
+                        "link": "https://www.fravega.com/reacondicionado-motorola-edge-60-fusion-256gb-color-gris-23140529/p"
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 849999,
+                        "precio_lista": 1099999,
+                        "stock": 80,
+                        "disponible": True,
+                        "discount": 23,
+                        "promo_label": "23% OFF · FULL",
+                        "seller_name": "Tienda Oficial Motorola",
+                        "is_full": True,
+                        "free_shipping": True,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA37894021"
+                    },
+                    {
+                        "supermercado": "Naldo",
+                        "precio": 899999,
+                        "precio_lista": 2099999,
+                        "stock": 99999,
+                        "disponible": True,
+                        "discount": 57,
+                        "promo_label": "57% OFF",
+                        "seller_name": "Naldo",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "link": "https://www.naldo.com.ar/moto-edge70-fusion-5g-azul-12-256gb-407209/p"
+                    },
+                    {
+                        "supermercado": "Carrefour",
+                        "precio": 999999,
+                        "precio_lista": 1199999,
+                        "stock": 25,
+                        "disponible": True,
+                        "discount": 17,
+                        "promo_label": "17% OFF",
+                        "seller_name": "Carrefour",
+                        "link": "https://www.carrefour.com.ar/celular-libre-motorola-edge-fusion-256gb/p"
+                    }
+                ]
             },
             {
                 "id": "6932554444792",
@@ -769,54 +1224,54 @@ BASELINE_MARKETPLACE_TIERS = [
                 "categoria_normalizada": "celulares",
                 "imagen": "https://naldoar.vteximg.com.br/arquivos/ids/230318/WhatsApp-Image-2026-07-16-at-09.29.58--1-.jpg?v=639210133117930000",
                 "offers": [
-                        {
-                                                "supermercado": "MercadoLibre",
-                                                "precio": 289999.0,
-                                                "precio_lista": 429000.0,
-                                                "stock": 100,
-                                                "disponible": True,
-                                                "discount": 32,
-                                                "promo_label": "32% OFF · FULL",
-                                                "seller_name": "Tienda Oficial Xiaomi",
-                                                "is_full": True,
-                                                "free_shipping": True,
-                                                "link": "https://www.mercadolibre.com.ar/p/MLA34591024"
-                        },
-                        {
-                                                "supermercado": "Carrefour",
-                                                "precio": 299900.0,
-                                                "precio_lista": 429000.0,
-                                                "stock": 45,
-                                                "disponible": True,
-                                                "discount": 30,
-                                                "promo_label": "30% OFF",
-                                                "seller_name": "Carrefour",
-                                                "link": "https://www.carrefour.com.ar/celular-libre-xiaomi-redmi-note-13-6gb-128-gb-verde/p"
-                        },
-                        {
-                                                "supermercado": "Naldo",
-                                                "precio": 299999.0,
-                                                "precio_lista": 699999.0,
-                                                "stock": 100,
-                                                "disponible": True,
-                                                "discount": 57,
-                                                "promo_label": "57% OFF",
-                                                "seller_name": "Naldo",
-                                                "seller_id": "1",
-                                                "store_type": "electro",
-                                                "link": "https://www.naldo.com.ar/redmi-a5-ocean-blue-4-128gb-6-88--407150/p"
-                        },
-                        {
-                                                "supermercado": "Coppel",
-                                                "precio": 349999.0,
-                                                "precio_lista": 349999.0,
-                                                "stock": 30,
-                                                "disponible": True,
-                                                "discount": 0,
-                                                "seller_name": "Coppel",
-                                                "link": "https://www.coppel.com.ar/celular-xiaomi-redmi-note-11-star-blue-4gb-128gb-4g-725021/p"
-                        }
-                    ],
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 289999,
+                        "precio_lista": 429000,
+                        "stock": 100,
+                        "disponible": True,
+                        "discount": 32,
+                        "promo_label": "32% OFF · FULL",
+                        "seller_name": "Tienda Oficial Xiaomi",
+                        "is_full": True,
+                        "free_shipping": True,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA34591024"
+                    },
+                    {
+                        "supermercado": "Carrefour",
+                        "precio": 299900,
+                        "precio_lista": 429000,
+                        "stock": 45,
+                        "disponible": True,
+                        "discount": 30,
+                        "promo_label": "30% OFF",
+                        "seller_name": "Carrefour",
+                        "link": "https://www.carrefour.com.ar/celular-libre-xiaomi-redmi-note-13-6gb-128-gb-verde/p"
+                    },
+                    {
+                        "supermercado": "Naldo",
+                        "precio": 299999,
+                        "precio_lista": 699999,
+                        "stock": 100,
+                        "disponible": True,
+                        "discount": 57,
+                        "promo_label": "57% OFF",
+                        "seller_name": "Naldo",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "link": "https://www.naldo.com.ar/redmi-a5-ocean-blue-4-128gb-6-88--407150/p"
+                    },
+                    {
+                        "supermercado": "Coppel",
+                        "precio": 349999,
+                        "precio_lista": 349999,
+                        "stock": 30,
+                        "disponible": True,
+                        "discount": 0,
+                        "seller_name": "Coppel",
+                        "link": "https://www.coppel.com.ar/celular-xiaomi-redmi-note-11-star-blue-4gb-128gb-4g-725021/p"
+                    }
+                ]
             },
             {
                 "id": "NALDO-44923",
@@ -830,71 +1285,71 @@ BASELINE_MARKETPLACE_TIERS = [
                 "categoria_normalizada": "notebooks_tablets",
                 "imagen": "https://naldoar.vteximg.com.br/arquivos/ids/244332/B9TP2LA_01ImagenPrincipalConTexto_b.jpg?v=639292293941600000",
                 "offers": [
-                        {
-                                                "supermercado": "Naldo",
-                                                "precio": 1299999.0,
-                                                "precio_lista": 2696198.0,
-                                                "stock": 99999,
-                                                "disponible": True,
-                                                "discount": 51,
-                                                "promo_label": "51% OFF",
-                                                "seller_name": "Naldo",
-                                                "seller_id": "1",
-                                                "store_type": "electro",
-                                                "link": "https://www.naldo.com.ar/note-15-fc0251la-r5-7520u-amd15-8-512gb-406750-1/p"
-                        },
-                        {
-                                                "supermercado": "Provincia Compras",
-                                                "precio": 1299999.0,
-                                                "precio_lista": 2696198.0,
-                                                "stock": 40,
-                                                "disponible": True,
-                                                "discount": 51,
-                                                "promo_label": "51% OFF",
-                                                "seller_name": "Provincia Compras",
-                                                "link": "https://www.provinciacompras.com.ar/notebook-hp-15-fc0251la-r5-7520u-amd15--8-512-gb-310639/p"
-                        },
-                        {
-                                                "supermercado": "MercadoLibre",
-                                                "precio": 1349999.0,
-                                                "precio_lista": 2499999.0,
-                                                "stock": 35,
-                                                "disponible": True,
-                                                "discount": 46,
-                                                "promo_label": "46% OFF · FULL",
-                                                "seller_name": "Tienda Oficial HP",
-                                                "is_full": True,
-                                                "free_shipping": True,
-                                                "link": "https://www.mercadolibre.com.ar/p/MLA39812401"
-                        },
-                        {
-                                                "supermercado": "Cetrogar",
-                                                "precio": 1549999.0,
-                                                "precio_lista": 2499999.0,
-                                                "stock": 25,
-                                                "disponible": True,
-                                                "discount": 38,
-                                                "promo_label": "38% OFF",
-                                                "seller_name": "Cetrogar",
-                                                "link": "https://www.cetrogar.com.ar/notebook-hp-15-fc0251la-15-6-ryzen-5-7520u-8-gb-512-gb-mochila-cm4799/p"
-                        },
-                        {
-                                                "supermercado": "Carrefour",
-                                                "precio": 1699000.0,
-                                                "precio_lista": 2099000.0,
-                                                "stock": 15,
-                                                "disponible": True,
-                                                "discount": 19,
-                                                "promo_label": "19% OFF",
-                                                "seller_name": "Carrefour",
-                                                "link": "https://www.carrefour.com.ar/notebook-hp-15--amd-r5-7520u-8gb-ram-512gb-ssd-fc02/p"
-                        }
-                    ],
-                },
-            ],
-        },
-        {
-            "id": "tier-mp-hogar",
+                    {
+                        "supermercado": "Naldo",
+                        "precio": 1299999,
+                        "precio_lista": 2696198,
+                        "stock": 99999,
+                        "disponible": True,
+                        "discount": 51,
+                        "promo_label": "51% OFF",
+                        "seller_name": "Naldo",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "link": "https://www.naldo.com.ar/note-15-fc0251la-r5-7520u-amd15-8-512gb-406750-1/p"
+                    },
+                    {
+                        "supermercado": "Provincia Compras",
+                        "precio": 1299999,
+                        "precio_lista": 2696198,
+                        "stock": 40,
+                        "disponible": True,
+                        "discount": 51,
+                        "promo_label": "51% OFF",
+                        "seller_name": "Provincia Compras",
+                        "link": "https://www.provinciacompras.com.ar/notebook-hp-15-fc0251la-r5-7520u-amd15--8-512-gb-310639/p"
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 1349999,
+                        "precio_lista": 2499999,
+                        "stock": 35,
+                        "disponible": True,
+                        "discount": 46,
+                        "promo_label": "46% OFF · FULL",
+                        "seller_name": "Tienda Oficial HP",
+                        "is_full": True,
+                        "free_shipping": True,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA39812401"
+                    },
+                    {
+                        "supermercado": "Cetrogar",
+                        "precio": 1549999,
+                        "precio_lista": 2499999,
+                        "stock": 25,
+                        "disponible": True,
+                        "discount": 38,
+                        "promo_label": "38% OFF",
+                        "seller_name": "Cetrogar",
+                        "link": "https://www.cetrogar.com.ar/notebook-hp-15-fc0251la-15-6-ryzen-5-7520u-8-gb-512-gb-mochila-cm4799/p"
+                    },
+                    {
+                        "supermercado": "Carrefour",
+                        "precio": 1699000,
+                        "precio_lista": 2099000,
+                        "stock": 15,
+                        "disponible": True,
+                        "discount": 19,
+                        "promo_label": "19% OFF",
+                        "seller_name": "Carrefour",
+                        "link": "https://www.carrefour.com.ar/notebook-hp-15--amd-r5-7520u-8gb-ram-512gb-ssd-fc02/p"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "tier-mp-hogar",
         "title": "Hogar, Herramientas y Climatización — Gran Ahorro",
         "subtitle": "Sommiers, colchones de espuma y resortes con hasta 75% OFF",
         "badge": "Hogar & Descanso",
@@ -916,8 +1371,8 @@ BASELINE_MARKETPLACE_TIERS = [
                 "offers": [
                     {
                         "supermercado": "Carrefour",
-                        "precio": 948999.0,
-                        "precio_lista": 3552337.0,
+                        "precio": 948999,
+                        "precio_lista": 3552337,
                         "stock": 100,
                         "disponible": True,
                         "discount": 73,
@@ -925,9 +1380,38 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Carrefour",
                         "seller_id": "1",
                         "store_type": "supermarket",
-                        "link": "https://www.carrefour.com.ar/combo-2230-norcee-140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-espuma-alta-densidad-1777715/p",
+                        "link": "https://www.carrefour.com.ar/combo-2230-norcee-140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-espuma-alta-densidad-1777715/p"
                     },
-                ],
+                    {
+                        "supermercado": "Provincia Compras",
+                        "precio": 989000,
+                        "precio_lista": 1980000,
+                        "stock": 50,
+                        "disponible": True,
+                        "discount": 50,
+                        "promo_label": "50% OFF · 24 cuotas sin interés",
+                        "seller_name": "Tienda Oficial Norcee",
+                        "seller_id": "1",
+                        "store_type": "marketplace",
+                        "cuotas": 24,
+                        "sin_interes": True,
+                        "link": "https://www.provinciacompras.com.ar/combo-2230-norcee-140x190-sommier/p"
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 999000,
+                        "precio_lista": 1890000,
+                        "stock": 60,
+                        "disponible": True,
+                        "discount": 47,
+                        "promo_label": "47% OFF · FULL",
+                        "seller_name": "Tienda Oficial Norcee",
+                        "seller_id": "1",
+                        "store_type": "marketplace",
+                        "is_full": True,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA29845112"
+                    }
+                ]
             },
             {
                 "id": "7796448064287",
@@ -942,9 +1426,22 @@ BASELINE_MARKETPLACE_TIERS = [
                 "imagen": "https://cetrogar.vteximg.com.br/arquivos/ids/171839/image-fd3cf063c8a94a2db2de1a8a7fc41253.jpg?v=639148756004970000",
                 "offers": [
                     {
+                        "supermercado": "Cetrogar",
+                        "precio": 189999,
+                        "precio_lista": 499999,
+                        "stock": 80,
+                        "disponible": True,
+                        "discount": 62,
+                        "promo_label": "62% OFF",
+                        "seller_name": "Cetrogar",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "link": "https://www.cetrogar.com.ar/colchon-zafiro-express-80x190.html"
+                    },
+                    {
                         "supermercado": "Carrefour",
-                        "precio": 199999.0,
-                        "precio_lista": 689998.0,
+                        "precio": 199999,
+                        "precio_lista": 689998,
                         "stock": 100,
                         "disponible": True,
                         "discount": 71,
@@ -952,9 +1449,23 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Carrefour",
                         "seller_id": "1",
                         "store_type": "supermarket",
-                        "link": "https://www.carrefour.com.ar/colchon-de-espuma-1-plaza-zafiro-express-light-80x190-1657924/p",
+                        "link": "https://www.carrefour.com.ar/colchon-de-espuma-1-plaza-zafiro-express-light-80x190-1657924/p"
                     },
-                ],
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 219000,
+                        "precio_lista": 450000,
+                        "stock": 50,
+                        "disponible": True,
+                        "discount": 51,
+                        "promo_label": "51% OFF · FULL",
+                        "seller_name": "Zafiro Colchones",
+                        "seller_id": "1",
+                        "store_type": "marketplace",
+                        "is_full": True,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA28741092"
+                    }
+                ]
             },
             {
                 "id": "CAR10150203140190-VDT",
@@ -970,8 +1481,8 @@ BASELINE_MARKETPLACE_TIERS = [
                 "offers": [
                     {
                         "supermercado": "Carrefour",
-                        "precio": 998999.0,
-                        "precio_lista": 3356524.0,
+                        "precio": 998999,
+                        "precio_lista": 3356524,
                         "stock": 100,
                         "disponible": True,
                         "discount": 70,
@@ -979,9 +1490,9 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Carrefour",
                         "seller_id": "1",
                         "store_type": "supermarket",
-                        "link": "https://www.carrefour.com.ar/combo-2230-zeta-pillow-140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-1777717/p",
-                    },
-                ],
+                        "link": "https://www.carrefour.com.ar/combo-2230-zeta-pillow-140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-1777717/p"
+                    }
+                ]
             },
             {
                 "id": "7796448067400",
@@ -997,8 +1508,8 @@ BASELINE_MARKETPLACE_TIERS = [
                 "offers": [
                     {
                         "supermercado": "Carrefour",
-                        "precio": 369999.0,
-                        "precio_lista": 1219998.0,
+                        "precio": 369999,
+                        "precio_lista": 1219998,
                         "stock": 100,
                         "disponible": True,
                         "discount": 69,
@@ -1006,9 +1517,9 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Carrefour",
                         "seller_id": "1",
                         "store_type": "supermarket",
-                        "link": "https://www.carrefour.com.ar/colchon-de-resortes-2-plazas-joplin-140x190-1747841/p",
-                    },
-                ],
+                        "link": "https://www.carrefour.com.ar/colchon-de-resortes-2-plazas-joplin-140x190-1747841/p"
+                    }
+                ]
             },
             {
                 "id": "CAR10150208140190-VDT",
@@ -1024,8 +1535,8 @@ BASELINE_MARKETPLACE_TIERS = [
                 "offers": [
                     {
                         "supermercado": "Carrefour",
-                        "precio": 1148999.0,
-                        "precio_lista": 3510199.0,
+                        "precio": 1148999,
+                        "precio_lista": 3510199,
                         "stock": 100,
                         "disponible": True,
                         "discount": 67,
@@ -1033,11 +1544,11 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Carrefour",
                         "seller_id": "1",
                         "store_type": "supermarket",
-                        "link": "https://www.carrefour.com.ar/combo-2230-malmok140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-1777716/p",
-                    },
-                ],
-            },
-        ],
+                        "link": "https://www.carrefour.com.ar/combo-2230-malmok140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-1777716/p"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": "tier-mp-destacadas",
@@ -1060,55 +1571,55 @@ BASELINE_MARKETPLACE_TIERS = [
                 "categoria_normalizada": "audio_video",
                 "imagen": "https://arsonyb2c.vteximg.com.br/arquivos/ids/362959/01-GENBA-XS-GTF1039-Main-SSO.jpg?v=638303827341900000",
                 "offers": [
-                        {
-                                                "supermercado": "Sony Store",
-                                                "precio": 59996.14,
-                                                "precio_lista": 129999.0,
-                                                "stock": 51,
-                                                "disponible": True,
-                                                "discount": 53,
-                                                "promo_label": "53% OFF",
-                                                "seller_name": "Sony Store",
-                                                "seller_id": "1",
-                                                "store_type": "supermarket",
-                                                "link": "https://store.sony.com.ar/xs-gtf1039/p"
-                        },
-                        {
-                                                "supermercado": "MercadoLibre",
-                                                "precio": 64990.0,
-                                                "precio_lista": 129999.0,
-                                                "stock": 60,
-                                                "disponible": True,
-                                                "discount": 50,
-                                                "promo_label": "50% OFF · FULL",
-                                                "seller_name": "Tienda Oficial Sony",
-                                                "is_full": True,
-                                                "free_shipping": True,
-                                                "link": "https://www.mercadolibre.com.ar/p/MLA14187519"
-                        },
-                        {
-                                                "supermercado": "Provincia Compras",
-                                                "precio": 67999.0,
-                                                "precio_lista": 78198.0,
-                                                "stock": 30,
-                                                "disponible": True,
-                                                "discount": 13,
-                                                "promo_label": "13% OFF",
-                                                "seller_name": "Provincia Compras",
-                                                "link": "https://www.provinciacompras.com.ar/parlantes-para-auto-sony-de-4-pulgadas-xs-gtf1039--302800/p"
-                        },
-                        {
-                                                "supermercado": "On City",
-                                                "precio": 79999.0,
-                                                "precio_lista": 91998.0,
-                                                "stock": 25,
-                                                "disponible": True,
-                                                "discount": 13,
-                                                "promo_label": "13% OFF",
-                                                "seller_name": "On City",
-                                                "link": "https://www.oncity.com/parlantes-para-auto-sony-de-4-pulgadas-xs-gtf1039--98930/p"
-                        }
-                    ],
+                    {
+                        "supermercado": "Sony Store",
+                        "precio": 59996.14,
+                        "precio_lista": 129999,
+                        "stock": 51,
+                        "disponible": True,
+                        "discount": 53,
+                        "promo_label": "53% OFF",
+                        "seller_name": "Sony Store",
+                        "seller_id": "1",
+                        "store_type": "supermarket",
+                        "link": "https://store.sony.com.ar/xs-gtf1039/p"
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 64990,
+                        "precio_lista": 129999,
+                        "stock": 60,
+                        "disponible": True,
+                        "discount": 50,
+                        "promo_label": "50% OFF · FULL",
+                        "seller_name": "Tienda Oficial Sony",
+                        "is_full": True,
+                        "free_shipping": True,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA14187519"
+                    },
+                    {
+                        "supermercado": "Provincia Compras",
+                        "precio": 67999,
+                        "precio_lista": 78198,
+                        "stock": 30,
+                        "disponible": True,
+                        "discount": 13,
+                        "promo_label": "13% OFF",
+                        "seller_name": "Provincia Compras",
+                        "link": "https://www.provinciacompras.com.ar/parlantes-para-auto-sony-de-4-pulgadas-xs-gtf1039--302800/p"
+                    },
+                    {
+                        "supermercado": "On City",
+                        "precio": 79999,
+                        "precio_lista": 91998,
+                        "stock": 25,
+                        "disponible": True,
+                        "discount": 13,
+                        "promo_label": "13% OFF",
+                        "seller_name": "On City",
+                        "link": "https://www.oncity.com/parlantes-para-auto-sony-de-4-pulgadas-xs-gtf1039--98930/p"
+                    }
+                ]
             },
             {
                 "id": "SONYSTORE-2936",
@@ -1125,7 +1636,7 @@ BASELINE_MARKETPLACE_TIERS = [
                     {
                         "supermercado": "Sony Store",
                         "precio": 89999.1,
-                        "precio_lista": 189999.0,
+                        "precio_lista": 189999,
                         "stock": 19,
                         "disponible": True,
                         "discount": 52,
@@ -1133,9 +1644,9 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Sony Store",
                         "seller_id": "1",
                         "store_type": "supermarket",
-                        "link": "https://store.sony.com.ar/xs-gtf1639/p",
-                    },
-                ],
+                        "link": "https://store.sony.com.ar/xs-gtf1639/p"
+                    }
+                ]
             },
             {
                 "id": "6932554402822",
@@ -1151,8 +1662,8 @@ BASELINE_MARKETPLACE_TIERS = [
                 "offers": [
                     {
                         "supermercado": "Naldo",
-                        "precio": 499999.0,
-                        "precio_lista": 1019999.0,
+                        "precio": 499999,
+                        "precio_lista": 1019999,
                         "stock": 100,
                         "disponible": True,
                         "discount": 50,
@@ -1160,9 +1671,9 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Naldo",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://www.naldo.com.ar/redmi-15-8-256gb-midnight-black-407138/p",
-                    },
-                ],
+                        "link": "https://www.naldo.com.ar/redmi-15-8-256gb-midnight-black-407138/p"
+                    }
+                ]
             },
             {
                 "id": "8806095658322",
@@ -1176,64 +1687,64 @@ BASELINE_MARKETPLACE_TIERS = [
                 "categoria_normalizada": "pequenos_electro",
                 "imagen": "https://samsungar.vteximg.com.br/arquivos/ids/197129/SM-R630_009_Case-Opened_White.png?v=638629616126170000",
                 "offers": [
-                        {
-                                                "supermercado": "Frávega",
-                                                "precio": 245453.0,
-                                                "precio_lista": 479999.0,
-                                                "stock": 35,
-                                                "disponible": True,
-                                                "discount": 49,
-                                                "promo_label": "49% OFF",
-                                                "seller_name": "Frávega",
-                                                "link": "https://www.fravega.com/auriculares-audifonos-samsung-galaxy-buds3-pro-sm-r630-white-990847757/p"
-                        },
-                        {
-                                                "supermercado": "MercadoLibre",
-                                                "precio": 289999.0,
-                                                "precio_lista": 609999.0,
-                                                "stock": 40,
-                                                "disponible": True,
-                                                "discount": 52,
-                                                "promo_label": "52% OFF · FULL",
-                                                "seller_name": "Tienda Oficial Samsung",
-                                                "is_full": True,
-                                                "free_shipping": True,
-                                                "link": "https://www.mercadolibre.com.ar/p/MLA38920194"
-                        },
-                        {
-                                                "supermercado": "Samsung",
-                                                "precio": 299999.0,
-                                                "precio_lista": 609999.0,
-                                                "stock": 50,
-                                                "disponible": True,
-                                                "discount": 50,
-                                                "promo_label": "50% OFF",
-                                                "seller_name": "Samsung",
-                                                "seller_id": "1",
-                                                "store_type": "electro",
-                                                "link": "https://www.samsung.com/ar/audio-sound/galaxy-buds/galaxy-buds3-pro-silver-sm-r630nzaaaro/"
-                        },
-                        {
-                                                "supermercado": "StyleStore",
-                                                "precio": 440999.0,
-                                                "precio_lista": 440999.0,
-                                                "stock": 20,
-                                                "disponible": True,
-                                                "discount": 0,
-                                                "seller_name": "StyleStore",
-                                                "link": "https://www.stylestore.com.ar/auriculares-samsung-smr630nzwaaro/p"
-                        },
-                        {
-                                                "supermercado": "Cetrogar",
-                                                "precio": 609999.0,
-                                                "precio_lista": 609999.0,
-                                                "stock": 15,
-                                                "disponible": True,
-                                                "discount": 0,
-                                                "seller_name": "Cetrogar",
-                                                "link": "https://www.cetrogar.com.ar/auriculares-samsung-galaxy-buds3-pro-white-au3285/p"
-                        }
-                    ],
+                    {
+                        "supermercado": "Frávega",
+                        "precio": 245453,
+                        "precio_lista": 479999,
+                        "stock": 35,
+                        "disponible": True,
+                        "discount": 49,
+                        "promo_label": "49% OFF",
+                        "seller_name": "Frávega",
+                        "link": "https://www.fravega.com/auriculares-audifonos-samsung-galaxy-buds3-pro-sm-r630-white-990847757/p"
+                    },
+                    {
+                        "supermercado": "MercadoLibre",
+                        "precio": 289999,
+                        "precio_lista": 609999,
+                        "stock": 40,
+                        "disponible": True,
+                        "discount": 52,
+                        "promo_label": "52% OFF · FULL",
+                        "seller_name": "Tienda Oficial Samsung",
+                        "is_full": True,
+                        "free_shipping": True,
+                        "link": "https://www.mercadolibre.com.ar/p/MLA38920194"
+                    },
+                    {
+                        "supermercado": "Samsung",
+                        "precio": 299999,
+                        "precio_lista": 609999,
+                        "stock": 50,
+                        "disponible": True,
+                        "discount": 50,
+                        "promo_label": "50% OFF",
+                        "seller_name": "Samsung",
+                        "seller_id": "1",
+                        "store_type": "electro",
+                        "link": "https://www.samsung.com/ar/audio-sound/galaxy-buds/galaxy-buds3-pro-silver-sm-r630nzaaaro/"
+                    },
+                    {
+                        "supermercado": "StyleStore",
+                        "precio": 440999,
+                        "precio_lista": 440999,
+                        "stock": 20,
+                        "disponible": True,
+                        "discount": 0,
+                        "seller_name": "StyleStore",
+                        "link": "https://www.stylestore.com.ar/auriculares-samsung-smr630nzwaaro/p"
+                    },
+                    {
+                        "supermercado": "Cetrogar",
+                        "precio": 609999,
+                        "precio_lista": 609999,
+                        "stock": 15,
+                        "disponible": True,
+                        "discount": 0,
+                        "seller_name": "Cetrogar",
+                        "link": "https://www.cetrogar.com.ar/auriculares-samsung-galaxy-buds3-pro-white-au3285/p"
+                    }
+                ]
             },
             {
                 "id": "8806095658346",
@@ -1249,8 +1760,8 @@ BASELINE_MARKETPLACE_TIERS = [
                 "offers": [
                     {
                         "supermercado": "Samsung",
-                        "precio": 299999.0,
-                        "precio_lista": 609999.0,
+                        "precio": 299999,
+                        "precio_lista": 609999,
                         "stock": 1,
                         "disponible": True,
                         "discount": 50,
@@ -1258,12 +1769,12 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://shop.samsung.com.ar/galaxy-buds3-pro/p",
-                    },
-                ],
-            },
-        ],
-    },
+                        "link": "https://shop.samsung.com.ar/galaxy-buds3-pro/p"
+                    }
+                ]
+            }
+        ]
+    }
 ]
 
 # Asegurar que cada producto en BASELINE_MARKETPLACE_TIERS tenga best_offer

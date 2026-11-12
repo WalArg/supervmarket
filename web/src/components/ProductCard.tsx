@@ -112,7 +112,10 @@ const ProductCard: React.FC<{
   const maxEff = Math.max(...rows.map(r => r.eff))
   const savePct = rows.length > 1 && maxEff > best.eff ? Math.round(((maxEff - best.eff) / maxEff) * 100) : 0
 
-  const vertKey = group.vertical || (best ? storeVertical(best.o.supermercado) : 'supermarket')
+  // Mercado Libre participa tanto en supermercados (almacén, limpieza, bebidas) como en marketplaces/electro.
+  // Si group.vertical no está explícitamente fijado y la mejor oferta es de Mercado Libre,
+  // se categoriza como 'supermarket' (badge 'Súper').
+  const vertKey = group.vertical || (best?.o.supermercado === 'MercadoLibre' ? 'supermarket' : (best ? storeVertical(best.o.supermercado) : 'supermarket'))
   const badge = getVerticalBadge(vertKey)
 
   const isDirect = Boolean(
