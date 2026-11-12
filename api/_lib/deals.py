@@ -337,7 +337,7 @@ BASELINE_TIERS = [
                 "ean": "7798138555999",
                 "nombre": "Bolsa de residuos Trash 45x60 x 10 uni",
                 "marca": "Trash",
-                "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/461042/2695706000003_01.jpg",
+                "imagen": "https://static.cotodigital3.com.ar/sitios/fotos/large/00503100/00503141.jpg",
                 "offers": [
                     {
                         "supermercado": "Disco",
@@ -398,7 +398,7 @@ BASELINE_TIERS = [
                 "ean": "7790520023027",
                 "nombre": "Insecticida Raid Mata Moscas y Mosquitos 370 ml",
                 "marca": "Raid",
-                "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/891977/7790520997623_01.jpg",
+                "imagen": "https://static.cotodigital3.com.ar/sitios/fotos/large/00539000/00539046.jpg",
                 "offers": [
                     {
                         "supermercado": "Dia",
@@ -1052,7 +1052,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://shop.samsung.com.ar/55--neo-qled-qn70h-4k-vision-ai-smart-tv/p"
+                        "link": "https://shop.samsung.com.ar/55--qled-4k-q6f/p"
                     },
                     {
                         "supermercado": "Carrefour",
@@ -1709,7 +1709,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA39205030"
+                        "link": "https://articulo.mercadolibre.com.ar/MLA-2140790745"
                     },
                     {
                         "supermercado": "Samsung",
@@ -1722,7 +1722,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://shop.samsung.com.ar/galaxy-buds4/p"
+                        "link": "https://shop.samsung.com.ar/galaxy-buds3-pro/p"
                     },
                     {
                         "supermercado": "StyleStore",
@@ -1860,13 +1860,32 @@ def _format_live_product(p: dict) -> dict:
     tipo = p.get("tipo") or ""
     prod_id = str(p.get("id") or p.get("ean") or p.get("itemId") or int(time.time()))
 
+    store_name = p.get("supermercado") or "Supermercado"
+    sku_id = str(p.get("sku_id") or p.get("internal_id") or p.get("itemId") or "").strip()
+    link_url = p.get("link") or ""
+    if not sku_id and link_url:
+        m = re.search(r"-(\d+)/p", link_url) or re.search(r"/(\d+)/p", link_url)
+        if m:
+            sku_id = m.group(1)
+
+    # Detección canónica de tienda VTEX
+    is_vtex = False
+    try:
+        from .stores import supports_cart
+        is_vtex = supports_cart(store_name)
+    except Exception:
+        s_low = store_name.lower()
+        is_vtex = "coto" not in s_low and "mercadolibre" not in s_low
+
     off = {
-        "supermercado": p.get("supermercado") or "Supermercado",
+        "supermercado": store_name,
         "precio": display_price,
         "precio_lista": list_p,
         "stock": int(p.get("stock") or 50),
         "disponible": int(p.get("stock") or 50) > 0,
-        "link": p.get("link") or "",
+        "link": link_url,
+        "sku_id": sku_id,
+        "is_vtex": is_vtex,
         "discount": disc,
         "promo_label": promo,
         "promo_min_qty": min_qty,
@@ -2099,6 +2118,8 @@ def fetch_db_deals_sync(db_path: str = "supervmarket.db") -> Dict[str, List[Dict
         return {}
 
     try:
+        import datetime
+        day_seed = (datetime.date.today().toordinal() % 997) + 1
         conn = sqlite3.connect(abs_path, timeout=5.0)
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -2106,7 +2127,7 @@ def fetch_db_deals_sync(db_path: str = "supervmarket.db") -> Dict[str, List[Dict
         base_sql = """
             SELECT 
                 p.ean, pr.nombre, pr.marca, pr.modelo, pr.tipo, pr.imagen, pr.categoria_normalizada,
-                p.supermercado, p.precio_venta, p.precio_lista, p.stock, p.link, p.descuento,
+                p.supermercado, p.precio_venta, p.precio_lista, p.stock, p.internal_id, p.link, p.descuento,
                 p.promo_etiqueta, p.promo_min_qty, p.precio_promo_unit, p.precio_por_unidad, p.unidad_medida,
                 p.seller_id, p.store_type
             FROM precios p
@@ -2121,36 +2142,36 @@ def fetch_db_deals_sync(db_path: str = "supervmarket.db") -> Dict[str, List[Dict
             "tier-70-80": base_sql + """
                 AND (p.promo_etiqueta LIKE '%70%' OR p.promo_etiqueta LIKE '%80%' 
                      OR (p.promo_min_qty = 2 AND p.descuento >= 35.0 AND p.descuento <= 45.0))
-                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+                ORDER BY (p.descuento * 10) DESC, ((p.stock * 31 + day_seed) % 19) ASC LIMIT 35
             """,
             "tier-clearance": base_sql + """
                 AND p.descuento >= 50.0 AND p.descuento <= 75.0 AND p.store_type = 'supermarket'
-                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+                ORDER BY (p.descuento * 10) DESC, ((p.stock * 31 + day_seed) % 19) ASC LIMIT 35
             """,
             "tier-50": base_sql + """
                 AND (p.promo_etiqueta LIKE '%2x1%' OR (p.descuento >= 48.0 AND p.descuento <= 52.0))
                 AND p.store_type = 'supermarket'
-                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+                ORDER BY (p.descuento * 10) DESC, ((p.stock * 31 + day_seed) % 19) ASC LIMIT 35
             """,
             "tier-basket": base_sql + """
                 AND pr.categoria_normalizada IN ('almacen', 'lacteos_frescos', 'bebidas', 'limpieza', 'perfumeria_farmacia', 'carnes_verduleria')
                 AND p.descuento >= 20.0 AND p.descuento <= 45.0 AND p.store_type = 'supermarket'
-                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+                ORDER BY (p.descuento * 10) DESC, ((p.stock * 31 + day_seed) % 19) ASC LIMIT 35
             """,
             "tier-mp-tech": base_sql + """
                 AND pr.categoria_normalizada IN ('televisores', 'celulares', 'notebooks_tablets', 'audio_video', 'pequenos_electro')
                 AND p.descuento >= 15.0 AND p.descuento <= 75.0
-                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+                ORDER BY (p.descuento * 10) DESC, ((p.stock * 31 + day_seed) % 19) ASC LIMIT 35
             """,
             "tier-mp-home": base_sql + """
                 AND pr.categoria_normalizada IN ('heladeras_freezers', 'lavado', 'cocina_hornos', 'climatizacion', 'muebles_racks', 'herramientas_construccion')
                 AND p.descuento >= 15.0 AND p.descuento <= 75.0
-                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+                ORDER BY (p.descuento * 10) DESC, ((p.stock * 31 + day_seed) % 19) ASC LIMIT 35
             """,
             "tier-mp-destacadas": base_sql + """
                 AND p.supermercado IN ('Frávega', 'Musimundo', 'Naldo', 'Sony Store', 'Megatone', 'Coppel', 'Provincia Compras', 'Samsung', 'Philips', 'Whirlpool')
                 AND p.descuento >= 20.0 AND p.descuento <= 75.0
-                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+                ORDER BY (p.descuento * 10) DESC, ((p.stock * 31 + day_seed) % 19) ASC LIMIT 35
             """
         }
 
@@ -2181,7 +2202,7 @@ def fetch_db_deals_sync(db_path: str = "supervmarket.db") -> Dict[str, List[Dict
                     placeholders = ",".join("?" for _ in eans_to_enrich)
                     enrich_sql = f"""
                         SELECT 
-                            p.ean, p.supermercado, p.precio_venta, p.precio_lista, p.stock, p.link, p.descuento,
+                            p.ean, p.supermercado, p.precio_venta, p.precio_lista, p.stock, p.internal_id, p.link, p.descuento,
                             p.promo_etiqueta, p.promo_min_qty, p.precio_promo_unit, p.precio_por_unidad, p.unidad_medida,
                             p.seller_id, p.store_type
                         FROM precios p

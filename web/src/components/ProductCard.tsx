@@ -113,9 +113,12 @@ const ProductCard: React.FC<{
   const savePct = rows.length > 1 && maxEff > best.eff ? Math.round(((maxEff - best.eff) / maxEff) * 100) : 0
 
   // Mercado Libre participa tanto en supermercados (almacén, limpieza, bebidas) como en marketplaces/electro.
-  // Si group.vertical no está explícitamente fijado y la mejor oferta es de Mercado Libre,
-  // se categoriza como 'supermarket' (badge 'Súper').
-  const vertKey = group.vertical || (best?.o.supermercado === 'MercadoLibre' ? 'supermarket' : (best ? storeVertical(best.o.supermercado) : 'supermarket'))
+  const isSuperCategory = Boolean(
+    group.categoria_normalizada &&
+      ['almacen', 'lacteos_frescos', 'bebidas', 'limpieza', 'perfumeria_farmacia', 'carnes_verduleria', 'congelados'].includes(group.categoria_normalizada)
+  )
+  const rawVert = group.vertical || (best?.o.supermercado === 'MercadoLibre' ? 'supermarket' : (best ? storeVertical(best.o.supermercado) : 'supermarket'))
+  const vertKey = isSuperCategory ? 'supermarket' : rawVert
   const badge = getVerticalBadge(vertKey)
 
   const isDirect = Boolean(

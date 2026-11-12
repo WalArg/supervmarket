@@ -345,7 +345,7 @@ export const DISCOUNT_TIERS: DiscountTier[] = [
         ean: '7798138555999',
         nombre: 'Bolsa de residuos Trash 45x60 x 10 uni',
         marca: 'Trash',
-        imagen: 'https://carrefourar.vteximg.com.br/arquivos/ids/461042/2695706000003_01.jpg',
+        imagen: 'https://static.cotodigital3.com.ar/sitios/fotos/large/00503100/00503141.jpg',
         offers: [
           {
             supermercado: 'Disco',
@@ -406,7 +406,7 @@ export const DISCOUNT_TIERS: DiscountTier[] = [
         ean: '7790520023027',
         nombre: 'Insecticida Raid Mata Moscas y Mosquitos 370 ml',
         marca: 'Raid',
-        imagen: 'https://carrefourar.vteximg.com.br/arquivos/ids/891977/7790520997623_01.jpg',
+        imagen: 'https://static.cotodigital3.com.ar/sitios/fotos/large/00539000/00539046.jpg',
         offers: [
           {
             supermercado: 'Dia',
@@ -1078,7 +1078,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://shop.samsung.com.ar/55--neo-qled-qn70h-4k-vision-ai-smart-tv/p"
+                        "link": "https://shop.samsung.com.ar/55--qled-4k-q6f/p"
             },
             {
                         "supermercado": "Carrefour",
@@ -1735,7 +1735,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": true,
                         "free_shipping": true,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA39205030"
+                        "link": "https://articulo.mercadolibre.com.ar/MLA-2140790745"
             },
             {
                         "supermercado": "Samsung",
@@ -1748,7 +1748,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://shop.samsung.com.ar/galaxy-buds4/p"
+                        "link": "https://shop.samsung.com.ar/galaxy-buds3-pro/p"
             },
             {
                         "supermercado": "StyleStore",

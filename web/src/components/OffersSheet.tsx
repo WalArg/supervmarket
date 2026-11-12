@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, ExternalLink, Flame, CreditCard, MapPinOff, Plus, Minus, Check, Package } from 'lucide-react'
 import type { ProductGroup } from '../types'
-import { storeColor, storeLabel, getStoreDomain, resolveOutboundUrl } from '../lib/stores'
+import { storeColor, storeLabel, getStoreDomain, resolveOutboundUrl, isVtexStore, buildVtexCartAddUrl } from '../lib/stores'
 import { decorateOutboundUrl } from '../lib/affiliate'
 import { formatPrice } from '../lib/pricing'
 import { useCart, getItemKey } from '../cart/CartContext'
@@ -352,17 +352,40 @@ const OffersSheet: React.FC<{
                           </button>
                         )}
 
-                        {/* Enlace verificado y blindado hacia la web oficial */}
-                        <a
-                          href={buildOutboundOfferUrl(r.o)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-1 text-[11px] text-slate-400 hover:text-blue-600 flex items-center gap-0.5"
-                          title={`Abrir página oficial de ${storeLabel(r.o.supermercado)}`}
-                        >
-                          <span>Ver web</span>
-                          <ExternalLink size={10} />
-                        </a>
+                        {/* Enlace verificado hacia la web oficial y carrito directo */}
+                        <div className="mt-1 flex items-center gap-2">
+                          <a
+                            href={buildOutboundOfferUrl(r.o)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] text-slate-400 hover:text-blue-600 flex items-center gap-0.5"
+                            title={`Abrir página oficial de ${storeLabel(r.o.supermercado)}`}
+                          >
+                            <span>Ver web</span>
+                            <ExternalLink size={10} />
+                          </a>
+                          {isVtexStore(r.o.supermercado) && (
+                            <a
+                              href={
+                                buildVtexCartAddUrl(r.o.supermercado, [
+                                  {
+                                    sku_id: r.o.sku_id,
+                                    link: r.o.link,
+                                    qty: r.minQty || 1,
+                                    seller_id: r.o.seller_id,
+                                  },
+                                ]) || buildOutboundOfferUrl(r.o)
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] font-bold text-blue-600 hover:underline flex items-center gap-0.5"
+                              title={`Ir al carrito oficial de ${storeLabel(r.o.supermercado)}`}
+                            >
+                              <span>Al carrito</span>
+                              <ExternalLink size={10} />
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -558,7 +581,7 @@ const OffersSheet: React.FC<{
                         getItemKey(ean, best.o.supermercado, best.o.sku_id),
                         best.minQty || 1,
                         best.o.supermercado,
-                        { link: best.o.link, precio: best.eff, sku_id: best.o.sku_id },
+                        { link: best.o.link, precio: best.eff, sku_id: best.o.sku_id, seller_id: best.o.seller_id },
                       )
                     }
                     className="h-10 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-extrabold flex items-center gap-1 active:scale-95 transition-all shadow-xs shrink-0"

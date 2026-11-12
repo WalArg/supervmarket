@@ -140,15 +140,29 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
     return [...tiers, ...marketplaceTiers]
   }, [selectedVertical, tiers, marketplaceTiers])
 
-  // La Ganga del Día: Supermercados (Oportunidad verificada de Mercado Libre)
+  // La Ganga del Día: Supermercados (Oportunidad verificada con alta rebaja)
   const topSuperMeliDeal = useMemo(() => {
     const candidates: Array<{ product: ProductGroup; offer: SupermarketOffer }> = []
     for (const t of tiers) {
-      if (t.meliSponsored?.product && t.meliSponsored?.offer && t.meliSponsored.offer.precio > 0) {
+      if (
+        t.meliSponsored?.product &&
+        t.meliSponsored?.offer &&
+        t.meliSponsored.offer.precio > 0 &&
+        t.meliSponsored.product.imagen &&
+        !t.meliSponsored.product.imagen.includes('placeholder')
+      ) {
         candidates.push({ product: t.meliSponsored.product, offer: t.meliSponsored.offer })
       }
       for (const p of t.products || []) {
-        const mOffer = p.offers?.find(o => o.supermercado === 'MercadoLibre' && o.precio > 0)
+        if (!p.imagen || p.imagen.includes('placeholder') || p.imagen.length < 10) continue
+        const mOffer = p.offers?.find(
+          o =>
+            (o.supermercado === 'MercadoLibre' || o.supermercado === 'Mercado Libre') &&
+            o.precio > 0 &&
+            (o.discount || 0) >= 20 &&
+            o.link &&
+            o.link.startsWith('http'),
+        )
         if (mOffer) {
           candidates.push({ product: p, offer: mOffer })
         }
@@ -159,15 +173,29 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
     return candidates[0]
   }, [tiers])
 
-  // La Ganga del Día: Marketplaces & Electro (Oportunidad verificada de Mercado Libre)
+  // La Ganga del Día: Marketplaces & Electro (Oportunidad verificada con alta rebaja)
   const topTechMeliDeal = useMemo(() => {
     const candidates: Array<{ product: ProductGroup; offer: SupermarketOffer }> = []
     for (const t of marketplaceTiers) {
-      if (t.meliSponsored?.product && t.meliSponsored?.offer && t.meliSponsored.offer.precio > 0) {
+      if (
+        t.meliSponsored?.product &&
+        t.meliSponsored?.offer &&
+        t.meliSponsored.offer.precio > 0 &&
+        t.meliSponsored.product.imagen &&
+        !t.meliSponsored.product.imagen.includes('placeholder')
+      ) {
         candidates.push({ product: t.meliSponsored.product, offer: t.meliSponsored.offer })
       }
       for (const p of t.products || []) {
-        const mOffer = p.offers?.find(o => o.supermercado === 'MercadoLibre' && o.precio > 0)
+        if (!p.imagen || p.imagen.includes('placeholder') || p.imagen.length < 10) continue
+        const mOffer = p.offers?.find(
+          o =>
+            (o.supermercado === 'MercadoLibre' || o.supermercado === 'Mercado Libre') &&
+            o.precio > 0 &&
+            (o.discount || 0) >= 20 &&
+            o.link &&
+            o.link.startsWith('http'),
+        )
         if (mOffer) {
           candidates.push({ product: p, offer: mOffer })
         }

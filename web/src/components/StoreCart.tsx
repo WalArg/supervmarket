@@ -14,7 +14,7 @@ import {
 import type { StorePlan } from '../types'
 import { validateCart } from '../api'
 import { useLocation } from '../location/LocationContext'
-import { storeColor, storeLabel } from '../lib/stores'
+import { storeColor, storeLabel, isVtexStore, buildVtexCartAddUrl } from '../lib/stores'
 import { formatPrice } from '../lib/pricing'
 import { decorateOutboundUrl, trackOutboundAffiliateClick } from '../lib/affiliate'
 import MeliCartAssistantModal from './MeliCartAssistantModal'
@@ -77,7 +77,15 @@ export const StoreCart: React.FC<{ plan: StorePlan }> = ({ plan }) => {
   const finalTotal =
     plan.final_store_total ?? Math.max(0, subtotalMerch - bankDiscount + shippingFee)
   const sinStock = validation?.sin_stock || []
-  const rawCheckout = plan.affiliate_checkout_url || validation?.checkout_url || plan.checkout_url
+  const vtexCartUrl = isVtexStore(plan.supermercado)
+    ? buildVtexCartAddUrl(plan.supermercado, plan.items)
+    : null
+  const rawCheckout =
+    plan.affiliate_checkout_url ||
+    validation?.checkout_url ||
+    plan.checkout_url ||
+    vtexCartUrl ||
+    (plan.items.length === 1 && plan.items[0].link ? plan.items[0].link : null)
   const checkout = rawCheckout ? decorateOutboundUrl(rawCheckout, plan.supermercado, 'checkout') : null
   const isCoto = plan.supermercado === 'Coto'
   const isMeli =

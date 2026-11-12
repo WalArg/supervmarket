@@ -139,6 +139,59 @@ export const storeVertical = (s: string): StoreVertical => getStoreMeta(s)?.vert
 export const isMarketplaceStore = (s: string): boolean => Boolean(getStoreMeta(s)?.isMarketplace)
 export const storeSupportsCart = (s: string): boolean => Boolean(getStoreMeta(s)?.supportsCart)
 
+export function isVtexStore(store?: string | null): boolean {
+  if (!store) return false
+  const sLower = store.toLowerCase()
+  if (sLower.includes('coto') || sLower.includes('mercadolibre')) return false
+  const meta = getStoreMeta(store)
+  return Boolean(meta && meta.supportsCart !== false && meta.dominio?.includes('.com'))
+}
+
+export function buildVtexCartAddUrl(
+  store: string,
+  items: Array<{
+    sku_id?: string
+    qty?: number
+    seller_id?: string | null
+    sc?: number | string
+    link?: string
+  }>,
+): string | null {
+  if (!isVtexStore(store) || !items || !items.length) return null
+  const domain = getStoreDomain(store).replace(/\/+$/, '')
+  if (!domain) return null
+
+  const sLower = store.toLowerCase()
+  let defaultSc = 1
+  if (sLower.includes('jumbo')) defaultSc = 32
+  else if (sLower.includes('disco')) defaultSc = 33
+  else if (sLower.includes('vea')) defaultSc = 34
+  else if (sLower.includes('oncity') || sLower.includes('on city')) defaultSc = 2
+  else if (sLower.includes('moulinex')) defaultSc = 3
+  else if (sLower.includes('farmacity')) defaultSc = 4
+  else if (sLower.includes('josimar')) defaultSc = 5
+
+  const parts: string[] = []
+  for (const item of items) {
+    let sku = (item.sku_id || '').trim()
+    if (!sku && item.link) {
+      const match = item.link.match(/-(\d+)\/p/) || item.link.match(/\/(\d+)\/p/)
+      if (match) {
+        sku = match[1]
+      }
+    }
+    if (!sku) continue
+    const qty = Math.max(1, item.qty || 1)
+    const seller = item.seller_id || '1'
+    const sc = item.sc || defaultSc
+    parts.push(`sku=${encodeURIComponent(sku)}&qty=${qty}&seller=${encodeURIComponent(seller)}&sc=${sc}`)
+  }
+
+  if (!parts.length) return null
+  const rawUrl = `${domain}/checkout/cart/add?${parts.join('&')}`
+  return decorateOutboundUrl(rawUrl, store, 'checkout')
+}
+
 export const STORE_DOMAINS: Record<string, string> = Object.fromEntries(
   Object.entries(STORES)
     .filter(([_, meta]) => Boolean(meta.dominio))

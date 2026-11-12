@@ -83,7 +83,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Simplicity",
@@ -105,7 +106,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -162,7 +164,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "8023795"
             },
             {
               "supermercado": "Toledo Digital",
@@ -184,7 +188,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "21709"
             },
             {
               "supermercado": "Carrefour",
@@ -206,7 +212,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "707217"
             },
             {
               "supermercado": "Coto",
@@ -228,7 +236,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Perfumerías Pigmento",
@@ -250,7 +259,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "On City",
@@ -272,7 +282,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "122383"
             },
             {
               "supermercado": "Farmaplus",
@@ -294,7 +306,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmacity",
@@ -316,7 +329,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Simplicity",
@@ -338,7 +352,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -395,7 +410,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "8015905"
             },
             {
               "supermercado": "Farmaplus",
@@ -417,7 +434,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Toledo Digital",
@@ -439,7 +457,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "21697"
             },
             {
               "supermercado": "Carrefour",
@@ -461,7 +481,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "707209"
             },
             {
               "supermercado": "Coto",
@@ -483,7 +505,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Perfumerías Pigmento",
@@ -505,7 +528,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "On City",
@@ -527,7 +551,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "122388"
             },
             {
               "supermercado": "Farmacity",
@@ -549,7 +575,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Simplicity",
@@ -571,7 +598,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -628,7 +656,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmacity",
@@ -650,7 +679,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -707,7 +737,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Simplicity",
@@ -729,7 +760,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -786,7 +818,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Simplicity",
@@ -808,7 +841,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -865,7 +899,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -922,7 +957,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmacity",
@@ -944,7 +980,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -1001,7 +1038,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmacity",
@@ -1023,7 +1061,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -1080,7 +1119,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "8013971"
             },
             {
               "supermercado": "Farmaplus",
@@ -1102,7 +1143,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmacity",
@@ -1124,7 +1166,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -1181,7 +1224,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "On City",
@@ -1203,7 +1247,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "97025"
             },
             {
               "supermercado": "Coto",
@@ -1225,7 +1271,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Más Online",
@@ -1247,7 +1294,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Perfumerías Pigmento",
@@ -1269,7 +1318,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmaonline",
@@ -1291,7 +1341,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "8128290"
             },
             {
               "supermercado": "Farmaplus",
@@ -1313,7 +1365,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Masonline",
@@ -1335,7 +1388,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Farmacity",
@@ -1357,7 +1412,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Simplicity",
@@ -1379,7 +1435,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -1436,7 +1493,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "On City",
@@ -1458,7 +1516,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "97019"
             },
             {
               "supermercado": "Toledo Digital",
@@ -1480,7 +1540,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "27539"
             },
             {
               "supermercado": "Coto",
@@ -1502,7 +1564,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Más Online",
@@ -1524,7 +1587,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Perfumerías Pigmento",
@@ -1546,7 +1611,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmaonline",
@@ -1568,7 +1634,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "8128291"
             },
             {
               "supermercado": "Farmaplus",
@@ -1590,7 +1658,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmacity",
@@ -1612,7 +1681,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Simplicity",
@@ -1634,7 +1704,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -1691,7 +1762,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmaonline",
@@ -1713,7 +1785,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "8121131"
             },
             {
               "supermercado": "Simplicity",
@@ -1735,7 +1809,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmacity",
@@ -1757,7 +1832,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -1814,7 +1890,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Farmacity",
@@ -1836,7 +1913,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Simplicity",
@@ -1858,7 +1936,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmaplus",
@@ -1880,7 +1959,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Perfumerías Pigmento",
@@ -1902,7 +1982,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "On City",
@@ -1924,7 +2005,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "136494"
             },
             {
               "supermercado": "Farmaonline",
@@ -1946,7 +2029,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "8021756"
             },
             {
               "supermercado": "Más Online",
@@ -1968,7 +2053,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             }
           ]
         },
@@ -2025,7 +2112,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "On City",
@@ -2047,7 +2136,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "94153"
             },
             {
               "supermercado": "Farmaplus",
@@ -2069,7 +2160,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmaonline",
@@ -2091,7 +2183,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "8124965"
             },
             {
               "supermercado": "Toledo Digital",
@@ -2113,7 +2207,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "22712"
             },
             {
               "supermercado": "Día",
@@ -2135,7 +2231,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "300045"
             },
             {
               "supermercado": "Coto",
@@ -2157,7 +2255,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Más Online",
@@ -2179,7 +2278,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Josimar",
@@ -2201,7 +2302,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Perfumerías Pigmento",
@@ -2223,7 +2325,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Dia",
@@ -2245,7 +2348,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "300045"
             },
             {
               "supermercado": "Farmacity",
@@ -2267,7 +2372,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Simplicity",
@@ -2289,7 +2395,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -2308,7 +2415,9 @@
               "discount": 40,
               "promo_label": "40% OFF Directo",
               "unit_measure": "kg",
-              "unit_price": 6864
+              "unit_price": 6864,
+              "is_vtex": true,
+              "sku_id": "271629"
             },
             {
               "supermercado": "Masonline",
@@ -2319,7 +2428,9 @@
               "discount": 33,
               "promo_label": "33% OFF",
               "unit_measure": "kg",
-              "unit_price": 6762
+              "unit_price": 6762,
+              "is_vtex": true,
+              "sku_id": "13865"
             },
             {
               "supermercado": "Coto",
@@ -2328,7 +2439,9 @@
               "stock": 60,
               "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-galletitas-oreo-rellenas-118-gr/_/A-00503124-00503124-200/p",
               "unit_measure": "kg",
-              "unit_price": 10423
+              "unit_price": 10423,
+              "is_vtex": false,
+              "sku_id": "200"
             },
             {
               "supermercado": "MercadoLibre",
@@ -2341,7 +2454,8 @@
               "seller_name": "Mercado Libre Supermercado",
               "is_full": true,
               "unit_measure": "kg",
-              "unit_price": 16016
+              "unit_price": 16016,
+              "is_vtex": false
             },
             {
               "supermercado": "Carrefour",
@@ -2353,7 +2467,9 @@
               "promo_label": "2do al 70% ($1.715 c/u x2)",
               "promo_min_qty": 2,
               "unit_measure": "kg",
-              "unit_price": 22364
+              "unit_price": 22364,
+              "is_vtex": true,
+              "sku_id": "715949"
             }
           ],
           "best_offer": {
@@ -2383,7 +2499,9 @@
               "discount": 35,
               "promo_label": "35% OFF Directo",
               "unit_measure": "lt",
-              "unit_price": 3526
+              "unit_price": 3526,
+              "is_vtex": true,
+              "sku_id": "14660"
             },
             {
               "supermercado": "Carrefour",
@@ -2394,7 +2512,9 @@
               "discount": 35,
               "promo_label": "35% OFF Directo",
               "unit_measure": "lt",
-              "unit_price": 3855
+              "unit_price": 3855,
+              "is_vtex": true,
+              "sku_id": "695715"
             },
             {
               "supermercado": "Farmacity",
@@ -2405,7 +2525,8 @@
               "discount": 25,
               "promo_label": "25% OFF Directo",
               "unit_measure": "lt",
-              "unit_price": 4532
+              "unit_price": 4532,
+              "is_vtex": true
             },
             {
               "supermercado": "MercadoLibre",
@@ -2418,7 +2539,8 @@
               "seller_name": "Tienda Oficial Unilever",
               "is_full": true,
               "unit_measure": "lt",
-              "unit_price": 4362
+              "unit_price": 4362,
+              "is_vtex": false
             },
             {
               "supermercado": "Coto",
@@ -2427,7 +2549,9 @@
               "stock": 70,
               "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-jabon-liquido-skip-bio-enzimas-doypack-800-ml/_/A-00498765-00498765-200/p",
               "unit_measure": "lt",
-              "unit_price": 5432
+              "unit_price": 5432,
+              "is_vtex": false,
+              "sku_id": "200"
             }
           ],
           "best_offer": {
@@ -2457,7 +2581,9 @@
               "discount": 80,
               "promo_label": "80% OFF Liquidación",
               "unit_measure": "ml",
-              "unit_price": 5235
+              "unit_price": 5235,
+              "is_vtex": true,
+              "sku_id": "210739"
             }
           ],
           "best_offer": {
@@ -2487,7 +2613,9 @@
               "discount": 30,
               "promo_label": "30% OFF Liquidación",
               "unit_measure": "kg",
-              "unit_price": 46433
+              "unit_price": 46433,
+              "is_vtex": true,
+              "sku_id": "6529"
             }
           ],
           "best_offer": {
@@ -2518,7 +2646,9 @@
               "promo_label": "2do al 50% ($1.860 c/u x2)",
               "promo_min_qty": 2,
               "unit_measure": "kg",
-              "unit_price": 20840
+              "unit_price": 20840,
+              "is_vtex": true,
+              "sku_id": "271628"
             }
           ],
           "best_offer": {
@@ -2619,7 +2749,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1777193"
             }
           ]
         },
@@ -2676,7 +2808,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             }
           ]
         },
@@ -2733,7 +2866,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1777713"
             }
           ]
         },
@@ -2790,7 +2925,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1777713"
             }
           ]
         },
@@ -2847,7 +2984,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "335498"
             },
             {
               "supermercado": "Carrefour",
@@ -2869,7 +3008,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1762436"
             }
           ]
         },
@@ -2926,7 +3067,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "990747202"
             },
             {
               "supermercado": "Pardo",
@@ -2948,7 +3091,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Carrefour",
@@ -2970,7 +3114,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1774409"
             }
           ]
         },
@@ -3027,7 +3173,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "990743665"
             },
             {
               "supermercado": "Provincia Compras",
@@ -3049,7 +3197,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "322122"
             },
             {
               "supermercado": "Carrefour",
@@ -3071,7 +3221,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1774410"
             },
             {
               "supermercado": "Pardo",
@@ -3093,7 +3245,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -3150,7 +3303,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "764052"
             },
             {
               "supermercado": "Josimar",
@@ -3172,7 +3327,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Más Online",
@@ -3194,7 +3350,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Coto",
@@ -3216,7 +3373,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Jumbo",
@@ -3238,7 +3396,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Disco",
@@ -3260,7 +3420,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             }
           ]
         },
@@ -3317,7 +3479,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "764048"
             },
             {
               "supermercado": "Josimar",
@@ -3339,7 +3503,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Más Online",
@@ -3361,7 +3526,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Coto",
@@ -3383,7 +3549,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Jumbo",
@@ -3405,7 +3572,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Disco",
@@ -3427,7 +3595,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -3484,7 +3653,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1749736"
             }
           ]
         },
@@ -3541,7 +3712,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1657991"
             }
           ]
         },
@@ -3598,7 +3771,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1759894"
             },
             {
               "supermercado": "Provincia Compras",
@@ -3620,7 +3795,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "337622"
             }
           ]
         },
@@ -3677,7 +3854,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "102622"
             },
             {
               "supermercado": "Carrefour",
@@ -3699,7 +3878,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1770969"
             },
             {
               "supermercado": "Cetrogar",
@@ -3721,7 +3902,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "3607"
             },
             {
               "supermercado": "On City",
@@ -3743,7 +3926,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "157844"
             }
           ]
         },
@@ -3800,7 +3985,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "759025"
             }
           ]
         },
@@ -3857,7 +4044,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "990866848"
             },
             {
               "supermercado": "Provincia Compras",
@@ -3879,7 +4068,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "339748"
             }
           ]
         },
@@ -3898,7 +4089,9 @@
               "discount": 73,
               "promo_label": "73% OFF Liquidación",
               "unit_measure": "lt",
-              "unit_price": 1816
+              "unit_price": 1816,
+              "is_vtex": true,
+              "sku_id": "720918"
             },
             {
               "supermercado": "MercadoLibre",
@@ -3911,7 +4104,8 @@
               "seller_name": "Bebidas Oficial",
               "is_full": true,
               "unit_measure": "lt",
-              "unit_price": 3921
+              "unit_price": 3921,
+              "is_vtex": false
             },
             {
               "supermercado": "Coto",
@@ -3920,7 +4114,9 @@
               "stock": 40,
               "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-whisky-petakon-380-ml/_/A-00412345-00412345-200/p",
               "unit_measure": "lt",
-              "unit_price": 4973
+              "unit_price": 4973,
+              "is_vtex": false,
+              "sku_id": "200"
             },
             {
               "supermercado": "Dia",
@@ -3929,7 +4125,9 @@
               "stock": 35,
               "link": "https://diaonline.supermercadosdia.com.ar/whisky-petakon-petaca-380-ml-19823/p",
               "unit_measure": "lt",
-              "unit_price": 5236
+              "unit_price": 5236,
+              "is_vtex": true,
+              "sku_id": "19823"
             }
           ],
           "best_offer": {
@@ -3948,7 +4146,7 @@
           "ean": "7798138555999",
           "nombre": "Bolsa de residuos Trash 45x60 x 10 uni",
           "marca": "Trash",
-          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/461042/2695706000003_01.jpg",
+          "imagen": "https://static.cotodigital3.com.ar/sitios/fotos/large/00503100/00503141.jpg",
           "offers": [
             {
               "supermercado": "Disco",
@@ -3959,7 +4157,8 @@
               "discount": 40,
               "promo_label": "40% OFF Directo",
               "unit_measure": "u",
-              "unit_price": 23
+              "unit_price": 23,
+              "is_vtex": true
             },
             {
               "supermercado": "Carrefour",
@@ -3970,7 +4169,9 @@
               "discount": 62,
               "promo_label": "62% OFF Directo",
               "unit_measure": "u",
-              "unit_price": 30
+              "unit_price": 30,
+              "is_vtex": true,
+              "sku_id": "748411"
             },
             {
               "supermercado": "MercadoLibre",
@@ -3983,7 +4184,8 @@
               "seller_name": "Tienda Oficial Trash",
               "is_full": true,
               "unit_measure": "u",
-              "unit_price": 40
+              "unit_price": 40,
+              "is_vtex": false
             },
             {
               "supermercado": "Dia",
@@ -3992,7 +4194,9 @@
               "stock": 75,
               "link": "https://diaonline.supermercadosdia.com.ar/bolsas-de-residuos-trash-45x60-10-uni-18491/p",
               "unit_measure": "u",
-              "unit_price": 45
+              "unit_price": 45,
+              "is_vtex": true,
+              "sku_id": "18491"
             },
             {
               "supermercado": "Coto",
@@ -4001,7 +4205,9 @@
               "stock": 50,
               "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-bolsas-residuos-trash-45x60/_/A-00512890-00512890-200/p",
               "unit_measure": "u",
-              "unit_price": 55
+              "unit_price": 55,
+              "is_vtex": false,
+              "sku_id": "200"
             }
           ],
           "best_offer": {
@@ -4020,7 +4226,7 @@
           "ean": "7790520023027",
           "nombre": "Insecticida Raid Mata Moscas y Mosquitos 370 ml",
           "marca": "Raid",
-          "imagen": "https://carrefourar.vteximg.com.br/arquivos/ids/891977/7790520997623_01.jpg",
+          "imagen": "https://static.cotodigital3.com.ar/sitios/fotos/large/00539000/00539046.jpg",
           "offers": [
             {
               "supermercado": "Dia",
@@ -4031,7 +4237,9 @@
               "discount": 40,
               "promo_label": "40% OFF Directo",
               "unit_measure": "lt",
-              "unit_price": 5675
+              "unit_price": 5675,
+              "is_vtex": true,
+              "sku_id": "12903"
             },
             {
               "supermercado": "MercadoLibre",
@@ -4044,7 +4252,8 @@
               "seller_name": "Tienda Oficial SC Johnson",
               "is_full": true,
               "unit_measure": "lt",
-              "unit_price": 6729
+              "unit_price": 6729,
+              "is_vtex": false
             },
             {
               "supermercado": "Coto",
@@ -4055,7 +4264,9 @@
               "discount": 25,
               "promo_label": "25% OFF Directo",
               "unit_measure": "lt",
-              "unit_price": 7630
+              "unit_price": 7630,
+              "is_vtex": false,
+              "sku_id": "200"
             },
             {
               "supermercado": "Carrefour",
@@ -4066,7 +4277,9 @@
               "discount": 58,
               "promo_label": "58% OFF Directo",
               "unit_measure": "lt",
-              "unit_price": 8430
+              "unit_price": 8430,
+              "is_vtex": true,
+              "sku_id": "703700"
             },
             {
               "supermercado": "Farmaonline",
@@ -4077,7 +4290,8 @@
               "discount": 20,
               "promo_label": "20% OFF Directo",
               "unit_measure": "lt",
-              "unit_price": 8994
+              "unit_price": 8994,
+              "is_vtex": true
             }
           ],
           "best_offer": {
@@ -4109,7 +4323,8 @@
               "seller_name": "Tienda Oficial Catena Zapata",
               "is_full": true,
               "unit_measure": "lt",
-              "unit_price": 13332
+              "unit_price": 13332,
+              "is_vtex": false
             },
             {
               "supermercado": "Carrefour",
@@ -4121,7 +4336,9 @@
               "promo_label": "3x2 ($11.265 c/u x3)",
               "promo_min_qty": 3,
               "unit_measure": "lt",
-              "unit_price": 15020
+              "unit_price": 15020,
+              "is_vtex": true,
+              "sku_id": "20275"
             },
             {
               "supermercado": "Masonline",
@@ -4132,7 +4349,9 @@
               "discount": 20,
               "promo_label": "20% OFF",
               "unit_measure": "lt",
-              "unit_price": 16666
+              "unit_price": 16666,
+              "is_vtex": true,
+              "sku_id": "18923"
             },
             {
               "supermercado": "Coto",
@@ -4141,7 +4360,9 @@
               "stock": 50,
               "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-vino-fino-tinto-alamos-malbec-750-ml/_/A-00123984-00123984-200/p",
               "unit_measure": "lt",
-              "unit_price": 17600
+              "unit_price": 17600,
+              "is_vtex": false,
+              "sku_id": "200"
             }
           ],
           "best_offer": {
@@ -4243,7 +4464,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658197"
             }
           ]
         },
@@ -4300,7 +4523,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658230"
             }
           ]
         },
@@ -4357,7 +4582,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658228"
             }
           ]
         },
@@ -4414,7 +4641,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658226"
             }
           ]
         },
@@ -4471,7 +4700,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658222"
             }
           ]
         },
@@ -4528,7 +4759,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658218"
             }
           ]
         },
@@ -4585,7 +4818,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658216"
             }
           ]
         },
@@ -4642,7 +4877,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658211"
             }
           ]
         },
@@ -4699,7 +4936,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658207"
             }
           ]
         },
@@ -4756,7 +4995,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "183156"
             },
             {
               "supermercado": "Carrefour",
@@ -4778,7 +5019,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658206"
             }
           ]
         },
@@ -4835,7 +5078,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658205"
             }
           ]
         },
@@ -4892,7 +5137,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658204"
             }
           ]
         },
@@ -4949,7 +5196,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658201"
             }
           ]
         },
@@ -5006,7 +5255,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658200"
             }
           ]
         },
@@ -5063,7 +5314,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1658198"
             }
           ]
         },
@@ -5082,7 +5335,9 @@
               "discount": 43,
               "promo_label": "43% OFF Directo",
               "unit_measure": "kg",
-              "unit_price": 2100
+              "unit_price": 2100,
+              "is_vtex": true,
+              "sku_id": "144397"
             },
             {
               "supermercado": "MercadoLibre",
@@ -5095,7 +5350,8 @@
               "seller_name": "Mercado Libre Supermercado",
               "is_full": true,
               "unit_measure": "kg",
-              "unit_price": 2580
+              "unit_price": 2580,
+              "is_vtex": false
             },
             {
               "supermercado": "Carrefour",
@@ -5104,7 +5360,9 @@
               "stock": 70,
               "link": "https://www.carrefour.com.ar/fideos-tirabuzon-lucchetti-500-g-15491/p",
               "unit_measure": "kg",
-              "unit_price": 2900
+              "unit_price": 2900,
+              "is_vtex": true,
+              "sku_id": "15491"
             },
             {
               "supermercado": "Coto",
@@ -5113,7 +5371,9 @@
               "stock": 60,
               "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-fideos-secos-tirabuzon-lucchetti-500-gr/_/A-00389123-00389123-200/p",
               "unit_measure": "kg",
-              "unit_price": 3040
+              "unit_price": 3040,
+              "is_vtex": false,
+              "sku_id": "200"
             }
           ],
           "best_offer": {
@@ -5143,7 +5403,9 @@
               "discount": 50,
               "promo_label": "50% OFF Directo",
               "unit_measure": "lt",
-              "unit_price": 3572
+              "unit_price": 3572,
+              "is_vtex": true,
+              "sku_id": "313120"
             },
             {
               "supermercado": "Carrefour",
@@ -5154,7 +5416,9 @@
               "discount": 40,
               "promo_label": "40% OFF Directo",
               "unit_measure": "lt",
-              "unit_price": 3983
+              "unit_price": 3983,
+              "is_vtex": true,
+              "sku_id": "720914"
             },
             {
               "supermercado": "MercadoLibre",
@@ -5167,7 +5431,8 @@
               "seller_name": "Tienda Oficial Bierhaus",
               "is_full": true,
               "unit_measure": "lt",
-              "unit_price": 4629
+              "unit_price": 4629,
+              "is_vtex": false
             },
             {
               "supermercado": "Vea",
@@ -5177,7 +5442,8 @@
               "link": "https://www.vea.com.ar/cerveza-bierhaus-honey-473-ml/p",
               "discount": 20,
               "unit_measure": "lt",
-              "unit_price": 5073
+              "unit_price": 5073,
+              "is_vtex": true
             },
             {
               "supermercado": "Coto",
@@ -5186,7 +5452,9 @@
               "stock": 50,
               "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-cerveza-artesanal-honey-bierhaus-473-ml/_/A-00523456-00523456-200/p",
               "unit_measure": "lt",
-              "unit_price": 7177
+              "unit_price": 7177,
+              "is_vtex": false,
+              "sku_id": "200"
             }
           ],
           "best_offer": {
@@ -5216,7 +5484,8 @@
               "discount": 15,
               "promo_label": "15% Tarjeta Carrefour",
               "unit_measure": "kg",
-              "unit_price": 21995
+              "unit_price": 21995,
+              "is_vtex": true
             }
           ],
           "best_offer": {
@@ -5316,7 +5585,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Más Online",
@@ -5338,7 +5608,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Josimar",
@@ -5360,7 +5632,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Toledo Digital",
@@ -5382,7 +5655,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "14174"
             },
             {
               "supermercado": "On City",
@@ -5404,7 +5679,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "142674"
             },
             {
               "supermercado": "Carrefour",
@@ -5426,7 +5703,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "45322"
             },
             {
               "supermercado": "Masonline",
@@ -5448,7 +5727,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Coto",
@@ -5470,7 +5751,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Vea",
@@ -5492,7 +5774,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Disco",
@@ -5514,7 +5797,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Jumbo",
@@ -5536,7 +5820,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -5593,7 +5878,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Más Online",
@@ -5615,7 +5901,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Carrefour",
@@ -5637,7 +5925,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "45321"
             },
             {
               "supermercado": "Josimar",
@@ -5659,7 +5949,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Toledo Digital",
@@ -5681,7 +5972,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "66382"
             },
             {
               "supermercado": "Coto",
@@ -5703,7 +5996,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Disco",
@@ -5725,7 +6019,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Jumbo",
@@ -5747,7 +6042,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Vea",
@@ -5769,7 +6065,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -5826,7 +6123,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "78445"
             },
             {
               "supermercado": "Carrefour",
@@ -5848,7 +6147,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "6303"
             },
             {
               "supermercado": "Coto",
@@ -5870,7 +6171,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Masonline",
@@ -5892,7 +6194,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Vea",
@@ -5914,7 +6218,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Disco",
@@ -5936,7 +6241,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Jumbo",
@@ -5958,7 +6264,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Cordiez",
@@ -5980,7 +6287,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Más Online",
@@ -6002,7 +6310,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Josimar",
@@ -6024,7 +6334,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Día",
@@ -6046,7 +6357,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "78445"
             },
             {
               "supermercado": "Toledo Digital",
@@ -6068,7 +6381,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "14170"
             }
           ]
         },
@@ -6125,7 +6440,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1778773"
             },
             {
               "supermercado": "Provincia Compras",
@@ -6147,7 +6464,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "225525"
             }
           ]
         },
@@ -6204,7 +6523,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1778771"
             },
             {
               "supermercado": "Provincia Compras",
@@ -6226,7 +6547,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "225524"
             }
           ]
         },
@@ -6283,7 +6606,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1778770"
             },
             {
               "supermercado": "Provincia Compras",
@@ -6305,7 +6630,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "225523"
             }
           ]
         },
@@ -6362,7 +6689,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1778769"
             }
           ]
         },
@@ -6419,7 +6748,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1779270"
             },
             {
               "supermercado": "Provincia Compras",
@@ -6441,7 +6772,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "340077"
             }
           ]
         },
@@ -6498,7 +6831,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Más Online",
@@ -6520,7 +6854,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Masonline",
@@ -6542,7 +6878,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Josimar",
@@ -6564,7 +6902,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Coto",
@@ -6586,7 +6925,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Farmaplus",
@@ -6608,7 +6948,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -6665,7 +7006,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "8141676"
             },
             {
               "supermercado": "Más Online",
@@ -6687,7 +7030,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Coto",
@@ -6709,7 +7053,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Farmaplus",
@@ -6731,7 +7076,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -6788,7 +7134,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1778767"
             },
             {
               "supermercado": "Provincia Compras",
@@ -6810,7 +7158,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "225519"
             }
           ]
         },
@@ -6867,7 +7217,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Josimar",
@@ -6889,7 +7240,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Más Online",
@@ -6911,7 +7264,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Toledo Digital",
@@ -6933,7 +7287,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "32571"
             }
           ]
         },
@@ -6990,7 +7346,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Dia",
@@ -7012,7 +7370,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "282740"
             },
             {
               "supermercado": "Carrefour",
@@ -7034,7 +7394,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "689346"
             },
             {
               "supermercado": "Cordiez",
@@ -7056,7 +7418,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Toledo Digital",
@@ -7078,7 +7441,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "16966"
             },
             {
               "supermercado": "Coto",
@@ -7100,7 +7465,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Día",
@@ -7122,7 +7488,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "282740"
             },
             {
               "supermercado": "Jumbo",
@@ -7144,7 +7512,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Masonline",
@@ -7166,7 +7536,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             }
           ]
         },
@@ -7223,7 +7595,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Más Online",
@@ -7245,7 +7618,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Simplicity",
@@ -7267,7 +7641,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "On City",
@@ -7289,7 +7664,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "105279"
             },
             {
               "supermercado": "Día",
@@ -7311,7 +7688,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "309947"
             },
             {
               "supermercado": "Coto",
@@ -7333,7 +7712,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Toledo Digital",
@@ -7355,7 +7735,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "5807"
             },
             {
               "supermercado": "Farmaonline",
@@ -7377,7 +7759,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "8144142"
             },
             {
               "supermercado": "Josimar",
@@ -7399,7 +7783,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Dia",
@@ -7421,7 +7806,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "309947"
             },
             {
               "supermercado": "Masonline",
@@ -7443,7 +7830,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmacity",
@@ -7465,7 +7853,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -7522,7 +7911,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "On City",
@@ -7544,7 +7934,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "94155"
             },
             {
               "supermercado": "Farmaplus",
@@ -7566,7 +7958,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Más Online",
@@ -7588,7 +7981,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2"
             },
             {
               "supermercado": "Coto",
@@ -7610,7 +8005,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": false
             },
             {
               "supermercado": "Día",
@@ -7632,7 +8028,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "15762"
             },
             {
               "supermercado": "Dia",
@@ -7654,7 +8052,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "15762"
             },
             {
               "supermercado": "Farmaonline",
@@ -7676,7 +8076,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "8131750"
             },
             {
               "supermercado": "Simplicity",
@@ -7698,7 +8100,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             },
             {
               "supermercado": "Farmacity",
@@ -7720,7 +8123,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -7739,7 +8143,9 @@
               "discount": 25,
               "promo_label": "25% OFF Directo",
               "unit_measure": "lt",
-              "unit_price": 2269
+              "unit_price": 2269,
+              "is_vtex": true,
+              "sku_id": "720719"
             }
           ],
           "best_offer": {
@@ -7769,7 +8175,9 @@
               "discount": 40,
               "promo_label": "40% OFF Directo",
               "unit_measure": "kg",
-              "unit_price": 7500
+              "unit_price": 7500,
+              "is_vtex": true,
+              "sku_id": "18491"
             },
             {
               "supermercado": "Coto",
@@ -7779,7 +8187,9 @@
               "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-nachos-doritos-queso-200-gr/_/A-00456123-00456123-200/p",
               "discount": 14,
               "unit_measure": "kg",
-              "unit_price": 10750
+              "unit_price": 10750,
+              "is_vtex": false,
+              "sku_id": "200"
             },
             {
               "supermercado": "MercadoLibre",
@@ -7792,7 +8202,8 @@
               "seller_name": "Mercado Libre Supermercado",
               "is_full": true,
               "unit_measure": "kg",
-              "unit_price": 14450
+              "unit_price": 14450,
+              "is_vtex": false
             },
             {
               "supermercado": "Carrefour",
@@ -7804,7 +8215,9 @@
               "promo_label": "40% OFF Directo",
               "promo_min_qty": 1,
               "unit_measure": "kg",
-              "unit_price": 28495
+              "unit_price": 28495,
+              "is_vtex": true,
+              "sku_id": "721960"
             }
           ],
           "best_offer": {
@@ -7833,7 +8246,9 @@
               "link": "https://diaonline.supermercadosdia.com.ar/chizitos-queso-cheetos-140-gr-19234/p",
               "discount": 29,
               "unit_measure": "kg",
-              "unit_price": 17857
+              "unit_price": 17857,
+              "is_vtex": true,
+              "sku_id": "19234"
             },
             {
               "supermercado": "Coto",
@@ -7843,7 +8258,9 @@
               "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-chizitos-cheetos-140-gr/_/A-00478123-00478123-200/p",
               "discount": 22,
               "unit_measure": "kg",
-              "unit_price": 17857
+              "unit_price": 17857,
+              "is_vtex": false,
+              "sku_id": "200"
             },
             {
               "supermercado": "MercadoLibre",
@@ -7856,7 +8273,8 @@
               "seller_name": "Mercado Libre Supermercado",
               "is_full": true,
               "unit_measure": "kg",
-              "unit_price": 19214
+              "unit_price": 19214,
+              "is_vtex": false
             },
             {
               "supermercado": "Carrefour",
@@ -7867,7 +8285,8 @@
               "discount": 40,
               "promo_label": "40% OFF Directo",
               "unit_measure": "kg",
-              "unit_price": 25064
+              "unit_price": 25064,
+              "is_vtex": true
             }
           ],
           "best_offer": {
@@ -7896,7 +8315,9 @@
               "discount": 40,
               "promo_label": "40% OFF Directo",
               "unit_measure": "kg",
-              "unit_price": 7575
+              "unit_price": 7575,
+              "is_vtex": true,
+              "sku_id": "12904"
             },
             {
               "supermercado": "Coto",
@@ -7906,7 +8327,9 @@
               "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-papas-fritas-lays-clasicas-330-gr/_/A-00490123-00490123-200/p",
               "discount": 34,
               "unit_measure": "kg",
-              "unit_price": 7575
+              "unit_price": 7575,
+              "is_vtex": false,
+              "sku_id": "200"
             },
             {
               "supermercado": "MercadoLibre",
@@ -7919,7 +8342,8 @@
               "seller_name": "Mercado Libre Supermercado",
               "is_full": true,
               "unit_measure": "kg",
-              "unit_price": 10575
+              "unit_price": 10575,
+              "is_vtex": false
             },
             {
               "supermercado": "Carrefour",
@@ -7930,7 +8354,9 @@
               "discount": 40,
               "promo_label": "40% OFF Directo",
               "unit_measure": "kg",
-              "unit_price": 19087
+              "unit_price": 19087,
+              "is_vtex": true,
+              "sku_id": "721964"
             }
           ],
           "best_offer": {
@@ -7960,7 +8386,9 @@
               "discount": 42,
               "promo_label": "42% OFF Directo",
               "unit_measure": "lt",
-              "unit_price": 3079
+              "unit_price": 3079,
+              "is_vtex": true,
+              "sku_id": "14806"
             },
             {
               "supermercado": "MercadoLibre",
@@ -7973,7 +8401,8 @@
               "seller_name": "Tienda Oficial Quilmes",
               "is_full": true,
               "unit_measure": "lt",
-              "unit_price": 4209
+              "unit_price": 4209,
+              "is_vtex": false
             },
             {
               "supermercado": "Masonline",
@@ -7983,7 +8412,9 @@
               "link": "https://www.masonline.com.ar/cerveza-quilmes-1890-lata-354-ml-19234/p",
               "discount": 22,
               "unit_measure": "lt",
-              "unit_price": 4870
+              "unit_price": 4870,
+              "is_vtex": true,
+              "sku_id": "19234"
             },
             {
               "supermercado": "Carrefour",
@@ -7993,7 +8424,9 @@
               "link": "https://www.carrefour.com.ar/cerveza-quilmes-1890-354-ml-18901/p",
               "discount": 20,
               "unit_measure": "lt",
-              "unit_price": 5324
+              "unit_price": 5324,
+              "is_vtex": true,
+              "sku_id": "18901"
             },
             {
               "supermercado": "Josimar",
@@ -8003,7 +8436,8 @@
               "link": "https://www.josimar.com.ar/cerveza-rubia-quilmes-1890-lata-354-cc/p",
               "discount": 15,
               "unit_measure": "lt",
-              "unit_price": 5522
+              "unit_price": 5522,
+              "is_vtex": true
             },
             {
               "supermercado": "Coto",
@@ -8012,7 +8446,9 @@
               "stock": 50,
               "link": "https://www.cotodigital3.com.ar/sitios/cdigi/producto/-cerveza-1890-quilmes-354-ml/_/A-00349012-00349012-200/p",
               "unit_measure": "lt",
-              "unit_price": 6497
+              "unit_price": 6497,
+              "is_vtex": false,
+              "sku_id": "200"
             }
           ],
           "best_offer": {
@@ -8093,7 +8529,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "9310610"
             }
           ]
         },
@@ -8150,7 +8588,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "142929"
             }
           ]
         },
@@ -8207,7 +8647,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "4098740"
             }
           ]
         },
@@ -8264,7 +8706,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "330203"
             },
             {
               "supermercado": "Frávega",
@@ -8286,7 +8730,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "990819923"
             },
             {
               "supermercado": "Carrefour",
@@ -8308,7 +8754,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1776421"
             },
             {
               "supermercado": "On City",
@@ -8330,7 +8778,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "163786"
             }
           ]
         },
@@ -8387,7 +8837,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "9310700"
             }
           ]
         },
@@ -8444,7 +8896,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "9310700"
             }
           ]
         },
@@ -8501,7 +8955,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "78850"
             }
           ]
         },
@@ -8558,7 +9014,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "2062930"
             }
           ]
         },
@@ -8615,7 +9073,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "9273890"
             }
           ]
         },
@@ -8672,7 +9132,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "22823292"
             }
           ]
         },
@@ -8729,7 +9191,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "312078"
             },
             {
               "supermercado": "On City",
@@ -8751,7 +9215,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "116050"
             }
           ]
         },
@@ -8808,7 +9274,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "142927"
             }
           ]
         },
@@ -8865,7 +9333,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "48140"
             },
             {
               "supermercado": "Provincia Compras",
@@ -8887,7 +9357,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "222144"
             }
           ]
         },
@@ -8944,7 +9416,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "142955"
             }
           ]
         },
@@ -9001,7 +9475,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "335498"
             },
             {
               "supermercado": "Carrefour",
@@ -9023,7 +9499,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1762436"
             }
           ]
         },
@@ -9050,7 +9528,9 @@
               "seller_name": "Coppel",
               "seller_id": "1",
               "store_type": "electro",
-              "link": "https://www.coppel.com.ar/smart-qled-tv-4k-55--samsung-55q60aa-231525/p"
+              "link": "https://www.coppel.com.ar/smart-qled-tv-4k-55--samsung-55q60aa-231525/p",
+              "is_vtex": true,
+              "sku_id": "231525"
             },
             {
               "supermercado": "Frávega",
@@ -9063,7 +9543,9 @@
               "seller_name": "Frávega",
               "seller_id": "1",
               "store_type": "electro",
-              "link": "https://www.fravega.com/smart-tv-samsung-55-uhd-4k-cu7000-990062277/p"
+              "link": "https://www.fravega.com/smart-tv-samsung-55-uhd-4k-cu7000-990062277/p",
+              "is_vtex": true,
+              "sku_id": "990062277"
             },
             {
               "supermercado": "MercadoLibre",
@@ -9076,7 +9558,8 @@
               "seller_name": "Tienda Oficial Samsung",
               "is_full": true,
               "free_shipping": true,
-              "link": "https://www.mercadolibre.com.ar/p/MLA21720424"
+              "link": "https://www.mercadolibre.com.ar/p/MLA21720424",
+              "is_vtex": false
             },
             {
               "supermercado": "Samsung",
@@ -9089,7 +9572,8 @@
               "seller_name": "Samsung",
               "seller_id": "1",
               "store_type": "electro",
-              "link": "https://shop.samsung.com.ar/55--neo-qled-qn70h-4k-vision-ai-smart-tv/p"
+              "link": "https://shop.samsung.com.ar/55--qled-4k-q6f/p",
+              "is_vtex": true
             },
             {
               "supermercado": "Carrefour",
@@ -9099,7 +9583,8 @@
               "disponible": true,
               "discount": 0,
               "seller_name": "Carrefour",
-              "link": "https://www.carrefour.com.ar/smart-tv-samsung-55-4k-un55au7000gczb-gris/p"
+              "link": "https://www.carrefour.com.ar/smart-tv-samsung-55-4k-un55au7000gczb-gris/p",
+              "is_vtex": true
             },
             {
               "supermercado": "Naldo",
@@ -9110,7 +9595,9 @@
               "discount": 30,
               "promo_label": "30% OFF",
               "seller_name": "Naldo",
-              "link": "https://www.naldo.com.ar/smart-tv-samsung-55-4k-qled-505680/p"
+              "link": "https://www.naldo.com.ar/smart-tv-samsung-55-4k-qled-505680/p",
+              "is_vtex": true,
+              "sku_id": "505680"
             }
           ],
           "best_offer": {
@@ -9148,7 +9635,9 @@
               "discount": 34,
               "promo_label": "34% OFF",
               "seller_name": "Frávega",
-              "link": "https://www.fravega.com/celular-samsung-a07-4-gb-ram-64-gb-memoriia-interna-liberado-verde-990680781/p"
+              "link": "https://www.fravega.com/celular-samsung-a07-4-gb-ram-64-gb-memoriia-interna-liberado-verde-990680781/p",
+              "is_vtex": true,
+              "sku_id": "990680781"
             },
             {
               "supermercado": "MercadoLibre",
@@ -9161,7 +9650,8 @@
               "seller_name": "Tienda Oficial Samsung",
               "is_full": true,
               "free_shipping": true,
-              "link": "https://articulo.mercadolibre.com.ar/MLA-3353217040"
+              "link": "https://articulo.mercadolibre.com.ar/MLA-3353217040",
+              "is_vtex": false
             },
             {
               "supermercado": "Provincia Compras",
@@ -9172,7 +9662,9 @@
               "discount": 21,
               "promo_label": "21% OFF",
               "seller_name": "Provincia Compras",
-              "link": "https://www.provinciacompras.com.ar/celular-samsung-galaxy-a07-64gb-279466/p"
+              "link": "https://www.provinciacompras.com.ar/celular-samsung-galaxy-a07-64gb-279466/p",
+              "is_vtex": true,
+              "sku_id": "279466"
             },
             {
               "supermercado": "Naldo",
@@ -9185,7 +9677,9 @@
               "seller_name": "Naldo",
               "seller_id": "1",
               "store_type": "electro",
-              "link": "https://www.naldo.com.ar/galaxy-a07-black-4-64gb-6-7--407140/p"
+              "link": "https://www.naldo.com.ar/galaxy-a07-black-4-64gb-6-7--407140/p",
+              "is_vtex": true,
+              "sku_id": "407140"
             },
             {
               "supermercado": "Masonline",
@@ -9196,7 +9690,8 @@
               "discount": 14,
               "promo_label": "14% OFF",
               "seller_name": "Más Online",
-              "link": "https://www.masonline.com.ar/celular-samsung-galaxy-a07-64gb-sm-a075m-ds-violeta/p"
+              "link": "https://www.masonline.com.ar/celular-samsung-galaxy-a07-64gb-sm-a075m-ds-violeta/p",
+              "is_vtex": true
             }
           ],
           "best_offer": {
@@ -9232,7 +9727,9 @@
               "discount": 27,
               "promo_label": "27% OFF",
               "seller_name": "Frávega",
-              "link": "https://www.fravega.com/reacondicionado-motorola-edge-60-fusion-256gb-color-gris-23140529/p"
+              "link": "https://www.fravega.com/reacondicionado-motorola-edge-60-fusion-256gb-color-gris-23140529/p",
+              "is_vtex": true,
+              "sku_id": "23140529"
             },
             {
               "supermercado": "MercadoLibre",
@@ -9245,7 +9742,8 @@
               "seller_name": "Tienda Oficial Motorola",
               "is_full": true,
               "free_shipping": true,
-              "link": "https://articulo.mercadolibre.com.ar/MLA-1727682513"
+              "link": "https://articulo.mercadolibre.com.ar/MLA-1727682513",
+              "is_vtex": false
             },
             {
               "supermercado": "Naldo",
@@ -9258,7 +9756,9 @@
               "seller_name": "Naldo",
               "seller_id": "1",
               "store_type": "electro",
-              "link": "https://www.naldo.com.ar/moto-edge70-fusion-5g-azul-12-256gb-407209/p"
+              "link": "https://www.naldo.com.ar/moto-edge70-fusion-5g-azul-12-256gb-407209/p",
+              "is_vtex": true,
+              "sku_id": "407209"
             },
             {
               "supermercado": "Carrefour",
@@ -9269,7 +9769,8 @@
               "discount": 17,
               "promo_label": "17% OFF",
               "seller_name": "Carrefour",
-              "link": "https://www.carrefour.com.ar/celular-libre-motorola-edge-fusion-256gb/p"
+              "link": "https://www.carrefour.com.ar/celular-libre-motorola-edge-fusion-256gb/p",
+              "is_vtex": true
             }
           ],
           "best_offer": {
@@ -9307,7 +9808,8 @@
               "seller_name": "Tienda Oficial Xiaomi",
               "is_full": true,
               "free_shipping": true,
-              "link": "https://www.mercadolibre.com.ar/p/MLA24290533"
+              "link": "https://www.mercadolibre.com.ar/p/MLA24290533",
+              "is_vtex": false
             },
             {
               "supermercado": "Carrefour",
@@ -9318,7 +9820,8 @@
               "discount": 30,
               "promo_label": "30% OFF",
               "seller_name": "Carrefour",
-              "link": "https://www.carrefour.com.ar/celular-libre-xiaomi-redmi-note-13-6gb-128-gb-verde/p"
+              "link": "https://www.carrefour.com.ar/celular-libre-xiaomi-redmi-note-13-6gb-128-gb-verde/p",
+              "is_vtex": true
             },
             {
               "supermercado": "Naldo",
@@ -9331,7 +9834,9 @@
               "seller_name": "Naldo",
               "seller_id": "1",
               "store_type": "electro",
-              "link": "https://www.naldo.com.ar/redmi-a5-ocean-blue-4-128gb-6-88--407150/p"
+              "link": "https://www.naldo.com.ar/redmi-a5-ocean-blue-4-128gb-6-88--407150/p",
+              "is_vtex": true,
+              "sku_id": "407150"
             },
             {
               "supermercado": "Coppel",
@@ -9341,7 +9846,9 @@
               "disponible": true,
               "discount": 0,
               "seller_name": "Coppel",
-              "link": "https://www.coppel.com.ar/celular-xiaomi-redmi-note-11-star-blue-4gb-128gb-4g-725021/p"
+              "link": "https://www.coppel.com.ar/celular-xiaomi-redmi-note-11-star-blue-4gb-128gb-4g-725021/p",
+              "is_vtex": true,
+              "sku_id": "725021"
             }
           ],
           "best_offer": {
@@ -9381,7 +9888,9 @@
               "seller_name": "Naldo",
               "seller_id": "1",
               "store_type": "electro",
-              "link": "https://www.naldo.com.ar/note-15-fc0251la-r5-7520u-amd15-8-512gb-406750-1/p"
+              "link": "https://www.naldo.com.ar/note-15-fc0251la-r5-7520u-amd15-8-512gb-406750-1/p",
+              "is_vtex": true,
+              "sku_id": "1"
             },
             {
               "supermercado": "Provincia Compras",
@@ -9392,7 +9901,9 @@
               "discount": 51,
               "promo_label": "51% OFF",
               "seller_name": "Provincia Compras",
-              "link": "https://www.provinciacompras.com.ar/notebook-hp-15-fc0251la-r5-7520u-amd15--8-512-gb-310639/p"
+              "link": "https://www.provinciacompras.com.ar/notebook-hp-15-fc0251la-r5-7520u-amd15--8-512-gb-310639/p",
+              "is_vtex": true,
+              "sku_id": "310639"
             },
             {
               "supermercado": "MercadoLibre",
@@ -9405,7 +9916,8 @@
               "seller_name": "Tienda Oficial HP",
               "is_full": true,
               "free_shipping": true,
-              "link": "https://www.mercadolibre.com.ar/p/MLA21626726"
+              "link": "https://www.mercadolibre.com.ar/p/MLA21626726",
+              "is_vtex": false
             },
             {
               "supermercado": "Cetrogar",
@@ -9416,7 +9928,8 @@
               "discount": 38,
               "promo_label": "38% OFF",
               "seller_name": "Cetrogar",
-              "link": "https://www.cetrogar.com.ar/notebook-hp-15-fc0251la-15-6-ryzen-5-7520u-8-gb-512-gb-mochila-cm4799/p"
+              "link": "https://www.cetrogar.com.ar/notebook-hp-15-fc0251la-15-6-ryzen-5-7520u-8-gb-512-gb-mochila-cm4799/p",
+              "is_vtex": true
             },
             {
               "supermercado": "Carrefour",
@@ -9427,7 +9940,8 @@
               "discount": 19,
               "promo_label": "19% OFF",
               "seller_name": "Carrefour",
-              "link": "https://www.carrefour.com.ar/notebook-hp-15--amd-r5-7520u-8gb-ram-512gb-ssd-fc02/p"
+              "link": "https://www.carrefour.com.ar/notebook-hp-15--amd-r5-7520u-8gb-ram-512gb-ssd-fc02/p",
+              "is_vtex": true
             }
           ],
           "best_offer": {
@@ -9508,7 +10022,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "213083"
             }
           ]
         },
@@ -9565,7 +10081,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "48571"
             }
           ]
         },
@@ -9622,7 +10140,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "72483"
             }
           ]
         },
@@ -9679,7 +10199,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "330719"
             }
           ]
         },
@@ -9736,7 +10258,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "134498"
             },
             {
               "supermercado": "Easy",
@@ -9758,7 +10282,8 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true
             }
           ]
         },
@@ -9815,7 +10340,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1777193"
             }
           ]
         },
@@ -9872,7 +10399,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "164458"
             }
           ]
         },
@@ -9929,7 +10458,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "72483"
             }
           ]
         },
@@ -9986,7 +10517,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "164470"
             }
           ]
         },
@@ -10043,7 +10576,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1782691"
             }
           ]
         },
@@ -10100,7 +10635,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "156179"
             }
           ]
         },
@@ -10157,7 +10694,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1777713"
             }
           ]
         },
@@ -10214,7 +10753,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1777713"
             }
           ]
         },
@@ -10271,7 +10812,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "328921"
             }
           ]
         },
@@ -10328,7 +10871,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1782707"
             }
           ]
         },
@@ -10355,7 +10900,9 @@
               "seller_name": "Carrefour",
               "seller_id": "1",
               "store_type": "supermarket",
-              "link": "https://www.carrefour.com.ar/combo-2230-norcee-140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-espuma-alta-densidad-1777715/p"
+              "link": "https://www.carrefour.com.ar/combo-2230-norcee-140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-espuma-alta-densidad-1777715/p",
+              "is_vtex": true,
+              "sku_id": "1777715"
             },
             {
               "supermercado": "Provincia Compras",
@@ -10370,7 +10917,8 @@
               "store_type": "marketplace",
               "cuotas": 24,
               "sin_interes": true,
-              "link": "https://www.provinciacompras.com.ar/combo-2230-norcee-140x190-sommier/p"
+              "link": "https://www.provinciacompras.com.ar/combo-2230-norcee-140x190-sommier/p",
+              "is_vtex": true
             },
             {
               "supermercado": "MercadoLibre",
@@ -10384,7 +10932,8 @@
               "seller_id": "1",
               "store_type": "marketplace",
               "is_full": true,
-              "link": "https://articulo.mercadolibre.com.ar/MLA-2138560112"
+              "link": "https://articulo.mercadolibre.com.ar/MLA-2138560112",
+              "is_vtex": false
             }
           ],
           "best_offer": {
@@ -10424,7 +10973,8 @@
               "seller_name": "Cetrogar",
               "seller_id": "1",
               "store_type": "electro",
-              "link": "https://www.cetrogar.com.ar/colchon-zafiro-express-80x190.html"
+              "link": "https://www.cetrogar.com.ar/colchon-zafiro-express-80x190.html",
+              "is_vtex": true
             },
             {
               "supermercado": "Carrefour",
@@ -10437,7 +10987,9 @@
               "seller_name": "Carrefour",
               "seller_id": "1",
               "store_type": "supermarket",
-              "link": "https://www.carrefour.com.ar/colchon-de-espuma-1-plaza-zafiro-express-light-80x190-1657924/p"
+              "link": "https://www.carrefour.com.ar/colchon-de-espuma-1-plaza-zafiro-express-light-80x190-1657924/p",
+              "is_vtex": true,
+              "sku_id": "1657924"
             },
             {
               "supermercado": "MercadoLibre",
@@ -10451,7 +11003,8 @@
               "seller_id": "1",
               "store_type": "marketplace",
               "is_full": true,
-              "link": "https://articulo.mercadolibre.com.ar/MLA-2173232660"
+              "link": "https://articulo.mercadolibre.com.ar/MLA-2173232660",
+              "is_vtex": false
             }
           ],
           "best_offer": {
@@ -10491,7 +11044,9 @@
               "seller_name": "Carrefour",
               "seller_id": "1",
               "store_type": "supermarket",
-              "link": "https://www.carrefour.com.ar/combo-2230-zeta-pillow-140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-1777717/p"
+              "link": "https://www.carrefour.com.ar/combo-2230-zeta-pillow-140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-1777717/p",
+              "is_vtex": true,
+              "sku_id": "1777717"
             }
           ],
           "best_offer": {
@@ -10531,7 +11086,9 @@
               "seller_name": "Carrefour",
               "seller_id": "1",
               "store_type": "supermarket",
-              "link": "https://www.carrefour.com.ar/colchon-de-resortes-2-plazas-joplin-140x190-1747841/p"
+              "link": "https://www.carrefour.com.ar/colchon-de-resortes-2-plazas-joplin-140x190-1747841/p",
+              "is_vtex": true,
+              "sku_id": "1747841"
             }
           ],
           "best_offer": {
@@ -10571,7 +11128,9 @@
               "seller_name": "Carrefour",
               "seller_id": "1",
               "store_type": "supermarket",
-              "link": "https://www.carrefour.com.ar/combo-2230-malmok140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-1777716/p"
+              "link": "https://www.carrefour.com.ar/combo-2230-malmok140x190-sommier---colchon---respaldo-y-2-almohadas-de-regalo-1777716/p",
+              "is_vtex": true,
+              "sku_id": "1777716"
             }
           ],
           "best_offer": {
@@ -10652,7 +11211,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "213083"
             }
           ]
         },
@@ -10709,7 +11270,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "48571"
             }
           ]
         },
@@ -10766,7 +11329,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "72483"
             }
           ]
         },
@@ -10823,7 +11388,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "191622"
             }
           ]
         },
@@ -10880,7 +11447,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "173702"
             },
             {
               "supermercado": "On City",
@@ -10902,7 +11471,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "54295"
             },
             {
               "supermercado": "Carrefour",
@@ -10924,7 +11495,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "1772130"
             }
           ]
         },
@@ -10981,7 +11554,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "330719"
             }
           ]
         },
@@ -11038,7 +11613,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "9310610"
             }
           ]
         },
@@ -11095,7 +11672,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "149360"
             }
           ]
         },
@@ -11152,7 +11731,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "287683"
             }
           ]
         },
@@ -11209,7 +11790,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "146765"
             }
           ]
         },
@@ -11266,7 +11849,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "146763"
             }
           ]
         },
@@ -11323,7 +11908,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "176303"
             }
           ]
         },
@@ -11380,7 +11967,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "38259"
             }
           ]
         },
@@ -11437,7 +12026,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "38283"
             }
           ]
         },
@@ -11494,7 +12085,9 @@
               "cuotas": 1,
               "sin_interes": false,
               "cuotas_info": null,
-              "cuota_monto": null
+              "cuota_monto": null,
+              "is_vtex": true,
+              "sku_id": "38267"
             }
           ]
         },
@@ -11521,7 +12114,8 @@
               "seller_name": "Sony Store",
               "seller_id": "1",
               "store_type": "supermarket",
-              "link": "https://store.sony.com.ar/xs-gtf1039/p"
+              "link": "https://store.sony.com.ar/xs-gtf1039/p",
+              "is_vtex": true
             },
             {
               "supermercado": "MercadoLibre",
@@ -11534,7 +12128,8 @@
               "seller_name": "Tienda Oficial Sony",
               "is_full": true,
               "free_shipping": true,
-              "link": "https://articulo.mercadolibre.com.ar/MLA-2200163579"
+              "link": "https://articulo.mercadolibre.com.ar/MLA-2200163579",
+              "is_vtex": false
             },
             {
               "supermercado": "Provincia Compras",
@@ -11545,7 +12140,9 @@
               "discount": 13,
               "promo_label": "13% OFF",
               "seller_name": "Provincia Compras",
-              "link": "https://www.provinciacompras.com.ar/parlantes-para-auto-sony-de-4-pulgadas-xs-gtf1039--302800/p"
+              "link": "https://www.provinciacompras.com.ar/parlantes-para-auto-sony-de-4-pulgadas-xs-gtf1039--302800/p",
+              "is_vtex": true,
+              "sku_id": "302800"
             },
             {
               "supermercado": "On City",
@@ -11556,7 +12153,9 @@
               "discount": 13,
               "promo_label": "13% OFF",
               "seller_name": "On City",
-              "link": "https://www.oncity.com/parlantes-para-auto-sony-de-4-pulgadas-xs-gtf1039--98930/p"
+              "link": "https://www.oncity.com/parlantes-para-auto-sony-de-4-pulgadas-xs-gtf1039--98930/p",
+              "is_vtex": true,
+              "sku_id": "98930"
             }
           ],
           "best_offer": {
@@ -11596,7 +12195,8 @@
               "seller_name": "Sony Store",
               "seller_id": "1",
               "store_type": "supermarket",
-              "link": "https://store.sony.com.ar/xs-gtf1639/p"
+              "link": "https://store.sony.com.ar/xs-gtf1639/p",
+              "is_vtex": true
             }
           ],
           "best_offer": {
@@ -11636,7 +12236,9 @@
               "seller_name": "Naldo",
               "seller_id": "1",
               "store_type": "electro",
-              "link": "https://www.naldo.com.ar/redmi-15-8-256gb-midnight-black-407138/p"
+              "link": "https://www.naldo.com.ar/redmi-15-8-256gb-midnight-black-407138/p",
+              "is_vtex": true,
+              "sku_id": "407138"
             }
           ],
           "best_offer": {
@@ -11674,7 +12276,9 @@
               "discount": 49,
               "promo_label": "49% OFF",
               "seller_name": "Frávega",
-              "link": "https://www.fravega.com/auriculares-audifonos-samsung-galaxy-buds3-pro-sm-r630-white-990847757/p"
+              "link": "https://www.fravega.com/auriculares-audifonos-samsung-galaxy-buds3-pro-sm-r630-white-990847757/p",
+              "is_vtex": true,
+              "sku_id": "990847757"
             },
             {
               "supermercado": "MercadoLibre",
@@ -11687,7 +12291,8 @@
               "seller_name": "Tienda Oficial Samsung",
               "is_full": true,
               "free_shipping": true,
-              "link": "https://www.mercadolibre.com.ar/p/MLA39205030"
+              "link": "https://articulo.mercadolibre.com.ar/MLA-2140790745",
+              "is_vtex": false
             },
             {
               "supermercado": "Samsung",
@@ -11700,7 +12305,8 @@
               "seller_name": "Samsung",
               "seller_id": "1",
               "store_type": "electro",
-              "link": "https://shop.samsung.com.ar/galaxy-buds4/p"
+              "link": "https://shop.samsung.com.ar/galaxy-buds3-pro/p",
+              "is_vtex": true
             },
             {
               "supermercado": "StyleStore",
@@ -11710,7 +12316,8 @@
               "disponible": true,
               "discount": 0,
               "seller_name": "StyleStore",
-              "link": "https://www.stylestore.com.ar/auriculares-samsung-smr630nzwaaro/p"
+              "link": "https://www.stylestore.com.ar/auriculares-samsung-smr630nzwaaro/p",
+              "is_vtex": true
             },
             {
               "supermercado": "Cetrogar",
@@ -11720,7 +12327,8 @@
               "disponible": true,
               "discount": 0,
               "seller_name": "Cetrogar",
-              "link": "https://www.cetrogar.com.ar/auriculares-samsung-galaxy-buds3-pro-white-au3285/p"
+              "link": "https://www.cetrogar.com.ar/auriculares-samsung-galaxy-buds3-pro-white-au3285/p",
+              "is_vtex": true
             }
           ],
           "best_offer": {
@@ -11758,7 +12366,8 @@
               "seller_name": "Samsung",
               "seller_id": "1",
               "store_type": "electro",
-              "link": "https://shop.samsung.com.ar/galaxy-buds3-pro/p"
+              "link": "https://shop.samsung.com.ar/galaxy-buds3-pro/p",
+              "is_vtex": true
             }
           ],
           "best_offer": {
