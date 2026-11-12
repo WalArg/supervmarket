@@ -1449,6 +1449,58 @@ async def get_live_discount_tiers(
             "products": prods,
         })
 
+    # 3. Enriquecimiento dinámico con ofertas en vivo de Mercado Libre para electro y canasta
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            meli_queries = [
+                ("tier-mp-tech", "Smart TV 50", "electro"),
+                ("tier-mp-tech", "Motorola Moto", "electro"),
+                ("tier-mp-home", "Lavarropas Samsung", "electro"),
+                ("tier-basket", "Aceite Girasol Cocinero", "supermarket"),
+                ("tier-70-80", "Skip Jabon Liquido", "supermarket"),
+            ]
+            async def _fetch_meli_candidate(tid: str, q: str, vert: str):
+                try:
+                    res = await mercadolibre.fetch_mercadolibre_live(client, q, limit=2, vertical=vert)
+                    return tid, res
+                except Exception:
+                    return tid, []
+
+            meli_batch = await asyncio.gather(*[_fetch_meli_candidate(t, q, v) for t, q, v in meli_queries], return_exceptions=True)
+            for res_item in meli_batch:
+                if isinstance(res_item, tuple) and len(res_item) == 2:
+                    tid, meli_offers = res_item
+                    if not meli_offers:
+                        continue
+                    target_tiers = final_marketplace_tiers if tid.startswith("tier-mp-") else final_tiers
+                    for t in target_tiers:
+                        if t["id"] == tid and t.get("products"):
+                            for m_off in meli_offers:
+                                m_price = float(m_off.get("precio") or m_off.get("precio_venta") or 0)
+                                if m_price <= 0:
+                                    continue
+                                first_p = t["products"][0]
+                                if not any(o.get("supermercado") == "MercadoLibre" for o in first_p.get("offers", [])):
+                                    first_p.setdefault("offers", []).append({
+                                        "supermercado": "MercadoLibre",
+                                        "precio": m_price,
+                                        "precio_lista": float(m_off.get("precio_lista") or m_price),
+                                        "stock": int(m_off.get("stock") or 50),
+                                        "disponible": True,
+                                        "link": m_off.get("link") or m_off.get("url") or "",
+                                        "discount": float(m_off.get("discount") or 0),
+                                        "promo_label": m_off.get("promo_label") or "⚡ FULL",
+                                        "seller_name": m_off.get("seller_name") or "Mercado Libre",
+                                        "is_full": m_off.get("is_full", True),
+                                        "free_shipping": m_off.get("free_shipping", True),
+                                        "unit_measure": m_off.get("unit_measure") or "u",
+                                        "unit_price": m_off.get("unit_price") or m_price,
+                                    })
+                                    first_p["offers"].sort(key=lambda o: o.get("unit_price") or o["precio"])
+                                    first_p["best_offer"] = first_p["offers"][0]
+    except Exception:
+        pass
+
     is_live_fetch = bool(db_tiers) or bool(live_sponsored)
 
     # Selección según vertical

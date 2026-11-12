@@ -10,9 +10,10 @@ import type { OfferRow } from './ProductCard'
 
 interface GondolaCardProps {
   group: ProductGroup
+  className?: string
 }
 
-export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
+export const GondolaCard: React.FC<GondolaCardProps> = ({ group, className }) => {
   const { add, qtyOf } = useCart()
   const { isSaved, toggleSave } = useSaved()
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -70,6 +71,11 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
   const best = rows[0]
   if (!best) return null
 
+  const multiStoreCount = group.offers.length
+  const hasMeli = group.offers.some(o => o.supermercado === 'MercadoLibre')
+  const maxEff = Math.max(...rows.map(r => r.eff))
+  const savePct = rows.length > 1 && maxEff > best.eff ? Math.round(((maxEff - best.eff) / maxEff) * 100) : 0
+
   const promoUnitText =
     best.o.promo_label && best.o.promo_label.includes('(')
       ? best.o.promo_label.split('(')[1].replace(')', '').trim()
@@ -95,7 +101,7 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
     <>
       <article
         onClick={() => setSheetOpen(true)}
-        className="w-[168px] shrink-0 bg-white rounded-2xl border border-slate-200/80 p-2.5 flex flex-col justify-between shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-slate-300 hover:shadow-md transition-all cursor-pointer relative group"
+        className={`${className || 'w-[168px] shrink-0'} bg-white rounded-2xl border border-slate-200/80 p-2.5 flex flex-col justify-between shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-slate-300 hover:shadow-md transition-all cursor-pointer relative group`}
       >
         {/* Badges superiores: descuento / promo y guardado */}
         <div className="flex items-center justify-between gap-1 mb-1.5">
@@ -188,6 +194,29 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
           )}
         </div>
 
+        {/* Chips de competencia multitienda y Mercado Libre en vivo */}
+        {(multiStoreCount > 1 || hasMeli) && (
+          <div className="mt-1 flex flex-wrap items-center gap-1">
+            {multiStoreCount > 1 && (
+              <span
+                className="inline-flex items-center gap-1 text-[9.5px] font-black px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 truncate max-w-full"
+                title={`Disponible en ${multiStoreCount} tiendas`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                {multiStoreCount} tiendas {savePct >= 5 ? `· Ahorro ${savePct}%` : ''}
+              </span>
+            )}
+            {hasMeli && (
+              <span
+                className="inline-flex items-center gap-0.5 text-[9.5px] font-black px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs"
+                title="Opción disponible y comparada en Mercado Libre"
+              >
+                ⚡ MeLi
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Cuotas y financiación */}
         {best.o.cuotas && best.o.cuotas > 1 && (
           <div className="mt-1">
@@ -217,6 +246,11 @@ export const GondolaCard: React.FC<GondolaCardProps> = ({ group }) => {
                 </span>
               ) : null}
             </div>
+            {best.o.unit_price && best.o.unit_measure && best.o.unit_price !== best.eff ? (
+              <span className="text-[10px] text-slate-500 font-semibold block leading-tight mt-0.5">
+                {formatPrice(best.o.unit_price)}/{best.o.unit_measure}
+              </span>
+            ) : null}
             {best.o.cuotas && best.o.cuotas > 1 && best.o.cuota_monto && best.o.cuota_monto > 0 ? (
               <span className="text-[10px] text-emerald-700 font-bold block leading-none mt-0.5">
                 {best.o.cuotas}x {formatPrice(best.o.cuota_monto)}
