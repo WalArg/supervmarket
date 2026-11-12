@@ -5,6 +5,8 @@
  * Mapea las 40 tiendas y marketplaces compatibles con backend api/_lib/stores.py.
  */
 
+import { decorateOutboundUrl } from './affiliate'
+
 export type StoreVertical = 'supermarket' | 'marketplace' | 'electro' | 'specialty' | 'pharmacy'
 
 export interface StoreMeta {
@@ -57,7 +59,7 @@ export const STORES: StoreMap = {
   Musimundo: { id: 'musimundo', label: 'Musimundo', color: '#e30613', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://www.musimundo.com' },
 
   // --- Tiendas Oficiales de Marca ---
-  Samsung: { id: 'samsung', label: 'Samsung', color: '#1249ff', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://shop.samsung.com.ar' },
+  Samsung: { id: 'samsung', label: 'Samsung', color: '#1249ff', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://shop.samsung.com/ar' },
   Philips: { id: 'philips', label: 'Philips', color: '#0b5ed7', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://tienda.philips.com.ar' },
   Whirlpool: { id: 'whirlpool', label: 'Whirlpool', color: '#f0b400', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://www.whirlpool.com.ar' },
   Moulinex: { id: 'moulinex', label: 'Moulinex / Tefal', color: '#da291c', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://tienda.moulinex.com.ar' },
@@ -155,24 +157,83 @@ export function resolveOutboundUrl(
   store: string,
   productTitle?: string,
   sellerId?: string | null,
+  model?: string | null,
 ): string {
   let url = (rawLink || '').trim()
   const domain = getStoreDomain(store).replace(/\/+$/, '')
+  const storeLower = (store || '').toLowerCase()
+  const qTerm = (model || productTitle || '').trim()
+  const qEnc = encodeURIComponent(qTerm)
 
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    // Keep absolute
-  } else if (url.startsWith('/')) {
-    url = `${domain}${url}`
-  } else if (url.length > 0) {
-    url = `${domain}/${url}`
-  } else {
-    const q = productTitle ? encodeURIComponent(productTitle.trim()) : ''
-    url = `${domain}/search?q=${q}`
+  // 1. Manejo blindado para Samsung:
+  // En móviles, shop.samsung.com redirige a la home vacía.
+  // www.samsung.com/ar/search/?searchvalue=... es 100% confiable y abre el producto con stock y precio oficial.
+  if (storeLower.includes('samsung')) {
+    if (url && url.includes('www.samsung.com/ar/') && !url.endsWith('samsung.com/ar') && !url.endsWith('samsung.com/ar/')) {
+      // URL profunda oficial verificada
+    } else {
+      url = `https://www.samsung.com/ar/search/?searchvalue=${qEnc}`
+    }
+    return url
+  }
+
+  // 2. Si no hay link específico o es solo el home genérico, construir búsqueda directa en la tienda
+  const isGenericRoot =
+    !url ||
+    url === domain ||
+    url === `${domain}/` ||
+    url.endsWith('.com.ar') ||
+    url.endsWith('.com.ar/') ||
+    url.endsWith('.com') ||
+    url.endsWith('.com/')
+
+  if (isGenericRoot) {
+    if (storeLower.includes('fravega')) {
+      url = `https://www.fravega.com/l/?keyword=${qEnc}`
+    } else if (storeLower.includes('musimundo')) {
+      url = `https://www.musimundo.com/search/?text=${qEnc}`
+    } else if (storeLower.includes('mercadolibre')) {
+      url = `https://listado.mercadolibre.com.ar/${qEnc}`
+    } else if (storeLower.includes('coto')) {
+      url = `https://www.cotodigital3.com.ar/sitios/cdigi/browse?_dyncharset=utf-8&Ntt=${qEnc}`
+    } else if (storeLower.includes('provinciacompras')) {
+      url = `https://www.provinciacompras.com.ar/${qEnc}?_q=${qEnc}&map=ft`
+    } else if (storeLower.includes('oncity')) {
+      url = `https://www.oncity.com/${qEnc}?_q=${qEnc}&map=ft`
+    } else if (storeLower.includes('naldo')) {
+      url = `https://www.naldo.com.ar/${qEnc}?_q=${qEnc}&map=ft`
+    } else if (storeLower.includes('coppel')) {
+      url = `https://www.coppel.com.ar/${qEnc}?_q=${qEnc}&map=ft`
+    } else if (storeLower.includes('carrefour')) {
+      url = `https://www.carrefour.com.ar/${qEnc}?_q=${qEnc}&map=ft`
+    } else if (storeLower.includes('dia')) {
+      url = `https://diaonline.supermercadosdia.com.ar/${qEnc}?_q=${qEnc}&map=ft`
+    } else if (storeLower.includes('jumbo')) {
+      url = `https://www.jumbo.com.ar/${qEnc}?_q=${qEnc}&map=ft`
+    } else if (storeLower.includes('disco')) {
+      url = `https://www.disco.com.ar/${qEnc}?_q=${qEnc}&map=ft`
+    } else if (storeLower.includes('vea')) {
+      url = `https://www.vea.com.ar/${qEnc}?_q=${qEnc}&map=ft`
+    } else if (storeLower.includes('masonline')) {
+      url = `https://www.masonline.com.ar/${qEnc}?_q=${qEnc}&map=ft`
+    } else {
+      url = `${domain}/${qEnc}?_q=${qEnc}&map=ft`
+    }
+  } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    if (url.startsWith('/')) {
+      url = `${domain}${url}`
+    } else {
+      url = `${domain}/${url}`
+    }
   }
 
   if (sellerId && sellerId !== '1' && sellerId !== 'default' && !url.includes('seller=')) {
     const sep = url.includes('?') ? '&' : '?'
     url = `${url}${sep}seller=${encodeURIComponent(sellerId)}`
+  }
+
+  if (storeLower.includes('mercadolibre')) {
+    return decorateOutboundUrl(url, store, 'item')
   }
 
   return url

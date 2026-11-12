@@ -524,38 +524,8 @@ const SearchScreen: React.FC = () => {
               </div>
             </button>
 
-            {/* Explorar por categoría con acceso rápido */}
-            <div className="space-y-2.5 pt-1">
-              <h3 className="text-[12.5px] font-black tracking-tight text-slate-800 uppercase px-1">
-                Explorar por categoría
-              </h3>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {[
-                  { label: 'Almacén', icon: '🧺', q: 'almacen', bg: 'bg-amber-50 hover:bg-amber-100/80 border-amber-200/80 text-amber-900' },
-                  { label: 'Lácteos', icon: '🥛', q: 'leche', bg: 'bg-sky-50 hover:bg-sky-100/80 border-sky-200/80 text-sky-900' },
-                  { label: 'Bebidas', icon: '🍷', q: 'bebidas', bg: 'bg-purple-50 hover:bg-purple-100/80 border-purple-200/80 text-purple-900' },
-                  { label: 'Limpieza', icon: '🧼', q: 'jabon', bg: 'bg-emerald-50 hover:bg-emerald-100/80 border-emerald-200/80 text-emerald-900' },
-                  { label: 'Carnes', icon: '🥩', q: 'carne', bg: 'bg-rose-50 hover:bg-rose-100/80 border-rose-200/80 text-rose-900' },
-                  { label: 'Tech & Electro', icon: '📱', q: 'smart tv', bg: 'bg-indigo-50 hover:bg-indigo-100/80 border-indigo-200/80 text-indigo-900' },
-                ].map(cat => (
-                  <button
-                    key={cat.label}
-                    type="button"
-                    onClick={() => {
-                      setQuery(cat.q)
-                      setDebounced(cat.q)
-                    }}
-                    className={`p-3 rounded-2xl border text-center flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 shadow-2xs cursor-pointer ${cat.bg}`}
-                  >
-                    <span className="text-2xl">{cat.icon}</span>
-                    <span className="text-[11px] font-bold leading-tight">{cat.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Atajos directos a productos cotidianos */}
-            <div className="space-y-2 pt-1">
+            <div className="space-y-2 pt-2">
               <span className="text-[11px] font-extrabold uppercase text-slate-400 px-1 tracking-wider">
                 Atajos frecuentes
               </span>
@@ -564,6 +534,8 @@ const SearchScreen: React.FC = () => {
                   'Aceite de girasol',
                   'Leche entera',
                   'Café molido',
+                  'Fideos',
+                  'Arroz',
                   'Cerveza',
                   'Jabón líquido',
                   'Smart TV 50"',
@@ -576,7 +548,7 @@ const SearchScreen: React.FC = () => {
                       setQuery(prod)
                       setDebounced(prod)
                     }}
-                    className="h-8 px-3 rounded-full text-[12px] font-bold bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 text-slate-700 transition-all shadow-2xs flex items-center gap-1"
+                    className="h-8 px-3 rounded-full text-[12px] font-bold bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 text-slate-700 transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
                   >
                     <Search size={11} className="text-slate-400" />
                     <span>{prod}</span>

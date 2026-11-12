@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { Flame, MapPin, ChevronDown, Plus, Search, RefreshCw, Zap, LayoutGrid, Rows3 } from 'lucide-react'
+import { Flame, MapPin, ChevronDown, Plus, Search, RefreshCw, Zap, LayoutGrid, Rows3, ExternalLink } from 'lucide-react'
 import { DISCOUNT_TIERS, MARKETPLACE_DISCOUNT_TIERS, type DiscountTier } from '../data/gondolasData'
 import { getLiveOffers } from '../api'
 import { useLocation } from '../location/LocationContext'
@@ -8,7 +8,8 @@ import SponsoredGondolaCard from './SponsoredGondolaCard'
 import OffersSheet from './OffersSheet'
 import { formatPrice } from '../lib/pricing'
 import { storeLabel } from '../lib/stores'
-import type { ProductGroup } from '../types'
+import { decorateOutboundUrl, trackOutboundAffiliateClick } from '../lib/affiliate'
+import type { ProductGroup, SupermarketOffer } from '../types'
 
 interface OffersScreenProps {
   onGoSearch?: () => void
@@ -19,9 +20,9 @@ const MOMENT_BADGES: Record<string, { moment: string; icon: string }> = {
   'tier-clearance': { moment: 'Liquidaciones de Temporada', icon: '🏷️' },
   'tier-50': { moment: 'Llená la Alacena & Bebidas', icon: '🧺' },
   'tier-basket': { moment: 'Canasta Básica y Esenciales', icon: '🥛' },
-  'tier-mp-tech': { moment: 'Bombas Tech & Financiación', icon: '📱' },
-  'tier-mp-home': { moment: 'Equipamiento del Hogar', icon: '🏠' },
-  'tier-mp-destacadas': { moment: 'Guerra de Tiendas Oficiales', icon: '🏪' },
+  'tier-mp-electro': { moment: 'Smart TVs, Celulares y Computación', icon: '📱' },
+  'tier-mp-hogar': { moment: 'Sommiers, Colchones y Descanso', icon: '🏠' },
+  'tier-mp-destacadas': { moment: 'Marcas Oficiales y Audio', icon: '🎧' },
 }
 
 export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
@@ -139,24 +140,37 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
     return [...tiers, ...marketplaceTiers]
   }, [selectedVertical, tiers, marketplaceTiers])
 
-  // Producto estrella: La Ganga del Día con mayor descuento verificado
-  const topDeal = useMemo(() => {
-    const allProds = [...tiers, ...marketplaceTiers].flatMap(t => t.products || [])
-    const valid = allProds.filter(p => Array.isArray(p?.offers) && p.offers.length > 0 && p.offers[0].precio > 0)
-    if (!valid.length) return null
-    const sorted = [...valid].sort((a, b) => {
-      const discA = a.offers[0]?.discount || 0
-      const discB = b.offers[0]?.discount || 0
+  // La Ganga del Día: Mejor oportunidad verificada de Mercado Libre (generador de afiliados CPA)
+  const topMeliDeal = useMemo(() => {
+    const meliCandidates: Array<{
+      product: ProductGroup
+      offer: SupermarketOffer
+    }> = []
+
+    for (const t of [...tiers, ...marketplaceTiers]) {
+      if (t.meliSponsored?.product && t.meliSponsored?.offer && t.meliSponsored.offer.precio > 0) {
+        meliCandidates.push({
+          product: t.meliSponsored.product,
+          offer: t.meliSponsored.offer,
+        })
+      }
+      for (const p of t.products || []) {
+        const mOffer = p.offers?.find(o => o.supermercado === 'MercadoLibre' && o.precio > 0)
+        if (mOffer) {
+          meliCandidates.push({ product: p, offer: mOffer })
+        }
+      }
+    }
+
+    if (!meliCandidates.length) return null
+
+    meliCandidates.sort((a, b) => {
+      const discA = a.offer.discount || 0
+      const discB = b.offer.discount || 0
       return discB - discA
     })
-    return sorted[0] || null
-  }, [tiers, marketplaceTiers])
 
-  // Productos con competencia multitienda para la sección "Guerra de Precios"
-  const priceWarProducts = useMemo(() => {
-    const allProds = [...tiers, ...marketplaceTiers].flatMap(t => t.products || [])
-    const multiStore = allProds.filter(p => Array.isArray(p?.offers) && p.offers.length >= 2)
-    return multiStore.slice(0, 4)
+    return meliCandidates[0]
   }, [tiers, marketplaceTiers])
 
   const renderTier = (tier: DiscountTier, idx: number) => {
@@ -493,43 +507,24 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
       </header>
 
       <main className="px-4 pt-3 space-y-6">
-        {/* Banner Animado de Mercado Libre y 25 Tiendas en Vivo */}
-        <div className="rounded-2xl p-3 bg-gradient-to-r from-amber-500/10 via-yellow-500/15 to-amber-500/5 border border-amber-300/80 shadow-2xs flex items-center justify-between gap-2 animate-in fade-in duration-300">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="relative flex h-3 w-3 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
-            </span>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[12px] font-black text-amber-950">
-                  Comparando en vivo con Mercado Libre FULL y 25 tiendas
-                </span>
-              </div>
-              <p className="text-[10.5px] text-amber-800 font-medium truncate">
-                Precios oficiales, cuotas sin interés y envíos actualizados al instante
-              </p>
-            </div>
-          </div>
-          <span className="shrink-0 text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 shadow-2xs animate-pulse">
-            ⚡ EN VIVO
-          </span>
-        </div>
-
-        {/* HERO: La Ganga del Día (solo en vista inicial de todas las ofertas) */}
-        {selectedVertical === 'all' && selectedFilter === 'all' && topDeal && topDeal.offers?.[0] && (
+        {/* HERO: La Ganga del Día — Mejor oferta con enlace directo y monetización de afiliados */}
+        {selectedVertical === 'all' && selectedFilter === 'all' && topMeliDeal && (
           <div
-            onClick={() => setHeroSheetGroup(topDeal)}
-            className="rounded-3xl p-4 sm:p-5 bg-gradient-to-br from-rose-900 via-rose-800 to-indigo-950 text-white shadow-lg cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden group"
+            onClick={() => {
+              const url = decorateOutboundUrl(topMeliDeal.offer.link, 'MercadoLibre', 'item')
+              trackOutboundAffiliateClick('MercadoLibre', 'item', url, topMeliDeal.offer.precio)
+              window.open(url, '_blank', 'noopener,noreferrer')
+            }}
+            className="rounded-3xl p-4 sm:p-5 bg-gradient-to-br from-rose-900 via-rose-800 to-indigo-950 text-white shadow-lg cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden group border border-rose-500/30"
           >
             <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-rose-500/20 blur-3xl pointer-events-none" />
             <div className="flex items-center justify-between gap-2 mb-2.5">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-rose-500 text-white shadow-xs">
                 <Flame size={13} className="fill-white" /> La Ganga del Día
               </span>
-              {topDeal.offers[0].discount > 0 && (
+              {topMeliDeal.offer.discount > 0 && (
                 <span className="px-2.5 py-0.5 rounded-full text-[12px] font-black bg-amber-400 text-slate-950 shadow-xs">
-                  -{Math.round(topDeal.offers[0].discount)}% OFF
+                  -{Math.round(topMeliDeal.offer.discount)}% OFF
                 </span>
               )}
             </div>
@@ -537,8 +532,8 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-2xl p-1.5 shrink-0 flex items-center justify-center border border-white/20 shadow-xs">
                 <img
-                  src={topDeal.imagen}
-                  alt={`Destacado: ${topDeal.nombre}`}
+                  src={topMeliDeal.product.imagen}
+                  alt={`Destacado: ${topMeliDeal.product.nombre}`}
                   className="max-h-full max-w-full object-contain"
                   loading="lazy"
                   referrerPolicy="no-referrer"
@@ -546,99 +541,33 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
               </div>
               <div className="flex-1 min-w-0">
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-rose-200">
-                  {topDeal.marca}
+                  {topMeliDeal.product.marca}
                 </span>
                 <h4 className="text-[14px] sm:text-[15px] font-black text-white leading-tight line-clamp-2 mt-0.5">
-                  {`⚡ Destacado: ${topDeal.nombre}`}
+                  {`⚡ Oportunidad: ${topMeliDeal.product.nombre}`}
                 </h4>
                 <div className="mt-1 flex items-center gap-2 flex-wrap">
                   <span className="text-[18px] sm:text-[20px] font-black text-amber-300">
-                    {formatPrice(topDeal.offers[0].precio)}
+                    {formatPrice(topMeliDeal.offer.precio)}
                   </span>
-                  {topDeal.offers[0].precio_lista > topDeal.offers[0].precio && (
+                  {topMeliDeal.offer.precio_lista > topMeliDeal.offer.precio && (
                     <span className="text-[12px] text-white/50 line-through">
-                      {formatPrice(topDeal.offers[0].precio_lista)}
+                      {formatPrice(topMeliDeal.offer.precio_lista)}
                     </span>
                   )}
                 </div>
-                <div className="mt-1 flex items-center gap-1.5 text-[11px] text-rose-100 font-semibold">
-                  <span>En {storeLabel(topDeal.offers[0].supermercado)}</span>
-                  {topDeal.offers.length > 1 && (
-                    <span className="text-amber-200">· Compará {topDeal.offers.length} tiendas</span>
-                  )}
+                <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
+                  <span className="text-[11px] text-amber-200 font-bold flex items-center gap-1">
+                    <span>⚡ Envío FULL directo a tu domicilio</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-extrabold bg-white text-rose-700 px-2.5 py-1 rounded-full shadow-xs group-hover:bg-amber-300 group-hover:text-slate-950 transition-colors">
+                    <span>Aprovechar ganga</span>
+                    <ExternalLink size={11} />
+                  </span>
                 </div>
               </div>
             </div>
           </div>
-        )}
-
-        {/* GUERRA DE PRECIOS: Brecha extrema entre cadenas */}
-        {selectedVertical === 'all' && selectedFilter === 'all' && priceWarProducts.length > 0 && (
-          <section className="space-y-2.5 pt-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-[12px] font-bold shadow-2xs">
-                  ⚖️
-                </div>
-                <div>
-                  <h3 className="text-[15px] font-black text-slate-900 tracking-tight leading-none">
-                    Guerra de Precios: Acá es donde más ahorrás hoy
-                  </h3>
-                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                    Diferencia real entre cadenas para el mismo producto exacto
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-1">
-              {priceWarProducts.map(p => {
-                const sortedOffers = [...p.offers].sort((a, b) => a.precio - b.precio)
-                const cheapest = sortedOffers[0]
-                const mostExp = sortedOffers[sortedOffers.length - 1]
-                const diff = mostExp.precio - cheapest.precio
-                return (
-                  <div
-                    key={`pw-${p.ean || p.id}`}
-                    onClick={() => setHeroSheetGroup(p)}
-                    className="w-[200px] shrink-0 bg-white rounded-2xl border border-emerald-200/90 p-3 shadow-2xs hover:shadow-sm cursor-pointer flex flex-col justify-between transition-all"
-                  >
-                    <div>
-                      <div className="w-full h-16 flex items-center justify-center mb-1.5">
-                        <img
-                          src={p.imagen}
-                          alt={`Comparativa: ${p.nombre}`}
-                          className="max-h-full max-w-full object-contain"
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
-                      <h5 className="text-[11.5px] font-bold text-slate-800 line-clamp-2 leading-snug">
-                        {`⚖️ Comparativa: ${p.nombre}`}
-                      </h5>
-                    </div>
-                    <div className="mt-2 pt-2 border-t border-slate-100 space-y-1">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-semibold text-emerald-700">{storeLabel(cheapest.supermercado)}:</span>
-                        <span className="font-black text-emerald-800">{formatPrice(cheapest.precio)}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-400">{storeLabel(mostExp.supermercado)}:</span>
-                        <span className="text-slate-400 line-through">{formatPrice(mostExp.precio)}</span>
-                      </div>
-                      {diff > 0 && (
-                        <div className="pt-1 text-center">
-                          <span className="inline-block text-[10px] font-black text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
-                            Ahorrás {formatPrice(diff)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
         )}
 
         {/* FEED PRINCIPAL DE TIERS */}
