@@ -59,7 +59,7 @@ export const STORES: StoreMap = {
   Musimundo: { id: 'musimundo', label: 'Musimundo', color: '#e30613', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://www.musimundo.com' },
 
   // --- Tiendas Oficiales de Marca ---
-  Samsung: { id: 'samsung', label: 'Samsung', color: '#1249ff', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://shop.samsung.com/ar' },
+  Samsung: { id: 'samsung', label: 'Samsung', color: '#1249ff', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://shop.samsung.com.ar' },
   Philips: { id: 'philips', label: 'Philips', color: '#0b5ed7', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://tienda.philips.com.ar' },
   Whirlpool: { id: 'whirlpool', label: 'Whirlpool', color: '#f0b400', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://www.whirlpool.com.ar' },
   Moulinex: { id: 'moulinex', label: 'Moulinex / Tefal', color: '#da291c', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://tienda.moulinex.com.ar' },
@@ -165,30 +165,7 @@ export function resolveOutboundUrl(
   const qTerm = (model || productTitle || '').trim()
   const qEnc = encodeURIComponent(qTerm)
 
-  // 1. Manejo blindado para Samsung:
-  // En móviles y desktop, URLs profundas de modelos descatalogados muestran "Producto sin stock".
-  // www.samsung.com/ar/search/?searchvalue=... es 100% confiable y abre el listado oficial con stock activo y precio oficial.
-  if (storeLower.includes('samsung')) {
-    return `https://www.samsung.com/ar/search/?searchvalue=${qEnc}`
-  }
-
-  // 2. Manejo blindado para Mercado Libre:
-  // IDs de catálogo estáticos (/p/MLA) pueden descontinuarse o reasignarse a artículos no relacionados.
-  // La búsqueda canonical en listado.mercadolibre.com.ar garantiza publicaciones activas con stock y fotos.
-  if (storeLower.includes('mercadolibre')) {
-    const isUnsafeMeliCatalog = !url || url.includes('/p/MLA') || url === domain || url === `${domain}/`
-    if (isUnsafeMeliCatalog && qTerm) {
-      const cleanSlug = qTerm
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-      url = `https://listado.mercadolibre.com.ar/${cleanSlug || qEnc}`
-    }
-  }
-
-  // 2. Si no hay link específico o es solo el home genérico, construir búsqueda directa en la tienda
+  // Si no hay link específico o es solo el home genérico, construir búsqueda directa en la tienda
   const isGenericRoot =
     !url ||
     url === domain ||
@@ -227,6 +204,8 @@ export function resolveOutboundUrl(
       url = `https://www.vea.com.ar/${qEnc}?_q=${qEnc}&map=ft`
     } else if (storeLower.includes('masonline')) {
       url = `https://www.masonline.com.ar/${qEnc}?_q=${qEnc}&map=ft`
+    } else if (storeLower.includes('samsung')) {
+      url = `https://shop.samsung.com.ar/${qEnc}?_q=${qEnc}&map=ft`
     } else {
       url = `${domain}/${qEnc}?_q=${qEnc}&map=ft`
     }

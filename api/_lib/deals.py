@@ -1039,7 +1039,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://listado.mercadolibre.com.ar/smart-tv-samsung-55-qled"
+                        "link": "https://www.mercadolibre.com.ar/p/MLA21720424"
                     },
                     {
                         "supermercado": "Samsung",
@@ -1052,7 +1052,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://www.samsung.com/ar/search/?searchvalue=Smart%20TV%2055%20QLED"
+                        "link": "https://shop.samsung.com.ar/55--neo-qled-qn70h-4k-vision-ai-smart-tv/p"
                     },
                     {
                         "supermercado": "Carrefour",
@@ -1111,7 +1111,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://listado.mercadolibre.com.ar/samsung-galaxy-a07"
+                        "link": "https://articulo.mercadolibre.com.ar/MLA-3353217040"
                     },
                     {
                         "supermercado": "Provincia Compras",
@@ -1184,7 +1184,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Motorola",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://listado.mercadolibre.com.ar/moto-edge-fusion-5g"
+                        "link": "https://articulo.mercadolibre.com.ar/MLA-1727682513"
                     },
                     {
                         "supermercado": "Naldo",
@@ -1235,7 +1235,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Xiaomi",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://listado.mercadolibre.com.ar/xiaomi-redmi-ocean-blue"
+                        "link": "https://www.mercadolibre.com.ar/p/MLA24290533"
                     },
                     {
                         "supermercado": "Carrefour",
@@ -1320,7 +1320,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial HP",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://listado.mercadolibre.com.ar/notebook-hp-15-ryzen-5"
+                        "link": "https://www.mercadolibre.com.ar/p/MLA21626726"
                     },
                     {
                         "supermercado": "Cetrogar",
@@ -1409,7 +1409,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_id": "1",
                         "store_type": "marketplace",
                         "is_full": True,
-                        "link": "https://listado.mercadolibre.com.ar/sommier-norcee-140x190"
+                        "link": "https://articulo.mercadolibre.com.ar/MLA-2138560112"
                     }
                 ]
             },
@@ -1463,7 +1463,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_id": "1",
                         "store_type": "marketplace",
                         "is_full": True,
-                        "link": "https://listado.mercadolibre.com.ar/colchon-zafiro-express-80x190"
+                        "link": "https://articulo.mercadolibre.com.ar/MLA-2173232660"
                     }
                 ]
             },
@@ -1595,7 +1595,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Sony",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://listado.mercadolibre.com.ar/parlantes-sony-xs-gtf1039"
+                        "link": "https://articulo.mercadolibre.com.ar/MLA-2200163579"
                     },
                     {
                         "supermercado": "Provincia Compras",
@@ -1709,7 +1709,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://listado.mercadolibre.com.ar/galaxy-buds3-pro"
+                        "link": "https://www.mercadolibre.com.ar/p/MLA39205030"
                     },
                     {
                         "supermercado": "Samsung",
@@ -1722,7 +1722,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://www.samsung.com/ar/search/?searchvalue=Galaxy%20Buds3%20Pro"
+                        "link": "https://shop.samsung.com.ar/galaxy-buds4/p"
                     },
                     {
                         "supermercado": "StyleStore",
