@@ -1065,7 +1065,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": true,
                         "free_shipping": true,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA36544675"
+                        "link": "https://listado.mercadolibre.com.ar/smart-tv-samsung-55-qled"
             },
             {
                         "supermercado": "Samsung",
@@ -1078,7 +1078,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://www.samsung.com/ar/tvs/qled-tv/q60d-55-inch-qled-4k-tizen-os-smart-tv-qn55q65dagczb/"
+                        "link": "https://www.samsung.com/ar/search/?searchvalue=Smart%20TV%2055%20QLED"
             },
             {
                         "supermercado": "Carrefour",
@@ -1137,7 +1137,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": true,
                         "free_shipping": true,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA40192843"
+                        "link": "https://listado.mercadolibre.com.ar/samsung-galaxy-a07"
             },
             {
                         "supermercado": "Provincia Compras",
@@ -1210,7 +1210,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Tienda Oficial Motorola",
                         "is_full": true,
                         "free_shipping": true,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA37894021"
+                        "link": "https://listado.mercadolibre.com.ar/moto-edge-fusion-5g"
             },
             {
                         "supermercado": "Naldo",
@@ -1261,7 +1261,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Tienda Oficial Xiaomi",
                         "is_full": true,
                         "free_shipping": true,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA34591024"
+                        "link": "https://listado.mercadolibre.com.ar/xiaomi-redmi-ocean-blue"
             },
             {
                         "supermercado": "Carrefour",
@@ -1346,7 +1346,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Tienda Oficial HP",
                         "is_full": true,
                         "free_shipping": true,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA39812401"
+                        "link": "https://listado.mercadolibre.com.ar/notebook-hp-15-ryzen-5"
             },
             {
                         "supermercado": "Cetrogar",
@@ -1435,7 +1435,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
             seller_id: '1',
             store_type: 'marketplace',
             is_full: true,
-            link: 'https://www.mercadolibre.com.ar/p/MLA29845112',
+            link: 'https://listado.mercadolibre.com.ar/sommier-norcee-140x190',
           },
         ],
       },
@@ -1489,7 +1489,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
             seller_id: '1',
             store_type: 'marketplace',
             is_full: true,
-            link: 'https://www.mercadolibre.com.ar/p/MLA28741092',
+            link: 'https://listado.mercadolibre.com.ar/colchon-zafiro-express-80x190',
           },
         ],
       },
@@ -1621,7 +1621,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Tienda Oficial Sony",
                         "is_full": true,
                         "free_shipping": true,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA14187519"
+                        "link": "https://listado.mercadolibre.com.ar/parlantes-sony-xs-gtf1039"
             },
             {
                         "supermercado": "Provincia Compras",
@@ -1735,7 +1735,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": true,
                         "free_shipping": true,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA38920194"
+                        "link": "https://listado.mercadolibre.com.ar/galaxy-buds3-pro"
             },
             {
                         "supermercado": "Samsung",
@@ -1748,7 +1748,7 @@ export const MARKETPLACE_DISCOUNT_TIERS: DiscountTier[] = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://www.samsung.com/ar/audio-sound/galaxy-buds/galaxy-buds3-pro-silver-sm-r630nzaaaro/"
+                        "link": "https://www.samsung.com/ar/search/?searchvalue=Galaxy%20Buds3%20Pro"
             },
             {
                         "supermercado": "StyleStore",

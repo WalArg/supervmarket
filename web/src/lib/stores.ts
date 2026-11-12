@@ -166,15 +166,26 @@ export function resolveOutboundUrl(
   const qEnc = encodeURIComponent(qTerm)
 
   // 1. Manejo blindado para Samsung:
-  // En móviles, shop.samsung.com redirige a la home vacía.
-  // www.samsung.com/ar/search/?searchvalue=... es 100% confiable y abre el producto con stock y precio oficial.
+  // En móviles y desktop, URLs profundas de modelos descatalogados muestran "Producto sin stock".
+  // www.samsung.com/ar/search/?searchvalue=... es 100% confiable y abre el listado oficial con stock activo y precio oficial.
   if (storeLower.includes('samsung')) {
-    if (url && url.includes('www.samsung.com/ar/') && !url.endsWith('samsung.com/ar') && !url.endsWith('samsung.com/ar/')) {
-      // URL profunda oficial verificada
-    } else {
-      url = `https://www.samsung.com/ar/search/?searchvalue=${qEnc}`
+    return `https://www.samsung.com/ar/search/?searchvalue=${qEnc}`
+  }
+
+  // 2. Manejo blindado para Mercado Libre:
+  // IDs de catálogo estáticos (/p/MLA) pueden descontinuarse o reasignarse a artículos no relacionados.
+  // La búsqueda canonical en listado.mercadolibre.com.ar garantiza publicaciones activas con stock y fotos.
+  if (storeLower.includes('mercadolibre')) {
+    const isUnsafeMeliCatalog = !url || url.includes('/p/MLA') || url === domain || url === `${domain}/`
+    if (isUnsafeMeliCatalog && qTerm) {
+      const cleanSlug = qTerm
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+      url = `https://listado.mercadolibre.com.ar/${cleanSlug || qEnc}`
     }
-    return url
   }
 
   // 2. Si no hay link específico o es solo el home genérico, construir búsqueda directa en la tienda

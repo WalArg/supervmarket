@@ -7,7 +7,7 @@ import GondolaCard from './GondolaCard'
 import SponsoredGondolaCard from './SponsoredGondolaCard'
 import OffersSheet from './OffersSheet'
 import { formatPrice } from '../lib/pricing'
-import { storeLabel } from '../lib/stores'
+import { storeLabel, resolveOutboundUrl } from '../lib/stores'
 import { decorateOutboundUrl, trackOutboundAffiliateClick } from '../lib/affiliate'
 import type { ProductGroup, SupermarketOffer } from '../types'
 
@@ -519,7 +519,14 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
             {(selectedVertical === 'all' || selectedVertical === 'supermarket') && topSuperMeliDeal && (
               <div
                 onClick={() => {
-                  const url = decorateOutboundUrl(topSuperMeliDeal.offer.link, 'MercadoLibre', 'item')
+                  const resolved = resolveOutboundUrl(
+                    topSuperMeliDeal.offer.link,
+                    'MercadoLibre',
+                    topSuperMeliDeal.product.nombre,
+                    topSuperMeliDeal.offer.seller_id,
+                    topSuperMeliDeal.product.modelo,
+                  )
+                  const url = decorateOutboundUrl(resolved, 'MercadoLibre', 'item')
                   trackOutboundAffiliateClick('MercadoLibre', 'item', url, topSuperMeliDeal.offer.precio)
                   window.open(url, '_blank', 'noopener,noreferrer')
                 }}
@@ -582,7 +589,14 @@ export const OffersScreen: React.FC<OffersScreenProps> = ({ onGoSearch }) => {
             {(selectedVertical === 'all' || selectedVertical === 'marketplace') && topTechMeliDeal && (
               <div
                 onClick={() => {
-                  const url = decorateOutboundUrl(topTechMeliDeal.offer.link, 'MercadoLibre', 'item')
+                  const resolved = resolveOutboundUrl(
+                    topTechMeliDeal.offer.link,
+                    'MercadoLibre',
+                    topTechMeliDeal.product.nombre,
+                    topTechMeliDeal.offer.seller_id,
+                    topTechMeliDeal.product.modelo,
+                  )
+                  const url = decorateOutboundUrl(resolved, 'MercadoLibre', 'item')
                   trackOutboundAffiliateClick('MercadoLibre', 'item', url, topTechMeliDeal.offer.precio)
                   window.open(url, '_blank', 'noopener,noreferrer')
                 }}

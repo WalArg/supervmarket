@@ -1039,7 +1039,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA36544675"
+                        "link": "https://listado.mercadolibre.com.ar/smart-tv-samsung-55-qled"
                     },
                     {
                         "supermercado": "Samsung",
@@ -1052,7 +1052,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://www.samsung.com/ar/tvs/qled-tv/q60d-55-inch-qled-4k-tizen-os-smart-tv-qn55q65dagczb/"
+                        "link": "https://www.samsung.com/ar/search/?searchvalue=Smart%20TV%2055%20QLED"
                     },
                     {
                         "supermercado": "Carrefour",
@@ -1111,7 +1111,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA40192843"
+                        "link": "https://listado.mercadolibre.com.ar/samsung-galaxy-a07"
                     },
                     {
                         "supermercado": "Provincia Compras",
@@ -1184,7 +1184,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Motorola",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA37894021"
+                        "link": "https://listado.mercadolibre.com.ar/moto-edge-fusion-5g"
                     },
                     {
                         "supermercado": "Naldo",
@@ -1235,7 +1235,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Xiaomi",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA34591024"
+                        "link": "https://listado.mercadolibre.com.ar/xiaomi-redmi-ocean-blue"
                     },
                     {
                         "supermercado": "Carrefour",
@@ -1320,7 +1320,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial HP",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA39812401"
+                        "link": "https://listado.mercadolibre.com.ar/notebook-hp-15-ryzen-5"
                     },
                     {
                         "supermercado": "Cetrogar",
@@ -1409,7 +1409,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_id": "1",
                         "store_type": "marketplace",
                         "is_full": True,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA29845112"
+                        "link": "https://listado.mercadolibre.com.ar/sommier-norcee-140x190"
                     }
                 ]
             },
@@ -1463,7 +1463,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_id": "1",
                         "store_type": "marketplace",
                         "is_full": True,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA28741092"
+                        "link": "https://listado.mercadolibre.com.ar/colchon-zafiro-express-80x190"
                     }
                 ]
             },
@@ -1595,7 +1595,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Sony",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA14187519"
+                        "link": "https://listado.mercadolibre.com.ar/parlantes-sony-xs-gtf1039"
                     },
                     {
                         "supermercado": "Provincia Compras",
@@ -1709,7 +1709,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA38920194"
+                        "link": "https://listado.mercadolibre.com.ar/galaxy-buds3-pro"
                     },
                     {
                         "supermercado": "Samsung",
@@ -1722,7 +1722,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://www.samsung.com/ar/audio-sound/galaxy-buds/galaxy-buds3-pro-silver-sm-r630nzaaaro/"
+                        "link": "https://www.samsung.com/ar/search/?searchvalue=Galaxy%20Buds3%20Pro"
                     },
                     {
                         "supermercado": "StyleStore",
@@ -2172,11 +2172,50 @@ def fetch_db_deals_sync(db_path: str = "supervmarket.db") -> Dict[str, List[Dict
                         existing_offers.sort(key=lambda o: (o.get("unit_price") or o["precio"]))
                         prod_map[ean]["best_offer"] = existing_offers[0]
 
-            prod_list = list(prod_map.values())
+            prod_list = list(prod_map.values())[:15]
+
+            # Enriquecer cada producto con todas las ofertas de tiendas competidoras en la BD
+            eans_to_enrich = [p["ean"] for p in prod_list if p.get("ean")]
+            if eans_to_enrich:
+                try:
+                    placeholders = ",".join("?" for _ in eans_to_enrich)
+                    enrich_sql = f"""
+                        SELECT 
+                            p.ean, p.supermercado, p.precio_venta, p.precio_lista, p.stock, p.link, p.descuento,
+                            p.promo_etiqueta, p.promo_min_qty, p.precio_promo_unit, p.precio_por_unidad, p.unidad_medida,
+                            p.seller_id, p.store_type
+                        FROM precios p
+                        WHERE p.ean IN ({placeholders}) AND p.stock > 0 AND p.precio_venta > 0
+                    """
+                    cur.execute(enrich_sql, eans_to_enrich)
+                    for extra_row in cur.fetchall():
+                        r_dict = dict(extra_row)
+                        r_ean = r_dict.get("ean")
+                        if r_ean and r_ean in prod_map:
+                            ext_prod = _format_live_product(r_dict)
+                            ext_off = ext_prod["offers"][0]
+                            target_offers = prod_map[r_ean]["offers"]
+                            if not any(o.get("supermercado") == ext_off.get("supermercado") for o in target_offers):
+                                target_offers.append(ext_off)
+                except Exception:
+                    pass
+
             for p in prod_list:
-                if "best_offer" not in p and p.get("offers"):
+                if p.get("offers"):
+                    p["offers"].sort(key=lambda o: (o.get("unit_price") or o.get("precio", 0)))
                     p["best_offer"] = p["offers"][0]
-            formatted_tiers[tid] = prod_list[:15]
+            formatted_tiers[tid] = prod_list
+
+        # Mapear tanto los IDs canonicos como los aliases
+        alias_map = {
+            "tier-clearance": "tier-60",
+            "tier-basket": "tier-40",
+            "tier-mp-tech": "tier-mp-electro",
+            "tier-mp-home": "tier-mp-hogar",
+        }
+        for old_id, new_id in alias_map.items():
+            if old_id in formatted_tiers:
+                formatted_tiers[new_id] = formatted_tiers[old_id]
 
         conn.close()
         return formatted_tiers
@@ -2198,8 +2237,22 @@ async def get_live_discount_tiers(
         if now - cached_ts < _CACHE_TTL_SECONDS:
             return cached_data
 
-    # 1. Recuperar ofertas verificadas desde SQLite en thread worker
+    # 1. Recuperar ofertas verificadas desde SQLite en thread worker (o fallback a snapshot en Vercel)
     db_tiers = await asyncio.to_thread(fetch_db_deals_sync, "supervmarket.db")
+    if not db_tiers:
+        snapshot_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "verified_offers_snapshot.json")
+        if os.path.exists(snapshot_path):
+            try:
+                with open(snapshot_path, "r", encoding="utf-8") as sf:
+                    snap_data = json.load(sf)
+                    for t in snap_data.get("tiers", []):
+                        if t.get("id") and t.get("products"):
+                            db_tiers[t["id"]] = t["products"]
+                    for t in snap_data.get("marketplace_tiers", []):
+                        if t.get("id") and t.get("products"):
+                            db_tiers[t["id"]] = t["products"]
+            except Exception:
+                pass
 
     # 2. Concurrencia con sponsored de MercadoLibre (timeout 2s)
     live_sponsored: dict[str, dict] = {}
@@ -2211,20 +2264,33 @@ async def get_live_discount_tiers(
     except Exception:
         pass
 
-    # Helper para fusionar productos de DB con el baseline asegurando >= 4 productos
+    # Helper para fusionar productos de DB con el baseline asegurando multitienda y >= 4 productos
     def _merge_tier(db_items: list[dict], baseline_products: list[dict]) -> list[dict]:
         merged = []
-        seen = set()
+        map_by_key = {}
         for it in db_items:
-            key = it["nombre"].strip().lower()
-            if key not in seen:
-                seen.add(key)
-                merged.append(it)
+            key = it.get("ean") or it["nombre"].strip().lower()
+            item_copy = dict(it)
+            item_copy["offers"] = list(it.get("offers", []))
+            map_by_key[key] = item_copy
+            merged.append(item_copy)
+
         for it in baseline_products:
-            key = it["nombre"].strip().lower()
-            if key not in seen:
-                seen.add(key)
-                merged.append(it)
+            key = it.get("ean") or it["nombre"].strip().lower()
+            if key not in map_by_key:
+                item_copy = dict(it)
+                item_copy["offers"] = list(it.get("offers", []))
+                map_by_key[key] = item_copy
+                merged.append(item_copy)
+            else:
+                existing = map_by_key[key]
+                existing_stores = {o.get("supermercado") for o in existing.get("offers", [])}
+                for b_off in it.get("offers", []):
+                    if b_off.get("supermercado") not in existing_stores:
+                        existing.setdefault("offers", []).append(b_off)
+                        existing_stores.add(b_off.get("supermercado"))
+                existing["offers"].sort(key=lambda o: (o.get("unit_price") or o.get("precio", 0)))
+                existing["best_offer"] = existing["offers"][0]
 
         valid_disc = [p for p in merged if _has_real_discount_or_promo(p)]
         if len(valid_disc) >= 4:
