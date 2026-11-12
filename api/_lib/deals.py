@@ -413,16 +413,16 @@ BASELINE_TIERS = [
                     },
                     {
                         "supermercado": "MercadoLibre",
-                        "precio": 2490,
-                        "precio_lista": 3990,
+                        "precio": 8499,
+                        "precio_lista": 9699,
                         "stock": 100,
                         "link": "https://www.mercadolibre.com.ar/p/MLA65347171",
-                        "discount": 38,
-                        "promo_label": "38% OFF · FULL",
+                        "discount": 12,
+                        "promo_label": "12% OFF · FULL",
                         "seller_name": "Tienda Oficial SC Johnson",
                         "is_full": True,
                         "unit_measure": "lt",
-                        "unit_price": 6729
+                        "unit_price": 23608
                     },
                     {
                         "supermercado": "Coto",
@@ -1701,12 +1701,12 @@ BASELINE_MARKETPLACE_TIERS = [
                     },
                     {
                         "supermercado": "MercadoLibre",
-                        "precio": 289999,
-                        "precio_lista": 609999,
+                        "precio": 311909,
+                        "precio_lista": 449999,
                         "stock": 40,
                         "disponible": True,
-                        "discount": 52,
-                        "promo_label": "52% OFF · FULL",
+                        "discount": 31,
+                        "promo_label": "31% OFF · FULL",
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": True,
                         "free_shipping": True,
