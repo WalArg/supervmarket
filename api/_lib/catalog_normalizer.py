@@ -115,6 +115,27 @@ def norm_brand(b: str) -> str:
     b_clean = re.sub(r'\s+', ' ', _strip_accents(b).upper().strip())
     return BRAND_SYNONYMS.get(b_clean, b_clean)
 
+
+def norm_hardware_model(brand: str, model_str: str) -> str:
+    """
+    Normalizes manufacturer model identifiers across different retail conventions:
+    1. Samsung TV: unifies 'UN50DU7000', '50DU7000', 'UN50DU7000GCZB', 'UN50DU7000GCFV' -> '50DU7000'.
+    2. LG TV: strips regional suffixes (.AWC, .AWF).
+    3. Motorola / Cellphones: unifies 'MOTO G54' and 'G54'.
+    """
+    m = re.sub(r'[^A-Z0-9]', '', model_str.upper())
+    if not m:
+        return ""
+    b = brand.upper() if brand else ""
+    if "SAMSUNG" in b:
+        m = re.sub(r'^(?:UN|QN|LH)(\d{2}[A-Z]{1,2}\d{3,4})', r'\1', m)
+        m = re.sub(r'(?:GCZB|GCFV|XZB|XBG|CZB|FV)$', '', m)
+    elif "LG" in b:
+        m = re.sub(r'(?:AW[A-Z]|BW[A-Z]|CW[A-Z])$', '', m)
+    elif "MOTOROLA" in b:
+        m = re.sub(r'^(?:MOTO)?([EGE]\d{1,2})', r'\1', m)
+    return m
+
 def clean_grocery_base_name(name: str, brand: str = "") -> str:
     """
     Cleans grocery product titles for safe canonical matching:
@@ -746,8 +767,8 @@ def build_entity_resolution_index(conn: sqlite3.Connection) -> Tuple[int, int]:
         if not is_accessory(title):
             m = modelo or extract_model(title, brand=marca or "")
             if m:
-                m_clean = re.sub(r'[^A-Z0-9]', '', m.upper())
-                if not FALSE_MODELS_EXTRA.match(m_clean) and brand_clean:
+                m_clean = norm_hardware_model(brand_clean, m)
+                if m_clean and not FALSE_MODELS_EXTRA.match(m_clean) and brand_clean:
                     variant = extract_capacity_variant(title)
                     hw_key = (brand_clean, m_clean, variant)
                     if hw_key not in GLOBAL_MODEL_TO_EAN or prio < GLOBAL_MODEL_TO_EAN[hw_key][3]:
@@ -815,8 +836,8 @@ def resolve_and_repoint_entities(conn: sqlite3.Connection, dry_run: bool = False
             if not is_accessory(title):
                 m = modelo or extract_model(title, brand=marca or "")
                 if m:
-                    m_clean = re.sub(r'[^A-Z0-9]', '', m.upper())
-                    if not FALSE_MODELS_EXTRA.match(m_clean) and b_clean:
+                    m_clean = norm_hardware_model(b_clean, m)
+                    if m_clean and not FALSE_MODELS_EXTRA.match(m_clean) and b_clean:
                         variant = extract_capacity_variant(title)
                         hw_key = (b_clean, m_clean, variant)
                         if hw_key in GLOBAL_MODEL_TO_EAN:
@@ -966,11 +987,11 @@ def normalize_all_categories(conn: sqlite3.Connection, dry_run: bool = False) ->
         distribution[cat] = distribution.get(cat, 0) + 1
 
     if not dry_run:
-        CHUNK_SIZE = 1000
+        CHUNK_SIZE = 5000
         for i in range(0, len(updates), CHUNK_SIZE):
             chunk = updates[i : i + CHUNK_SIZE]
             cur.executemany("UPDATE productos SET categoria_normalizada = ? WHERE ean = ?", chunk)
-            conn.commit()
+        conn.commit()
 
         # Ensure index exists
         cur.execute("CREATE INDEX IF NOT EXISTS idx_productos_cat_norm ON productos (categoria_normalizada);")

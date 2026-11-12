@@ -51,7 +51,7 @@ SQLITE_MIGRATIONS = [
     "CREATE VIRTUAL TABLE IF NOT EXISTS productos_fts USING fts5(ean UNINDEXED, search_text, tokenize=trigram)",
     "CREATE TRIGGER IF NOT EXISTS productos_ai AFTER INSERT ON productos BEGIN INSERT INTO productos_fts(ean, search_text) VALUES (new.ean, new.search_text); END",
     "CREATE TRIGGER IF NOT EXISTS productos_ad AFTER DELETE ON productos BEGIN DELETE FROM productos_fts WHERE ean = old.ean; END",
-    "CREATE TRIGGER IF NOT EXISTS productos_au AFTER UPDATE ON productos BEGIN DELETE FROM productos_fts WHERE ean = old.ean; INSERT INTO productos_fts(ean, search_text) VALUES (new.ean, new.search_text); END",
+    "CREATE TRIGGER IF NOT EXISTS productos_au AFTER UPDATE OF search_text ON productos BEGIN DELETE FROM productos_fts WHERE ean = old.ean; INSERT INTO productos_fts(ean, search_text) VALUES (new.ean, new.search_text); END",
 ]
 
 _TRANS = str.maketrans('áéíóúÁÉÍÓÚñÑüÜàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛãõÃÕ', 'aeiouAEIOUnNuUaeiouAEIOUaeiouAEIOUaeiouAEIOUaoAO')

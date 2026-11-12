@@ -18,9 +18,12 @@ scraper/
 scratch/
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 *.sqlite
 *.log
 *.zip
+.harvest*.json
 ___*
 *Error.txt
 gitignore

@@ -278,12 +278,12 @@ async def search(
 
 
 @app.get("/api/offers")
-async def offers(cp: str | None = None, force: bool = False):
+async def offers(cp: str | None = None, force: bool = False, vertical: str | None = "all"):
     """Ofertas y mayores descuentos del día comparados en vivo:
     - Supermercados: 70%-80%, liquidaciones directas, 50% y canasta básica.
     - Marketplaces: Electro & Tech, Hogar & Taller, y Ofertas Destacadas con cuotas y sellers.
     """
-    return await deals.get_live_discount_tiers(cp=cp, force=force)
+    return await deals.get_live_discount_tiers(cp=cp, force=force, vertical=vertical)
 
 
 @app.get("/api/health/audit")

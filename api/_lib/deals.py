@@ -16,7 +16,9 @@ import asyncio
 import copy
 import time
 from datetime import datetime, timezone
-from typing import Optional
+import os
+import sqlite3
+from typing import Any, Dict, List, Optional
 
 import httpx
 
@@ -1279,12 +1281,105 @@ async def _revalidate_baseline_products(
     return tiers_copy
 
 
+def fetch_db_deals_sync(db_path: str = "supervmarket.db") -> Dict[str, List[Dict[str, Any]]]:
+    """Recupera ofertas y descuentos reales y verificados directamente desde la base de datos canónica."""
+    abs_path = os.path.abspath(db_path)
+    if not os.path.exists(abs_path):
+        return {}
+
+    try:
+        conn = sqlite3.connect(abs_path, timeout=5.0)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        base_sql = """
+            SELECT 
+                p.ean, pr.nombre, pr.marca, pr.modelo, pr.tipo, pr.imagen, pr.categoria_normalizada,
+                p.supermercado, p.precio_venta, p.precio_lista, p.stock, p.link, p.descuento,
+                p.promo_etiqueta, p.promo_min_qty, p.precio_promo_unit, p.precio_por_unidad, p.unidad_medida,
+                p.seller_id, p.store_type
+            FROM precios p
+            JOIN productos pr ON p.ean = pr.ean
+            WHERE p.stock > 0 AND p.precio_venta > 0
+              AND pr.imagen IS NOT NULL AND pr.imagen != '' AND pr.imagen NOT LIKE '%placeholder%'
+              AND pr.imagen NOT LIKE '%ids/676579%'
+              AND pr.imagen NOT LIKE '%ids/607590%'
+        """
+
+        tier_queries = {
+            "tier-70-80": base_sql + """
+                AND (p.promo_etiqueta LIKE '%70%' OR p.promo_etiqueta LIKE '%80%' 
+                     OR (p.promo_min_qty = 2 AND p.descuento >= 35.0 AND p.descuento <= 45.0))
+                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+            """,
+            "tier-clearance": base_sql + """
+                AND p.descuento >= 50.0 AND p.descuento <= 75.0 AND p.store_type = 'supermarket'
+                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+            """,
+            "tier-50": base_sql + """
+                AND (p.promo_etiqueta LIKE '%2x1%' OR (p.descuento >= 48.0 AND p.descuento <= 52.0))
+                AND p.store_type = 'supermarket'
+                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+            """,
+            "tier-basket": base_sql + """
+                AND pr.categoria_normalizada IN ('almacen', 'lacteos_frescos', 'bebidas', 'limpieza', 'perfumeria_farmacia', 'carnes_verduleria')
+                AND p.descuento >= 20.0 AND p.descuento <= 45.0 AND p.store_type = 'supermarket'
+                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+            """,
+            "tier-mp-tech": base_sql + """
+                AND pr.categoria_normalizada IN ('televisores', 'celulares', 'notebooks_tablets', 'audio_video', 'pequenos_electro')
+                AND p.descuento >= 15.0 AND p.descuento <= 75.0
+                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+            """,
+            "tier-mp-home": base_sql + """
+                AND pr.categoria_normalizada IN ('heladeras_freezers', 'lavado', 'cocina_hornos', 'climatizacion', 'muebles_racks', 'herramientas_construccion')
+                AND p.descuento >= 15.0 AND p.descuento <= 75.0
+                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+            """,
+            "tier-mp-destacadas": base_sql + """
+                AND p.supermercado IN ('Frávega', 'Musimundo', 'Naldo', 'Sony Store', 'Megatone', 'Coppel', 'Provincia Compras', 'Samsung', 'Philips', 'Whirlpool')
+                AND p.descuento >= 20.0 AND p.descuento <= 75.0
+                ORDER BY p.descuento DESC, p.stock DESC LIMIT 30
+            """
+        }
+
+        formatted_tiers: Dict[str, List[Dict[str, Any]]] = {}
+        for tid, q in tier_queries.items():
+            cur.execute(q)
+            rows = [dict(r) for r in cur.fetchall()]
+            prod_map: Dict[str, Dict[str, Any]] = {}
+            for r in rows:
+                formatted = _format_live_product(r)
+                ean = formatted.get("ean") or formatted.get("id")
+                if ean not in prod_map:
+                    prod_map[ean] = formatted
+                else:
+                    existing_offers = prod_map[ean]["offers"]
+                    new_offer = formatted["offers"][0]
+                    if not any(o.get("supermercado") == new_offer.get("supermercado") for o in existing_offers):
+                        existing_offers.append(new_offer)
+                        existing_offers.sort(key=lambda o: (o.get("unit_price") or o["precio"]))
+                        prod_map[ean]["best_offer"] = existing_offers[0]
+
+            prod_list = list(prod_map.values())
+            for p in prod_list:
+                if "best_offer" not in p and p.get("offers"):
+                    p["best_offer"] = p["offers"][0]
+            formatted_tiers[tid] = prod_list[:15]
+
+        conn.close()
+        return formatted_tiers
+    except Exception:
+        return {}
+
+
 async def get_live_discount_tiers(
     cp: Optional[str] = None,
     force: bool = False,
+    vertical: Optional[str] = "all",
 ) -> dict:
     """Devuelve los niveles de ofertas con productos en vivo y caché inteligente."""
-    cache_key = str(cp or "global")
+    cache_key = f"{cp or 'global'}:{vertical or 'all'}"
     now = time.time()
 
     if not force and cache_key in _DEALS_CACHE:
@@ -1292,99 +1387,24 @@ async def get_live_discount_tiers(
         if now - cached_ts < _CACHE_TTL_SECONDS:
             return cached_data
 
-    # Categorías clave de supermercado
-    categories = [
-        "almacen",
-        "bebidas",
-        "limpieza",
-        "lacteos-y-productos-frescos",
-        "perfumeria",
-    ]
+    # 1. Recuperar ofertas verificadas desde SQLite en thread worker
+    db_tiers = await asyncio.to_thread(fetch_db_deals_sync, "supervmarket.db")
 
-    live_t70: list[dict] = []
-    live_t60: list[dict] = []
-    live_t50: list[dict] = []
-    live_t40: list[dict] = []
-    revalidated_baseline: list[dict] = copy.deepcopy(BASELINE_TIERS)
+    # 2. Concurrencia con sponsored de MercadoLibre (timeout 2s)
     live_sponsored: dict[str, dict] = {}
-
     try:
-        async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
-            cat_tasks = []
-            for cat in categories:
-                cat_tasks.append(_fetch_category_deals(client, "Dia", cat, limit=15))
-                cat_tasks.append(_fetch_category_deals(client, "Carrefour", cat, limit=15))
-
-            all_results = await asyncio.gather(
-                *cat_tasks,
-                _revalidate_baseline_products(client, BASELINE_TIERS),
-                mercadolibre.fetch_live_sponsored_tiers(client),
-                return_exceptions=True,
-            )
-
-            cat_results = all_results[:-2]
-            reval_res = all_results[-2]
-            spons_res = all_results[-1]
-
-            if isinstance(reval_res, list) and reval_res:
-                revalidated_baseline = reval_res
+        async with httpx.AsyncClient(timeout=2.0, follow_redirects=True) as client:
+            spons_res = await mercadolibre.fetch_live_sponsored_tiers(client)
             if isinstance(spons_res, dict):
                 live_sponsored = spons_res
-
-            flat_parsed: list[dict] = []
-            for r in cat_results:
-                if isinstance(r, list):
-                    flat_parsed.extend(r)
-
-            seen_names = set()
-            for p in flat_parsed:
-                name_key = (p.get("nombre") or "").strip().lower()
-                if not name_key or name_key in seen_names:
-                    continue
-                seen_names.add(name_key)
-
-                disc = float(p.get("descuento") or 0)
-                promo = str(p.get("promo_etiqueta") or "")
-                formatted = _format_live_product(p)
-
-                if "70%" in promo or "80%" in promo or disc >= 70:
-                    live_t70.append(formatted)
-                elif disc >= 50 or "50%" in promo or "2x1" in promo:
-                    live_t50.append(formatted)
-                elif disc >= 35:
-                    live_t60.append(formatted)
-                elif disc >= 20:
-                    live_t40.append(formatted)
-
     except Exception:
         pass
 
-    is_live_fetch = (len(live_t70) + len(live_t60) + len(live_t50) + len(live_t40) > 0) or bool(live_sponsored)
-
-    # Si las fuentes en vivo fallaron por completo, intentar recuperar snapshot verificado de DB
-    if not is_live_fetch:
-        try:
-            from . import db
-            if hasattr(db, "load_verified_deals_snapshot"):
-                try:
-                    snap = db.load_verified_deals_snapshot(cp=cache_key)
-                except TypeError:
-                    snap = db.load_verified_deals_snapshot()
-                if asyncio.iscoroutine(snap):
-                    snap = await snap
-                if isinstance(snap, dict) and snap.get("tiers"):
-                    if not snap.get("marketplace_tiers"):
-                        snap["marketplace_tiers"] = copy.deepcopy(BASELINE_MARKETPLACE_TIERS)
-                    _DEALS_CACHE[cache_key] = (now, snap)
-                    return snap
-        except Exception:
-            pass
-
-    # Ensamblar los 4 niveles combinando ofertas en vivo con el baseline revalidado
-    def _merge_tier(live_items: list[dict], baseline_products: list[dict]) -> list[dict]:
+    # Helper para fusionar productos de DB con el baseline asegurando >= 4 productos
+    def _merge_tier(db_items: list[dict], baseline_products: list[dict]) -> list[dict]:
         merged = []
         seen = set()
-        for it in live_items:
+        for it in db_items:
             key = it["nombre"].strip().lower()
             if key not in seen:
                 seen.add(key)
@@ -1395,24 +1415,19 @@ async def get_live_discount_tiers(
                 seen.add(key)
                 merged.append(it)
 
-        # Desalojar productos sin descuento real si el tier ya tiene >= 4 productos con descuento
         valid_disc = [p for p in merged if _has_real_discount_or_promo(p)]
         if len(valid_disc) >= 4:
             return valid_disc
         return merged
 
     final_tiers = []
-    for b_tier in revalidated_baseline:
+    for b_tier in BASELINE_TIERS:
         t_id = b_tier["id"]
-        if t_id == "tier-70-80":
-            prods = _merge_tier(live_t70, b_tier["products"])
-        elif t_id == "tier-60":
-            prods = _merge_tier(live_t60, b_tier["products"])
-        elif t_id == "tier-50":
-            prods = _merge_tier(live_t50, b_tier["products"])
-        else:
-            prods = _merge_tier(live_t40, b_tier["products"])
-
+        db_items = db_tiers.get(t_id, [])
+        prods = _merge_tier(db_items, b_tier["products"])
+        for p in prods:
+            if "best_offer" not in p and p.get("offers"):
+                p["best_offer"] = p["offers"][0]
         sponsored = live_sponsored.get(t_id) or b_tier.get("meliSponsored")
 
         final_tiers.append({
@@ -1421,15 +1436,31 @@ async def get_live_discount_tiers(
             "products": prods,
         })
 
-    # Ensamblar los 3 niveles dedicados para Marketplaces
-    final_marketplace_tiers = copy.deepcopy(BASELINE_MARKETPLACE_TIERS)
-    for mp_t in final_marketplace_tiers:
-        for p in mp_t.get("products", []):
+    final_marketplace_tiers = []
+    for mp_t in BASELINE_MARKETPLACE_TIERS:
+        t_id = mp_t["id"]
+        db_items = db_tiers.get(t_id, [])
+        prods = _merge_tier(db_items, mp_t["products"])
+        for p in prods:
             if "best_offer" not in p and p.get("offers"):
                 p["best_offer"] = p["offers"][0]
+        final_marketplace_tiers.append({
+            **mp_t,
+            "products": prods,
+        })
+
+    is_live_fetch = bool(db_tiers) or bool(live_sponsored)
+
+    # Selección según vertical
+    if vertical == "marketplace":
+        selected_tiers = final_marketplace_tiers
+    elif vertical == "supermarket":
+        selected_tiers = final_tiers
+    else:
+        selected_tiers = final_tiers
 
     data_payload = {
-        "tiers": final_tiers,
+        "tiers": selected_tiers,
         "marketplace_tiers": final_marketplace_tiers,
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "is_live": is_live_fetch,
