@@ -416,7 +416,7 @@ BASELINE_TIERS = [
                         "precio": 2490,
                         "precio_lista": 3990,
                         "stock": 100,
-                        "link": "https://www.mercadolibre.com.ar/p/MLA21345678",
+                        "link": "https://www.mercadolibre.com.ar/p/MLA65347171",
                         "discount": 38,
                         "promo_label": "38% OFF · FULL",
                         "seller_name": "Tienda Oficial SC Johnson",
@@ -1052,7 +1052,8 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://shop.samsung.com.ar/55--qled-4k-q6f/p"
+                        "sku_id": "139439",
+                        "link": "https://shop.samsung.com/ar/55--crystal-uhd-4k-u8000f/p"
                     },
                     {
                         "supermercado": "Carrefour",
@@ -1709,7 +1710,7 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Tienda Oficial Samsung",
                         "is_full": True,
                         "free_shipping": True,
-                        "link": "https://articulo.mercadolibre.com.ar/MLA-2140790745"
+                        "link": "https://www.mercadolibre.com.ar/p/MLA38451794"
                     },
                     {
                         "supermercado": "Samsung",
@@ -1722,7 +1723,8 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://shop.samsung.com.ar/galaxy-buds3-pro/p"
+                        "sku_id": "138533",
+                        "link": "https://shop.samsung.com/ar/galaxy-buds3-pro/p"
                     },
                     {
                         "supermercado": "StyleStore",
@@ -1769,7 +1771,8 @@ BASELINE_MARKETPLACE_TIERS = [
                         "seller_name": "Samsung",
                         "seller_id": "1",
                         "store_type": "electro",
-                        "link": "https://shop.samsung.com.ar/galaxy-buds3-pro/p"
+                        "sku_id": "138533",
+                        "link": "https://shop.samsung.com/ar/galaxy-buds3-pro/p"
                     }
                 ]
             }

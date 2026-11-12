@@ -275,7 +275,7 @@ STORE_REGISTRY: dict[str, StoreMeta] = {
     "Samsung": {
         "id": "samsung",
         "nombre": "Samsung",
-        "dominio": "https://shop.samsung.com.ar",
+        "dominio": "https://shop.samsung.com/ar",
         "plataforma": "vtex",
         "sales_channel": 1,
         "vertical": "electro",
@@ -528,7 +528,7 @@ VTEX_DOMAINS: dict[str, str] = {
     "Musimundo": "https://www.musimundo.com",
 
     # Tiendas Oficiales
-    "Samsung": "https://shop.samsung.com.ar",
+    "Samsung": "https://shop.samsung.com/ar",
     "Philips": "https://www.tienda.philips.com.ar",
     "Whirlpool": "https://www.whirlpool.com.ar",
     "Moulinex": "https://tienda.moulinex.com.ar",

@@ -59,7 +59,7 @@ export const STORES: StoreMap = {
   Musimundo: { id: 'musimundo', label: 'Musimundo', color: '#e30613', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://www.musimundo.com' },
 
   // --- Tiendas Oficiales de Marca ---
-  Samsung: { id: 'samsung', label: 'Samsung', color: '#1249ff', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://shop.samsung.com.ar' },
+  Samsung: { id: 'samsung', label: 'Samsung', color: '#1249ff', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://shop.samsung.com/ar' },
   Philips: { id: 'philips', label: 'Philips', color: '#0b5ed7', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://tienda.philips.com.ar' },
   Whirlpool: { id: 'whirlpool', label: 'Whirlpool', color: '#f0b400', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://www.whirlpool.com.ar' },
   Moulinex: { id: 'moulinex', label: 'Moulinex / Tefal', color: '#da291c', vertical: 'electro', isMarketplace: false, supportsCart: true, dominio: 'https://tienda.moulinex.com.ar' },
@@ -228,7 +228,23 @@ export function resolveOutboundUrl(
     url.endsWith('.com') ||
     url.endsWith('.com/')
 
-  if (isGenericRoot) {
+  if (storeLower.includes('samsung')) {
+    // Samsung Argentina requiere el prefijo /ar/ en shop.samsung.com/ar/<slug>/p
+    // Sin /ar/, el enrutador SPA de Samsung rebota al home shop.samsung.com/ar
+    if (isGenericRoot) {
+      url = qTerm
+        ? `https://shop.samsung.com/ar/${qEnc}?_q=${qEnc}&map=ft`
+        : 'https://shop.samsung.com/ar'
+    } else {
+      url = url.replace(/^https?:\/\/shop\.samsung\.com\.ar/, 'https://shop.samsung.com')
+      if (url.startsWith('https://shop.samsung.com') && !url.startsWith('https://shop.samsung.com/ar')) {
+        url = url.replace('https://shop.samsung.com/', 'https://shop.samsung.com/ar/')
+      } else if (url.startsWith('/')) {
+        const cleanPath = url.startsWith('/ar/') ? url : `/ar${url}`
+        url = `https://shop.samsung.com${cleanPath}`
+      }
+    }
+  } else if (isGenericRoot) {
     if (storeLower.includes('fravega')) {
       url = `https://www.fravega.com/l/?keyword=${qEnc}`
     } else if (storeLower.includes('musimundo')) {
@@ -257,8 +273,6 @@ export function resolveOutboundUrl(
       url = `https://www.vea.com.ar/${qEnc}?_q=${qEnc}&map=ft`
     } else if (storeLower.includes('masonline')) {
       url = `https://www.masonline.com.ar/${qEnc}?_q=${qEnc}&map=ft`
-    } else if (storeLower.includes('samsung')) {
-      url = `https://shop.samsung.com.ar/${qEnc}?_q=${qEnc}&map=ft`
     } else {
       url = `${domain}/${qEnc}?_q=${qEnc}&map=ft`
     }
