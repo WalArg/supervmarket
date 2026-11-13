@@ -1454,17 +1454,17 @@ BASELINE_MARKETPLACE_TIERS = [
                     },
                     {
                         "supermercado": "MercadoLibre",
-                        "precio": 219000,
-                        "precio_lista": 450000,
+                        "precio": 289999,
+                        "precio_lista": 429999,
                         "stock": 50,
                         "disponible": True,
-                        "discount": 51,
-                        "promo_label": "51% OFF · FULL",
+                        "discount": 33,
+                        "promo_label": "33% OFF · FULL",
                         "seller_name": "Zafiro Colchones",
                         "seller_id": "1",
                         "store_type": "marketplace",
                         "is_full": True,
-                        "link": "https://articulo.mercadolibre.com.ar/MLA-2173232660"
+                        "link": "https://www.mercadolibre.com.ar/p/MLA27778250"
                     }
                 ]
             },
