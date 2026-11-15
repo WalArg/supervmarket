@@ -192,8 +192,13 @@ describe('Milestone 4: Differentiated Search, Complete Store Registry & Marketpl
         </LocationProvider>,
       )
 
+      // Select vertical first, type query and press Enter
+      const mpChip = screen.getByRole('button', { name: /^Marketplaces \/ Electro$/i })
+      fireEvent.click(mpChip)
+
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'televisor' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       // Wait for search result
       await waitFor(() => {
@@ -201,13 +206,8 @@ describe('Milestone 4: Differentiated Search, Complete Store Registry & Marketpl
       })
 
       // Vertical filter chip bar must be visible
-      expect(screen.getByRole('button', { name: /^Todos$/i })).toBeTruthy()
       expect(screen.getByRole('button', { name: /^Supermercados$/i })).toBeTruthy()
       expect(screen.getByRole('button', { name: /^Marketplaces \/ Electro$/i })).toBeTruthy()
-
-      // Click "Marketplaces / Electro" chip
-      const mpChip = screen.getByRole('button', { name: /^Marketplaces \/ Electro$/i })
-      fireEvent.click(mpChip)
 
       await waitFor(() => {
         expect(api.searchProducts).toHaveBeenCalledWith(
@@ -276,8 +276,13 @@ describe('Milestone 4: Differentiated Search, Complete Store Registry & Marketpl
         </LocationProvider>,
       )
 
+      // Select vertical first, type query and press Enter
+      const superChip = screen.getByRole('button', { name: /^Supermercados$/i })
+      fireEvent.click(superChip)
+
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'combo' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
         expect(screen.getByText('Leche Coto')).toBeTruthy()

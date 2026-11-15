@@ -125,53 +125,64 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       },
     ]
 
-    it('1.1 Initial render presents "Todos" active and requests all verticals to API', async () => {
+    it('1.1 Initial render presents Supermercados and Marketplaces / Electro, requires selection, and executes search on Enter', async () => {
       vi.mocked(api.searchProducts).mockResolvedValue(mockMixedCatalog)
       renderWithProviders(<SearchScreen />)
 
-      const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
-      fireEvent.change(input, { target: { value: 'combo' } })
-
-      await waitFor(() => {
-        expect(screen.getByText('Leche La Serenísima 1L')).toBeTruthy()
-      })
-
-      // Chips must exist
-      const allChip = screen.getByRole('button', { name: /^Todos$/i })
+      // The two distinct verticals must be visible initially
       const superChip = screen.getByRole('button', { name: /^Supermercados$/i })
       const mpChip = screen.getByRole('button', { name: /^Marketplaces \/ Electro$/i })
 
-      expect(allChip).toBeTruthy()
       expect(superChip).toBeTruthy()
       expect(mpChip).toBeTruthy()
+      expect(screen.queryByRole('button', { name: /^Todos$/i })).toBeNull()
 
-      // "Todos" should have active styling (bg-blue-600)
-      expect(allChip.className).toContain('bg-blue-600')
+      // Neither is active initially
       expect(superChip.className).not.toContain('bg-blue-600')
       expect(mpChip.className).not.toContain('bg-blue-600')
 
-      // API was called with null vertical and grocery_only: false
-      expect(api.searchProducts).toHaveBeenCalledWith(
-        'combo',
-        'unit_price_asc',
-        false,
-        null,
-        expect.objectContaining({
-          vertical: null,
-          grocery_only: false,
-        }),
-      )
+      // Typing and hitting Enter without selecting a vertical shows prompt and does NOT call API
+      const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
+      fireEvent.change(input, { target: { value: 'combo' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
+
+      expect(api.searchProducts).not.toHaveBeenCalled()
+      expect(screen.getByText(/Por favor seleccioná Supermercados o Marketplaces/i)).toBeTruthy()
+
+      // Selecting Supermercados executes search
+      fireEvent.click(superChip)
+
+      await waitFor(() => {
+        expect(api.searchProducts).toHaveBeenCalledWith(
+          'combo',
+          'unit_price_asc',
+          false,
+          null,
+          expect.objectContaining({
+            vertical: 'supermarket',
+            grocery_only: true,
+          }),
+        )
+      })
+
+      expect(superChip.className).toContain('bg-blue-600')
+      expect(screen.getByText('Leche La Serenísima 1L')).toBeTruthy()
     })
 
     it('1.2 Switching to "Supermercados" updates chip state, queries API with grocery_only: true, and filters client-side', async () => {
       vi.mocked(api.searchProducts).mockResolvedValue(mockMixedCatalog)
       renderWithProviders(<SearchScreen />)
 
+      // Start in Marketplaces / Electro
+      const mpChip = screen.getByRole('button', { name: /^Marketplaces \/ Electro$/i })
+      fireEvent.click(mpChip)
+
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'combo' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
-        expect(screen.getByText('Leche La Serenísima 1L')).toBeTruthy()
+        expect(screen.getByText('Smart TV 55 Pulgadas 4K')).toBeTruthy()
       })
 
       // Click "Supermercados"
@@ -193,7 +204,7 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
 
       // Active styles transferred to Supermercados
       expect(superChip.className).toContain('bg-blue-600')
-      expect(screen.getByRole('button', { name: /^Todos$/i }).className).not.toContain('bg-blue-600')
+      expect(mpChip.className).not.toContain('bg-blue-600')
 
       // Client-side filtering check: Supermarket item is visible, Electro/Tech/Marketplace items are hidden
       expect(screen.getByText('Leche La Serenísima 1L')).toBeTruthy()
@@ -206,8 +217,13 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       vi.mocked(api.searchProducts).mockResolvedValue(mockMixedCatalog)
       renderWithProviders(<SearchScreen />)
 
+      // Start in Supermercados
+      const superChip = screen.getByRole('button', { name: /^Supermercados$/i })
+      fireEvent.click(superChip)
+
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'combo' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
         expect(screen.getByText('Leche La Serenísima 1L')).toBeTruthy()
@@ -231,6 +247,7 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       })
 
       expect(mpChip.className).toContain('bg-blue-600')
+      expect(superChip.className).not.toContain('bg-blue-600')
 
       // Client-side filtering check: TV (electro) & Colchón (marketplace) visible; Leche (supermarket) hidden
       expect(screen.getByText('Smart TV 55 Pulgadas 4K')).toBeTruthy()
@@ -243,8 +260,11 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       vi.mocked(api.searchProducts).mockResolvedValue(mockMixedCatalog)
       renderWithProviders(<SearchScreen />)
 
+      // Start in Supermercados
+      fireEvent.click(screen.getByRole('button', { name: /^Supermercados$/i }))
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'combo' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
         expect(screen.getByText('Leche La Serenísima 1L')).toBeTruthy()
@@ -277,33 +297,34 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       vi.mocked(api.searchProducts).mockResolvedValue(mockMixedCatalog)
       renderWithProviders(<SearchScreen />)
 
+      // Start in Supermercados
+      const superChip = screen.getByRole('button', { name: /^Supermercados$/i })
+      fireEvent.click(superChip)
+
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'combo' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
         expect(screen.getByText('Leche La Serenísima 1L')).toBeTruthy()
       })
 
-      const chips = [
-        screen.getByRole('button', { name: /^Supermercados$/i }),
-        screen.getByRole('button', { name: /^Marketplaces \/ Electro$/i }),
-        screen.getByRole('button', { name: /^Todos$/i }),
-      ]
+      const mpChip = screen.getByRole('button', { name: /^Marketplaces \/ Electro$/i })
+      const chips = [superChip, mpChip]
 
-      // Rapid sequence of 10 clicks
+      // Rapid sequence of 10 clicks toggling between the two verticals
       for (let i = 0; i < 10; i++) {
-        fireEvent.click(chips[i % 3])
+        fireEvent.click(chips[i % 2])
       }
 
-      // Final click is index 9: 9 % 3 = 0 -> "Supermercados"
-      expect(chips[0].className).toContain('bg-blue-600')
-      expect(chips[1].className).not.toContain('bg-blue-600')
-      expect(chips[2].className).not.toContain('bg-blue-600')
+      // Final click is index 9: 9 % 2 = 1 -> "Marketplaces / Electro"
+      expect(mpChip.className).toContain('bg-blue-600')
+      expect(superChip.className).not.toContain('bg-blue-600')
 
-      // Verify that after rapid clicks, Supermercados is active
+      // Verify that after rapid clicks, Marketplaces / Electro is active
       await waitFor(() => {
-        expect(screen.getByText('Leche La Serenísima 1L')).toBeTruthy()
-        expect(screen.queryByText('Smart TV 55 Pulgadas 4K')).toBeNull()
+        expect(screen.getByText('Smart TV 55 Pulgadas 4K')).toBeTruthy()
+        expect(screen.queryByText('Leche La Serenísima 1L')).toBeNull()
       })
     })
   })
@@ -361,8 +382,10 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       vi.mocked(api.searchProducts).mockResolvedValue(catalogWithAllVerticals)
       renderWithProviders(<SearchScreen />)
 
+      fireEvent.click(screen.getByRole('button', { name: /^Supermercados$/i }))
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'articulos' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
         expect(screen.getByText('Arroz Coto 1kg')).toBeTruthy()
@@ -396,11 +419,13 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       vi.mocked(api.searchProducts).mockResolvedValue(catalogWithAllVerticals)
       renderWithProviders(<SearchScreen />)
 
+      fireEvent.click(screen.getByRole('button', { name: /^Marketplaces \/ Electro$/i }))
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'articulos' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
-        expect(screen.getByText('Arroz Coto 1kg')).toBeTruthy()
+        expect(screen.getByText('Lavarropas Samsung 8kg')).toBeTruthy()
       })
 
       // Select Fravega
@@ -410,7 +435,6 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
 
       // Only Lavarropas Samsung 8kg should be shown
       expect(screen.getByText('Lavarropas Samsung 8kg')).toBeTruthy()
-      expect(screen.queryByText('Arroz Coto 1kg')).toBeNull()
       expect(screen.queryByText('Notebook Lenovo i5')).toBeNull()
 
       // Reopen dropdown via #store-filter-dropdown and select "Todos los comercios"
@@ -418,8 +442,7 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       const listbox2 = screen.getByRole('listbox')
       fireEvent.click(within(listbox2).getByRole('option', { name: /Todos los comercios/i }))
 
-      // All products return
-      expect(screen.getByText('Arroz Coto 1kg')).toBeTruthy()
+      // All products in this vertical return
       expect(screen.getByText('Notebook Lenovo i5')).toBeTruthy()
       expect(screen.getByText('Lavarropas Samsung 8kg')).toBeTruthy()
     })
@@ -428,19 +451,21 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       vi.mocked(api.searchProducts).mockResolvedValue(catalogWithAllVerticals)
       renderWithProviders(<SearchScreen />)
 
+      fireEvent.click(screen.getByRole('button', { name: /^Supermercados$/i }))
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'articulos' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
         expect(screen.getByText('Arroz Coto 1kg')).toBeTruthy()
       })
 
-      // Select Easy
+      // Select Carrefour
       fireEvent.click(screen.getByRole('button', { name: /Comercio:\s*Todos/i }))
-      fireEvent.click(within(screen.getByRole('listbox')).getByRole('option', { name: /Easy/i }))
-      expect(screen.getByText('Pintura Látex Interior 20L')).toBeTruthy()
+      fireEvent.click(within(screen.getByRole('listbox')).getByRole('option', { name: /Carrefour/i }))
+      expect(screen.getByText('Fideos Carrefour 500g')).toBeTruthy()
 
-      // Next search returns only supermarket items (no Easy)
+      // Next search returns only supermarket items (no Carrefour)
       vi.mocked(api.searchProducts).mockResolvedValue([
         {
           ean: 'only_coto',
@@ -451,6 +476,7 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       ])
 
       fireEvent.change(input, { target: { value: 'queso' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
         expect(screen.getByText('Queso Crema Coto')).toBeTruthy()
@@ -480,8 +506,10 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       vi.mocked(api.searchProducts).mockResolvedValue(catalogWithPromo)
       renderWithProviders(<SearchScreen />)
 
+      fireEvent.click(screen.getByRole('button', { name: /^Supermercados$/i }))
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'comida' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
         expect(screen.getByText('Leche Coto Regular')).toBeTruthy()
@@ -525,15 +553,7 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
 
       renderWithProviders(<SearchScreen />)
 
-      const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
-      fireEvent.change(input, { target: { value: 'sample' } })
-
-      await waitFor(() => {
-        expect(screen.getByText('Sample Item')).toBeTruthy()
-      })
-
       const chips = [
-        screen.getByRole('button', { name: /^Todos$/i }),
         screen.getByRole('button', { name: /^Supermercados$/i }),
         screen.getByRole('button', { name: /^Marketplaces \/ Electro$/i }),
       ]
@@ -561,8 +581,10 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
 
       renderWithProviders(<SearchScreen />)
 
+      fireEvent.click(screen.getByRole('button', { name: /^Supermercados$/i }))
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'item' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
         expect(screen.getByText('Leche')).toBeTruthy()
@@ -914,8 +936,11 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
 
       renderWithProviders(<SearchScreen />)
 
+      // Start in Supermercados
+      fireEvent.click(screen.getByRole('button', { name: /^Supermercados$/i }))
       const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
       fireEvent.change(input, { target: { value: 'electro' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       // Immediate switch to "Marketplaces / Electro"
       await waitFor(() => {
@@ -959,7 +984,10 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
       ])
 
       renderWithProviders(<SearchScreen />)
-      fireEvent.change(screen.getByPlaceholderText(/Buscá o escaneá/i), { target: { value: 'cafe' } })
+      fireEvent.click(screen.getByRole('button', { name: /^Supermercados$/i }))
+      const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
+      fireEvent.change(input, { target: { value: 'cafe' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
         expect(screen.getByText('Café instantáneo')).toBeTruthy()
@@ -1017,7 +1045,10 @@ describe('CHALLENGER M4: Adversarial Stress Test Suite — Differentiated Search
 
       vi.mocked(api.searchProducts).mockResolvedValue(massiveProducts)
       renderWithProviders(<SearchScreen />)
-      fireEvent.change(screen.getByPlaceholderText(/Buscá o escaneá/i), { target: { value: 'item' } })
+      fireEvent.click(screen.getByRole('button', { name: /^Supermercados$/i }))
+      const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
+      fireEvent.change(input, { target: { value: 'item' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
         expect(screen.getByText('Item de Jumbo')).toBeTruthy()

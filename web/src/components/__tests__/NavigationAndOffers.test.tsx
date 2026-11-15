@@ -146,9 +146,14 @@ describe('Navigation Structure, Centered Search & Góndolas de Ofertas', () => {
     expect(screen.queryByText(/Búsquedas recientes/i)).toBeNull()
     expect(screen.queryByText(/Lo más buscado/i)).toBeNull()
 
-    // Type in search input
+    // Select vertical and search on Enter
+    const superBtn = screen.getByRole('button', { name: /^Supermercados$/i })
+    fireEvent.click(superBtn)
+
+    // Type in search input and press Enter
     const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
     fireEvent.change(input, { target: { value: 'leche' } })
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
     // Wait for search results
     await waitFor(() => {

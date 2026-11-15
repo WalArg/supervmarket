@@ -568,6 +568,19 @@ async def search_grouped(
         st_val = r["store_type"] if "store_type" in keys and r["store_type"] else ""
         tp_val = r["tipo"] if "tipo" in keys and r["tipo"] else ""
         cat_norm_val = r["categoria_normalizada"] if "categoria_normalizada" in keys and r["categoria_normalizada"] else ""
+        raw_modelo = r["modelo"] if "modelo" in keys and r["modelo"] else ""
+        resolved_vertical = tp_val or st_val or "supermarket"
+        # Para supermercados y farmacias/perfumería, no existen modelos técnicos.
+        # Evitar exponer números internos (SKUs), códigos de barra o expresiones de pack (x50, x60) como modelos.
+        if resolved_vertical in ("supermarket", "pharmacy") or cat_norm_val in (
+            "almacen", "lacteos_frescos", "bebidas", "limpieza", "perfumeria_farmacia", "carnes_verduleria", "congelados"
+        ):
+            clean_modelo = ""
+        elif raw_modelo and (raw_modelo.isdigit() or re.match(r'^x\s*\d+$', str(raw_modelo).strip(), re.I)):
+            clean_modelo = ""
+        else:
+            clean_modelo = raw_modelo
+
         if grocery_only:
             cat_val = r["categorias"] if "categorias" in keys and r["categorias"] else ""
             norm_nom = _norm(r["nombre"])
@@ -583,7 +596,7 @@ async def search_grouped(
             "ean": r["ean"],
             "nombre": r["nombre"],
             "marca": r["marca"],
-            "modelo": r["modelo"] if "modelo" in keys and r["modelo"] else "",
+            "modelo": clean_modelo,
             "tipo": tp_val,
             "vertical": tp_val or st_val or "supermarket",
             "categoria_normalizada": cat_norm_val,

@@ -121,6 +121,19 @@ const ProductCard: React.FC<{
   const vertKey = isSuperCategory ? 'supermarket' : rawVert
   const badge = getVerticalBadge(vertKey)
 
+  // Modelo técnico alfanumérico válido únicamente para electro / tecnología / marketplace
+  const isTechVertical = vertKey === 'electro' || vertKey === 'marketplace'
+  const isMeaningfulModel = Boolean(
+    isTechVertical &&
+      group.modelo &&
+      group.modelo.trim().length >= 2 &&
+      group.modelo.trim().length <= 30 &&
+      !/^\d+$/.test(group.modelo.trim()) && // descartar números/SKUs internos
+      !/^\d{8,14}$/.test(group.modelo.trim()) && // descartar códigos EAN
+      !/^x\s*\d+$/i.test(group.modelo.trim()) && // descartar paquetes (x50, x60)
+      !/^\d+\s*(?:g|gr|kg|ml|l|lt|u|un|uni|unidades|caps?)$/i.test(group.modelo.trim()),
+  )
+
   const isDirect = Boolean(
     (!best.o.seller_name ||
       best.o.seller_name.trim().toLowerCase() === storeLabel(best.o.supermercado).trim().toLowerCase() ||
@@ -187,23 +200,33 @@ const ProductCard: React.FC<{
           )}
         </button>
 
-        {/* Info del producto */}
+        {/* Info del producto - clic en el encabezado abre la hoja de ofertas */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-1">
-            <div className="min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setSheet(true)
+              }}
+              className="min-w-0 flex-1 text-left focus:outline-none group/title"
+              aria-label={`Ver ofertas de ${group.nombre}`}
+            >
               <div className="flex items-center gap-1.5 mb-0.5 min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 truncate">{group.marca}</p>
                 <span className={`text-[9.5px] font-black px-1.5 py-0.2 rounded-md uppercase tracking-wider border shrink-0 ${badge.className}`}>
                   {badge.label}
                 </span>
-                {group.modelo && (
+                {isMeaningfulModel && (
                   <span className="text-[9px] font-mono font-bold bg-slate-100 text-slate-600 px-1 py-0.2 rounded truncate">
                     {group.modelo}
                   </span>
                 )}
               </div>
-              <h3 className="text-[13.5px] leading-snug font-semibold text-slate-900 line-clamp-2">{group.nombre}</h3>
-            </div>
+              <h3 className="text-[13.5px] leading-snug font-semibold text-slate-900 line-clamp-2 group-hover/title:text-blue-600 transition-colors">
+                {group.nombre}
+              </h3>
+            </button>
             <button
               type="button"
               onClick={(e) => {
@@ -317,11 +340,16 @@ const ProductCard: React.FC<{
 
         <button
           type="button"
-          onClick={() => setSheet(true)}
-          className="h-9 px-3 shrink-0 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-[13px] font-bold flex items-center gap-1 active:bg-blue-100"
+          onClick={(e) => {
+            e.stopPropagation()
+            setSheet(true)
+          }}
+          aria-haspopup="dialog"
+          aria-expanded={sheet}
+          className="min-h-[44px] h-11 px-4 shrink-0 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-[13px] font-bold flex items-center justify-center gap-1.5 active:bg-blue-100 active:scale-95 transition-all shadow-2xs cursor-pointer"
         >
-          <ChevronUp size={15} />
-          {rows.length > 1 ? `${rows.length} ofertas` : 'Ver'}
+          <ChevronUp size={16} className="text-blue-600 shrink-0" />
+          <span>{rows.length > 1 ? `${rows.length} ofertas` : 'Ver'}</span>
         </button>
         <QtyControl group={group} compact />
       </div>

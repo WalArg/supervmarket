@@ -11,19 +11,37 @@ import type { ProductGroup } from '../types'
 
 type Sort = 'unit_price_asc' | 'price_asc'
 
-export type VerticalFilter = 'all' | 'supermarket' | 'marketplace_electro'
+export type VerticalFilter = 'supermarket' | 'marketplace_electro'
 
 interface VerticalChipDef {
   id: VerticalFilter
   label: string
-  queryParam?: string
-  groceryOnly?: boolean
+  shortLabel: string
+  queryParam: string
+  groceryOnly: boolean
+  iconText: string
+  description: string
 }
 
-const VERTICAL_CHIPS: VerticalChipDef[] = [
-  { id: 'all', label: 'Todos' },
-  { id: 'supermarket', label: 'Supermercados', queryParam: 'supermarket', groceryOnly: true },
-  { id: 'marketplace_electro', label: 'Marketplaces / Electro', queryParam: 'marketplace,electro', groceryOnly: false },
+export const VERTICAL_CHIPS: VerticalChipDef[] = [
+  {
+    id: 'supermarket',
+    label: 'Supermercados',
+    shortLabel: 'Súper',
+    queryParam: 'supermarket',
+    groceryOnly: true,
+    iconText: '🛒',
+    description: 'Alimentos, bebidas, limpieza y perfumería',
+  },
+  {
+    id: 'marketplace_electro',
+    label: 'Marketplaces / Electro',
+    shortLabel: 'Electro & Tech',
+    queryParam: 'marketplace,electro',
+    groceryOnly: false,
+    iconText: '⚡',
+    description: 'Smart TVs, celulares, notebooks y electrodomésticos',
+  },
 ]
 
 const Chip: React.FC<{ active: boolean; onClick: () => void; children: React.ReactNode }> = ({ active, onClick, children }) => (
@@ -41,14 +59,15 @@ const Chip: React.FC<{ active: boolean; onClick: () => void; children: React.Rea
 const SearchScreen: React.FC = () => {
   const { cp, locationLabel, openModal } = useLocation()
   const [query, setQuery] = useState('')
-  const [debounced, setDebounced] = useState('')
+  const [submittedQuery, setSubmittedQuery] = useState('')
   const [results, setResults] = useState<ProductGroup[]>([])
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState<Sort>('unit_price_asc')
   const [onlyOffers, setOnlyOffers] = useState(false)
   const [onlyBulk, setOnlyBulk] = useState(false)
   const [onlyMulti, setOnlyMulti] = useState(false)
-  const [selectedVertical, setSelectedVertical] = useState<VerticalFilter>('all')
+  const [selectedVertical, setSelectedVertical] = useState<VerticalFilter | null>(null)
+  const [verticalPromptError, setVerticalPromptError] = useState(false)
   const [selectedStore, setSelectedStore] = useState<string | null>(null)
   const [storeDropdownOpen, setStoreDropdownOpen] = useState(false)
   const [scanning, setScanning] = useState(false)
@@ -56,25 +75,53 @@ const SearchScreen: React.FC = () => {
 
   const handleVerticalChange = (v: VerticalFilter) => {
     setSelectedVertical(v)
+    setVerticalPromptError(false)
     setSelectedStore(null)
+    const activeText = query.trim().length >= 2 ? query.trim() : submittedQuery.trim()
+    if (activeText.length >= 2) {
+      setSubmittedQuery(activeText)
+    }
   }
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(query.trim()), 350)
-    return () => clearTimeout(t)
-  }, [query])
-
-  useEffect(() => {
-    if (debounced.length < 2) {
+  const runSearch = (q: string, overrideVertical?: VerticalFilter) => {
+    const term = q.trim()
+    if (!term || term.length < 2) {
+      setSubmittedQuery('')
       setResults([])
       setLoading(false)
       setSelectedStore(null)
       return
     }
+    const targetVertical = overrideVertical || selectedVertical
+    if (!targetVertical) {
+      setVerticalPromptError(true)
+      return
+    }
+    setVerticalPromptError(false)
+    if (overrideVertical && overrideVertical !== selectedVertical) {
+      setSelectedVertical(overrideVertical)
+    }
+    setSelectedStore(null)
+    setStoreDropdownOpen(false)
+    setSubmittedQuery(term)
+    inputRef.current?.blur()
+    window.scrollTo({ top: 0 })
+  }
+
+  // Búsqueda API únicamente cuando se confirma submittedQuery y hay vertical seleccionada
+  useEffect(() => {
+    if (!submittedQuery || submittedQuery.length < 2 || !selectedVertical) {
+      if (!submittedQuery) {
+        setResults([])
+        setSelectedStore(null)
+      }
+      setLoading(false)
+      return
+    }
     let alive = true
     setLoading(true)
     const vertChip = VERTICAL_CHIPS.find(c => c.id === selectedVertical)
-    searchProducts(debounced, sort, onlyOffers, cp, {
+    searchProducts(submittedQuery, sort, onlyOffers, cp, {
       vertical: vertChip?.queryParam || null,
       grocery_only: vertChip?.groceryOnly ?? false,
     })
@@ -87,7 +134,7 @@ const SearchScreen: React.FC = () => {
     return () => {
       alive = false
     }
-  }, [debounced, sort, onlyOffers, cp, selectedVertical])
+  }, [submittedQuery, sort, onlyOffers, cp, selectedVertical])
 
   // Lista de comercios presentes en los resultados de búsqueda para filtrado
   const availableStores = useMemo(() => {
@@ -114,7 +161,7 @@ const SearchScreen: React.FC = () => {
     () =>
       results.filter(g => {
         if (selectedStore && !g.offers.some(o => o.supermercado === selectedStore)) return false
-        if (selectedVertical !== 'all') {
+        if (selectedVertical) {
           const chip = VERTICAL_CHIPS.find(c => c.id === selectedVertical)
           if (chip?.queryParam) {
             const allowedVerts = chip.queryParam.split(',')
@@ -160,7 +207,7 @@ const SearchScreen: React.FC = () => {
 
   // Detecta el producto para el recuadro patrocinado (Mercado Libre)
   const sponsoredCandidate = useMemo(() => {
-    const qTokens = debounced
+    const qTokens = submittedQuery
       .toLowerCase()
       .split(/\s+/)
       .map(t => t.trim())
@@ -195,26 +242,19 @@ const SearchScreen: React.FC = () => {
     }
 
     return null
-  }, [visible, debounced])
-
-  const runSearch = (q: string) => {
-    setSelectedStore(null)
-    setStoreDropdownOpen(false)
-    setQuery(q)
-    setDebounced(q)
-    inputRef.current?.blur()
-    window.scrollTo({ top: 0 })
-  }
+  }, [visible, submittedQuery])
 
   const onScan = useCallback((ean: string) => {
     setScanning(false)
     setSelectedStore(null)
     setStoreDropdownOpen(false)
     setQuery(ean)
-    setDebounced(ean)
+    setSelectedVertical(prev => prev || 'supermarket')
+    setVerticalPromptError(false)
+    setSubmittedQuery(ean)
   }, [])
 
-  const hasQuery = debounced.length >= 2
+  const hasQuery = Boolean(submittedQuery.length >= 2 && selectedVertical)
 
   return (
     <div className="pb-28">
@@ -232,7 +272,7 @@ const SearchScreen: React.FC = () => {
             <h1
               onClick={() => {
                 setQuery('')
-                setDebounced('')
+                setSubmittedQuery('')
                 setSelectedStore(null)
               }}
               className="text-[20px] font-extrabold tracking-tight cursor-pointer"
@@ -252,27 +292,68 @@ const SearchScreen: React.FC = () => {
 
           {/* Hero Branding centrado: Visible únicamente en el estado inicial sin búsqueda */}
           {!hasQuery && (
-            <div className="pt-8 pb-4 text-center animate-in fade-in zoom-in-95 duration-300">
+            <div className="pt-8 pb-3 text-center animate-in fade-in zoom-in-95 duration-300">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[11.5px] font-bold mb-3 shadow-2xs">
-                <Sparkles size={13} className="text-blue-600" /> Compará precios de supermercados
+                <Sparkles size={13} className="text-blue-600" /> Compará precios de supermercados y electro
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
                 Encontrá el mejor precio
               </h2>
               <p className="text-[13.5px] text-slate-500 font-medium max-w-sm mx-auto mt-1">
-                Buscá por producto, marca o escaneá con la cámara de tu celular.
+                Elegí dónde buscar, ingresá el producto y presioná enter para comparar.
               </p>
             </div>
           )}
 
-          {/* Formulario de búsqueda centrado (sin botón de escáner al inicio) / sticky arriba con escáner */}
+          {/* Selector de Verticales Segmentado: Visible siempre antes de buscar */}
+          <div className={`transition-all duration-300 ${!hasQuery ? 'max-w-lg mx-auto mb-3' : 'mb-2'}`}>
+            <div className="flex items-center justify-between gap-1 mb-1 px-0.5">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                ¿Dónde querés buscar?
+              </span>
+              {!selectedVertical && (
+                <span className="text-[10.5px] font-semibold text-blue-600 animate-pulse">
+                  * Elegí una opción
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {VERTICAL_CHIPS.map(chip => {
+                const isActive = selectedVertical === chip.id
+                return (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    onClick={() => handleVerticalChange(chip.id)}
+                    className={`shrink-0 min-h-[44px] h-12 px-3 rounded-2xl text-[13px] font-bold flex items-center justify-center gap-2 border transition-all active:scale-95 shadow-2xs ${
+                      isActive
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                        : verticalPromptError
+                        ? 'bg-white text-slate-800 border-amber-300 ring-2 ring-amber-400/30'
+                        : 'bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span aria-hidden="true" className="text-base shrink-0">{chip.iconText}</span>
+                    <span className="truncate">{chip.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+            {verticalPromptError && !selectedVertical && (
+              <div className="mt-2 text-center text-[12px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl py-1 px-2.5 animate-in fade-in">
+                ⚠️ Por favor seleccioná Supermercados o Marketplaces / Electro para iniciar la búsqueda.
+              </div>
+            )}
+          </div>
+
+          {/* Formulario de búsqueda: Se ejecuta al presionar Enter o tocar el botón Buscar */}
           <form
             onSubmit={e => {
               e.preventDefault()
-              runSearch(query.trim())
+              runSearch(query)
             }}
             className={`flex items-center gap-2 transition-all duration-300 ${
-              !hasQuery ? 'max-w-lg mx-auto mt-2' : ''
+              !hasQuery ? 'max-w-lg mx-auto mt-1' : ''
             }`}
           >
             <div className="relative flex-1">
@@ -284,29 +365,49 @@ const SearchScreen: React.FC = () => {
                 enterKeyHint="search"
                 autoComplete="off"
                 value={query}
-                onChange={e => setQuery(e.target.value)}
+                onChange={e => {
+                  setQuery(e.target.value)
+                  if (verticalPromptError && selectedVertical) {
+                    setVerticalPromptError(false)
+                  }
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    runSearch(query)
+                  }
+                }}
                 placeholder="Buscá o escaneá el producto que querés buscar..."
-                className={`w-full pl-11 pr-10 rounded-2xl bg-white border text-base font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all ${
+                className={`w-full pl-11 pr-20 rounded-2xl bg-white border text-base font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all ${
                   hasQuery
                     ? 'h-12 border-slate-200'
                     : 'h-14 border-slate-300/80 shadow-xs focus:border-blue-500'
                 }`}
               />
-              {query && (
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                {query && (
+                  <button
+                    type="button"
+                    aria-label="Borrar"
+                    onClick={() => {
+                      setQuery('')
+                      setSubmittedQuery('')
+                      setSelectedStore(null)
+                      inputRef.current?.focus()
+                    }}
+                    className="p-1.5 rounded-full text-slate-400 active:bg-slate-100"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
                 <button
-                  type="button"
-                  aria-label="Borrar"
-                  onClick={() => {
-                    setQuery('')
-                    setDebounced('')
-                    setSelectedStore(null)
-                    inputRef.current?.focus()
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-slate-400 active:bg-slate-100"
+                  type="submit"
+                  aria-label="Buscar"
+                  className="h-9 px-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-[12px] flex items-center justify-center active:scale-95 transition-all shadow-2xs"
                 >
-                  <X size={18} />
+                  Buscar
                 </button>
-              )}
+              </div>
             </div>
 
             {/* Botón de escáner a la derecha del buscador: Solo cuando el usuario busca */}
@@ -323,29 +424,6 @@ const SearchScreen: React.FC = () => {
           </form>
         </div>
 
-        {/* Selector de Verticales (WCAG 2.5.5 touch target >= 44px) */}
-        {hasQuery && (
-          <div className="px-4 pb-2 pt-0.5 flex items-center gap-2 overflow-x-auto no-scrollbar animate-in fade-in duration-200">
-            {VERTICAL_CHIPS.map(chip => {
-              const isActive = selectedVertical === chip.id
-              return (
-                <button
-                  key={chip.id}
-                  type="button"
-                  onClick={() => handleVerticalChange(chip.id)}
-                  className={`shrink-0 min-h-[44px] h-11 px-4 rounded-full text-[13px] font-bold flex items-center gap-1.5 border transition-all active:scale-95 shadow-2xs ${
-                    isActive
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <span>{chip.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        )}
-
         {/* Filtros generales y Desplegable de Comercios (solo cuando hay búsqueda) */}
         {hasQuery && (
           <div className="px-4 pb-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar animate-in fade-in duration-200">
@@ -359,43 +437,27 @@ const SearchScreen: React.FC = () => {
                 onClick={() => setStoreDropdownOpen(v => !v)}
                 className={`shrink-0 h-8 px-3 rounded-full text-[13px] font-semibold flex items-center gap-1.5 border transition-all ${
                   selectedStore
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs font-bold'
-                    : 'bg-white text-slate-700 border-slate-200 active:bg-slate-100'
+                    ? 'bg-blue-50 text-blue-700 border-blue-200 font-bold'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                {selectedStore ? (
-                  <>
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ background: '#ffffff' }}
-                    />
-                    <span>{storeLabel(selectedStore)}</span>
-                    <ChevronDown
-                      size={13}
-                      className={`transition-transform duration-200 ${
-                        storeDropdownOpen ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <Store size={14} className="text-slate-500" />
-                    <span>Comercio: Todos</span>
-                    <ChevronDown
-                      size={13}
-                      className={`transition-transform duration-200 ${
-                        storeDropdownOpen ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </>
-                )}
+                <Store size={14} className={selectedStore ? 'text-blue-600' : 'text-slate-500'} />
+                <span>{selectedStore ? storeLabel(selectedStore) : 'Comercio: Todos'}</span>
+                <ChevronDown size={13} className="text-slate-400" />
               </button>
             )}
 
-            <Chip active={false} onClick={() => setSort(s => (s === 'unit_price_asc' ? 'price_asc' : 'unit_price_asc'))}>
-              <ArrowUpDown size={14} />
-              {sort === 'unit_price_asc' ? 'Precio por kg/l' : 'Precio final'}
-            </Chip>
+            {/* Ordenamiento */}
+            <button
+              type="button"
+              onClick={() => setSort(s => (s === 'unit_price_asc' ? 'price_asc' : 'unit_price_asc'))}
+              className="shrink-0 h-8 px-3 rounded-full text-[13px] font-semibold flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 active:bg-slate-100"
+            >
+              <ArrowUpDown size={13} />
+              {sort === 'unit_price_asc' ? 'Menor $/unidad' : 'Menor precio'}
+            </button>
+
+            {/* Chips de filtro */}
             <Chip active={onlyOffers} onClick={() => setOnlyOffers(v => !v)}>
               <Flame size={14} /> Ofertas
             </Chip>
@@ -507,7 +569,7 @@ const SearchScreen: React.FC = () => {
 
       {/* CONTENIDO PRINCIPAL */}
       <main className="px-4 pt-2 space-y-4">
-        {/* VISTA INICIAL CENTRADA EN BUSCAR Y ESCANEAR (sin búsquedas habituales) */}
+        {/* VISTA INICIAL CENTRADA EN BUSCAR Y ESCANEAR */}
         {!hasQuery && (
           <div className="space-y-6 pt-2 max-w-lg mx-auto">
             {/* Banner escáner centrado */}
@@ -534,34 +596,34 @@ const SearchScreen: React.FC = () => {
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {[
-                  'Aceite de girasol',
-                  'Leche entera',
-                  'Café molido',
-                  'Fideos',
-                  'Arroz',
-                  'Cerveza',
-                  'Jabón líquido',
-                  'Smart TV 50"',
-                  'Celular Motorola',
-                ].map(prod => (
+                  { name: 'Aceite de girasol', vertical: 'supermarket' as VerticalFilter },
+                  { name: 'Leche entera', vertical: 'supermarket' as VerticalFilter },
+                  { name: 'Café molido', vertical: 'supermarket' as VerticalFilter },
+                  { name: 'Fideos', vertical: 'supermarket' as VerticalFilter },
+                  { name: 'Arroz', vertical: 'supermarket' as VerticalFilter },
+                  { name: 'Jabón líquido', vertical: 'supermarket' as VerticalFilter },
+                  { name: 'Pañales', vertical: 'supermarket' as VerticalFilter },
+                  { name: 'Smart TV 50"', vertical: 'marketplace_electro' as VerticalFilter },
+                  { name: 'Celular Motorola', vertical: 'marketplace_electro' as VerticalFilter },
+                ].map(item => (
                   <button
-                    key={prod}
+                    key={item.name}
                     type="button"
                     onClick={() => {
-                      setQuery(prod)
-                      setDebounced(prod)
+                      setQuery(item.name)
+                      runSearch(item.name, item.vertical)
                     }}
                     className="h-8 px-3 rounded-full text-[12px] font-bold bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 text-slate-700 transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
                   >
                     <Search size={11} className="text-slate-400" />
-                    <span>{prod}</span>
+                    <span>{item.name}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             <p className="text-[12px] text-slate-400 text-center px-4 leading-relaxed pt-2">
-              Comparamos en vivo Carrefour, Coto, Día, Jumbo, Disco, Vea, Más Online, Farmacity, Mercado Libre y más.
+              Comparamos en vivo Carrefour, Coto, Día, Jumbo, Disco, Vea, Más Online, Farmacity, Samsung, Frávega y Mercado Libre.
             </p>
           </div>
         )}
@@ -585,13 +647,13 @@ const SearchScreen: React.FC = () => {
             <SearchX size={40} className="mx-auto text-slate-300" />
             <p className="mt-3 font-bold text-slate-700">
               {selectedStore
-                ? `No encontramos productos en ${storeLabel(selectedStore)} para "${debounced}"`
-                : `No encontramos "${debounced}" con stock`}
+                ? `No encontramos productos en ${storeLabel(selectedStore)} para "${submittedQuery}"`
+                : `No encontramos "${submittedQuery}" con stock`}
             </p>
             <p className="text-[13px] text-slate-500 mt-1">
               {selectedStore
-                ? 'Probá seleccionando "Todos" para ver los precios de otras cadenas.'
-                : 'Probá con otra palabra o sacá los filtros.'}
+                ? 'Probá seleccionando "Todos los comercios" para ver los precios de otras cadenas.'
+                : 'Probá con otra palabra o cambiá de categoría (Supermercados o Marketplaces).'}
             </p>
             {selectedStore && (
               <button

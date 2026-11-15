@@ -361,8 +361,12 @@ describe('Feature Delivery: Mi Lista Habitual, Histórico de Precios y Patrocina
       </LocationProvider>,
     )
 
+    const superBtn = screen.getByRole('button', { name: /^Supermercados$/i })
+    fireEvent.click(superBtn)
+
     const input = screen.getByPlaceholderText(/Buscá o escaneá/i)
     fireEvent.change(input, { target: { value: 'galletitas' } })
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
 
     // Wait for search
     await waitFor(() => {

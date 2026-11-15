@@ -1279,12 +1279,17 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
                     clean_st = re.sub(r'[^A-Z0-9]', '', d_store.upper())
                     group_id = f"{group_id}_OUTLIER_{clean_st}_{item_id or abs(hash(d_nom)) % 10000000}"
 
+        # Para productos de supermercado/almacén o números puros/packs, no asignar modelo técnico
+        clean_base_model = base_model if not is_canonical_fresh else ""
+        if clean_base_model and (clean_base_model.isdigit() or re.match(r'^x\s*\d+$', str(clean_base_model).strip(), re.I)):
+            clean_base_model = ""
+
         g = by_ean.setdefault(group_id, {
             "id": group_id,
             "ean": group_id,
             "primary_ean": norm_e if (not is_canonical_fresh and has_valid_ean) else "",
             "model_key": model_key if (not is_canonical_fresh and model_key) else "",
-            "modelo": base_model if not is_canonical_fresh else "",
+            "modelo": clean_base_model,
             "tipo": d.get("tipo") or "",
             "nombre": d_nom if is_canonical_fresh else (d.get("nombre") or ""),
             "marca": d_marca if is_canonical_fresh else (d_marca if _is_valid_brand(d_marca) else "Genérico"),
@@ -1304,8 +1309,8 @@ def _store_in_memory(flat_products: list[dict]) -> list[dict]:
             g["marca"] = d_marca
         if not g.get("tipo") and d.get("tipo"):
             g["tipo"] = d.get("tipo")
-        if not g.get("modelo") and base_model:
-            g["modelo"] = base_model
+        if not g.get("modelo") and clean_base_model:
+            g["modelo"] = clean_base_model
         if not g.get("primary_ean") and norm_e and has_valid_ean:
             g["primary_ean"] = norm_e
 
