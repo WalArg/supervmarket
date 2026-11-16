@@ -148,6 +148,59 @@ async def send_turso_batch(client: turso.httpx.AsyncClient, statements: list, re
             await asyncio.sleep(1.0 * (attempt + 1))
     return False
 
+async def send_notification(summary: dict, error: Optional[str] = None):
+    """Envía un resumen de ejecución a Telegram, Discord o Webhook genérico."""
+    telegram_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    telegram_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    discord_webhook = os.environ.get("DISCORD_WEBHOOK_URL")
+
+    if not telegram_token and not discord_webhook:
+        logger.info("Notificaciones no configuradas (TELEGRAM_BOT_TOKEN o DISCORD_WEBHOOK_URL no definidos).")
+        return
+
+    now_ar = time.strftime("%d/%m/%Y %H:%M")
+    if error:
+        text = (
+            f"🚨 *SuperVmarket Scraper — ERROR*\n\n"
+            f"📅 *Fecha:* {now_ar} (ARG)\n"
+            f"❌ *Detalle:* `{error}`"
+        )
+    else:
+        stores_txt = "\n".join([f"  • *{st}*: {cnt:,} prods" for st, cnt in summary.get("stores", {}).items() if cnt > 0])
+        text = (
+            f"🛒 *SuperVmarket — Scraping Diario Exitoso*\n\n"
+            f"📅 *Fecha:* {now_ar} (ARG)\n"
+            f"⏱️ *Duración:* {summary.get('duration_str', 'N/A')}\n\n"
+            f"📦 *Productos por Tienda:*\n{stores_txt}\n\n"
+            f"✅ *Total en Turso Cloud:* {summary.get('total_prods', 0):,} productos actualizados."
+        )
+
+    async with turso.httpx.AsyncClient(timeout=10.0) as client:
+        # 1. Telegram
+        if telegram_token and telegram_chat_id:
+            try:
+                tg_url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+                resp = await client.post(tg_url, json={
+                    "chat_id": telegram_chat_id,
+                    "text": text,
+                    "parse_mode": "Markdown",
+                })
+                if resp.status_code == 200:
+                    logger.info("Notificación enviada a Telegram con éxito.")
+                else:
+                    logger.warning("Fallo al enviar notificación a Telegram: HTTP %d %s", resp.status_code, resp.text)
+            except Exception as e:
+                logger.warning("Error enviando notificación a Telegram: %s", e)
+
+        # 2. Discord
+        if discord_webhook:
+            try:
+                resp = await client.post(discord_webhook, json={"content": text})
+                if resp.status_code in (200, 204):
+                    logger.info("Notificación enviada a Discord con éxito.")
+            except Exception as e:
+                logger.warning("Error enviando notificación a Discord: %s", e)
+
 async def flush_buffer(client: turso.httpx.AsyncClient, prod_buffer: list, precio_buffer: list):
     if prod_buffer:
         sql_prod = (
@@ -326,6 +379,7 @@ async def run_scraper(
 
     total_prods = 0
     total_precios = 0
+    store_summary: Dict[str, int] = {}
     start_time = time.time()
 
     prod_buffer: list = []
@@ -427,6 +481,7 @@ async def run_scraper(
 
                 total_prods += store_count
                 total_precios += store_count
+                store_summary[store] = store_count
                 logger.info("Tienda %s finalizada: %d productos en %.1fs", store, store_count, time.time() - store_start)
 
             except Exception as e:
@@ -437,6 +492,15 @@ async def run_scraper(
     logger.info("Ultra-Fast Sitemap Scraper finalizado con éxito en %.1f segundos.", duration)
     logger.info("Total ítems procesados: %d productos / %d precios.", total_prods, total_precios)
     logger.info("=================================================================")
+
+    summary_data = {
+        "duration_seconds": duration,
+        "duration_str": f"{int(duration // 60)}m {int(duration % 60)}s" if duration >= 60 else f"{duration:.1f}s",
+        "total_prods": total_prods,
+        "total_precios": total_precios,
+        "stores": store_summary,
+    }
+    await send_notification(summary_data)
 
 def main():
     parser = argparse.ArgumentParser(description="SuperVmarket Ultra-Fast Sitemap Scraper")
