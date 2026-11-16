@@ -27,8 +27,13 @@ try:
 except ImportError:
     from normalization import extract_model
 
+try:
+    from . import turso
+except ImportError:
+    import turso
+
 _DSN = os.environ.get("DATABASE_URL", "sqlite:///./supervmarket.db")
-IS_SQLITE = _DSN.startswith("sqlite")
+IS_SQLITE = _DSN.startswith("sqlite") or turso.IS_TURSO_CONFIGURED
 _SNAPSHOT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "verified_offers_snapshot.json")
 
 SQLITE_MIGRATIONS = [
@@ -142,6 +147,11 @@ def _get_sqlite() -> sqlite3.Connection:
 
 
 async def _fetch(sql_sqlite: str, sql_pg: str, args: list):
+    if turso.IS_TURSO_CONFIGURED:
+        try:
+            return await turso.query(sql_sqlite, args)
+        except Exception:
+            pass
     if IS_SQLITE:
         conn = _get_sqlite()
         cur = conn.execute(sql_sqlite, args)
@@ -334,6 +344,8 @@ _HAS_FTS5: bool | None = None
 
 def _check_has_fts5() -> bool:
     global _HAS_FTS5
+    if turso.IS_TURSO_CONFIGURED:
+        return True
     if _HAS_FTS5 is None:
         try:
             conn = _get_sqlite()
