@@ -141,6 +141,9 @@ const OffersSheet: React.FC<{
                 <p className="text-[10.5px] text-blue-700 font-semibold mt-0.5">
                   🔍 Comparativa en vivo de precios y stock entre supermercados
                 </p>
+                <p className="text-[10px] text-slate-500 mt-0.5">
+                  📍 Precios de tu código postal. En la web de la tienda, confirmá tu CP para ver la tarifa de tu sucursal.
+                </p>
               </div>
               <button type="button" onClick={onClose} aria-label="Cerrar" className="p-2 -mr-2 rounded-full text-slate-400 active:bg-slate-100">
                 <X size={22} />
@@ -367,6 +370,7 @@ const OffersSheet: React.FC<{
                           {isVtexStore(r.o.supermercado) && (
                             <a
                               href={
+                                r.o.cart_link ||
                                 buildVtexCartAddUrl(r.o.supermercado, [
                                   {
                                     sku_id: r.o.sku_id,

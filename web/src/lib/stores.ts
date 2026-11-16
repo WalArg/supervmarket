@@ -175,7 +175,7 @@ export function buildVtexCartAddUrl(
   for (const item of items) {
     let sku = (item.sku_id || '').trim()
     if (!sku && item.link) {
-      const match = item.link.match(/-(\d+)\/p/) || item.link.match(/\/(\d+)\/p/)
+      const match = item.link.match(/-(\d{3,})\/p/) || item.link.match(/\/(\d{3,})\/p/)
       if (match) {
         sku = match[1]
       }
