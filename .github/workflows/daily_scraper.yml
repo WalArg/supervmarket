@@ -4,7 +4,7 @@ on:
   schedule:
     # 07:00 UTC = 04:00 AM hora de Argentina (todos los días)
     - cron: '0 7 * * *'
-  workflow_dispatch: # Permite apretar "Run workflow" para correrlo manualmente cuando quieras
+  workflow_dispatch: # Habilita el botón manual "Run workflow"
 
 jobs:
   scrape-and-sync:
@@ -29,7 +29,6 @@ jobs:
         env:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: |
           python scripts/daily_scraper.py --mode total
