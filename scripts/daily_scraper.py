@@ -153,9 +153,10 @@ async def send_notification(summary: dict, error: Optional[str] = None):
     telegram_token = os.environ.get("TELEGRAM_BOT_TOKEN")
     telegram_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     discord_webhook = os.environ.get("DISCORD_WEBHOOK_URL")
+    ntfy_topic = os.environ.get("NTFY_TOPIC")
 
-    if not telegram_token and not discord_webhook:
-        logger.info("Notificaciones no configuradas (TELEGRAM_BOT_TOKEN o DISCORD_WEBHOOK_URL no definidos).")
+    if not telegram_token and not discord_webhook and not ntfy_topic:
+        logger.info("Notificaciones no configuradas (TELEGRAM_BOT_TOKEN, DISCORD_WEBHOOK_URL o NTFY_TOPIC no definidos).")
         return
 
     now_ar = time.strftime("%d/%m/%Y %H:%M")
@@ -200,6 +201,24 @@ async def send_notification(summary: dict, error: Optional[str] = None):
                     logger.info("Notificación enviada a Discord con éxito.")
             except Exception as e:
                 logger.warning("Error enviando notificación a Discord: %s", e)
+
+        # 3. ntfy.sh (Push notification directa sin registro)
+        if ntfy_topic:
+            try:
+                clean_text = text.replace("*", "").replace("`", "")
+                resp = await client.post(
+                    f"https://ntfy.sh/{ntfy_topic}",
+                    content=clean_text.encode("utf-8"),
+                    headers={
+                        "Title": "SuperVmarket Scraper Diario",
+                        "Priority": "default" if not error else "high",
+                        "Tags": "shopping_cart,supermarket" if not error else "warning,rotating_light",
+                    },
+                )
+                if resp.status_code == 200:
+                    logger.info("Notificación enviada a ntfy.sh con éxito.")
+            except Exception as e:
+                logger.warning("Error enviando notificación a ntfy.sh: %s", e)
 
 async def flush_buffer(client: turso.httpx.AsyncClient, prod_buffer: list, precio_buffer: list):
     if prod_buffer:
