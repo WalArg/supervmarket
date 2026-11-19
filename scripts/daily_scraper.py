@@ -470,9 +470,11 @@ async def run_scraper(stores: Optional[List[str]] = None, max_items_per_store: O
 
 def main():
     parser = argparse.ArgumentParser(description="SuperVmarket High-Concurrency Sitemap Scraper")
+    parser.add_argument("--mode", default="total", help="Modo de ejecución (ej: total)")
     parser.add_argument("--stores", nargs="+", help="Tiendas específicas a scrapear")
     parser.add_argument("--max-items-per-store", type=int, default=None, help="Límite máximo por tienda")
-    args = parser.parse_args()
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE, help="Tamaño de lote")
+    args, _ = parser.parse_known_args()
 
     asyncio.run(run_scraper(stores=args.stores, max_items_per_store=args.max_items_per_store))
 
