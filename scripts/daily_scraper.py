@@ -51,42 +51,48 @@ logger = logging.getLogger("daily_scraper")
 
 # Configuración de Sitemaps y Concurrencia por Tienda
 SITEMAP_STORE_CONFIG = {
-    # --- Supermercados Principales (150+ workers simultáneos) ---
+    # --- Supermercados Principales (Catálogo activo en los sub-sitemaps más recientes) ---
     "Carrefour": {
         "domain": "https://www.carrefour.com.ar",
         "sitemap_url": "https://www.carrefour.com.ar/sitemap.xml",
         "workers": 35,
         "type": "supermarket",
+        "max_sub_sitemaps": 30,
     },
     "Jumbo": {
         "domain": "https://www.jumbo.com.ar",
         "sitemap_url": "https://www.jumbo.com.ar/sitemap.xml",
         "workers": 25,
         "type": "supermarket",
+        "max_sub_sitemaps": 30,
     },
     "Disco": {
         "domain": "https://www.disco.com.ar",
         "sitemap_url": "https://www.disco.com.ar/sitemap.xml",
         "workers": 25,
         "type": "supermarket",
+        "max_sub_sitemaps": 30,
     },
     "Vea": {
         "domain": "https://www.vea.com.ar",
         "sitemap_url": "https://www.vea.com.ar/sitemap.xml",
         "workers": 25,
         "type": "supermarket",
+        "max_sub_sitemaps": 30,
     },
     "Dia": {
         "domain": "https://diaonline.supermercadosdia.com.ar",
         "sitemap_url": "https://diaonline.supermercadosdia.com.ar/sitemap.xml",
         "workers": 15,
         "type": "supermarket",
+        "max_sub_sitemaps": 15,
     },
     "Más Online": {
         "domain": "https://www.masonline.com.ar",
         "sitemap_url": "https://www.masonline.com.ar/sitemap.xml",
         "workers": 25,
         "type": "supermarket",
+        "max_sub_sitemaps": 35,
     },
     # --- Retail / Electro ---
     "On City": {
@@ -94,12 +100,14 @@ SITEMAP_STORE_CONFIG = {
         "sitemap_url": "https://www.oncity.com/sitemap.xml",
         "workers": 15,
         "type": "electro",
+        "max_sub_sitemaps": 35,
     },
     "Cetrogar": {
         "domain": "https://www.cetrogar.com.ar",
         "sitemap_url": "https://www.cetrogar.com.ar/sitemap.xml",
         "workers": 15,
         "type": "electro",
+        "max_sub_sitemaps": 15,
     },
 }
 
@@ -246,8 +254,12 @@ class TursoBackgroundWriter:
             prod_buf.clear()
             precio_buf.clear()
 
-async def fetch_all_sitemap_slugs(client: turso.httpx.AsyncClient, root_sitemap_url: str) -> List[str]:
-    """Descarga de forma concurrente todos los sub-sitemaps de producto y extrae sus slugs."""
+async def fetch_all_sitemap_slugs(
+    client: turso.httpx.AsyncClient,
+    root_sitemap_url: str,
+    max_sub_sitemaps: Optional[int] = None,
+) -> List[str]:
+    """Descarga de forma concurrente los sub-sitemaps de producto y extrae sus slugs."""
     try:
         resp = await client.get(root_sitemap_url, timeout=15.0)
     except Exception as e:
@@ -259,6 +271,12 @@ async def fetch_all_sitemap_slugs(client: turso.httpx.AsyncClient, root_sitemap_
         return []
 
     sub_urls = [u for u in re.findall(r"<loc>(.*?)</loc>", resp.text) if "product" in u.lower()]
+    total_found = len(sub_urls)
+    if max_sub_sitemaps and total_found > max_sub_sitemaps:
+        logger.info("[%s] Acotando sitemap a los %d sub-sitemaps más recientes (de %d totales)",
+                    root_sitemap_url, max_sub_sitemaps, total_found)
+        sub_urls = sub_urls[:max_sub_sitemaps]
+
     sem = asyncio.Semaphore(35)
     async def fetch_sub(url: str) -> List[str]:
         async with sem:
@@ -298,8 +316,9 @@ async def harvest_vtex_sitemap_store_concurrent(
     domain = config["domain"]
     sitemap_url = config["sitemap_url"]
     worker_count = config.get("workers", 25)
+    max_subs = config.get("max_sub_sitemaps", 30)
 
-    slugs = await fetch_all_sitemap_slugs(client, sitemap_url)
+    slugs = await fetch_all_sitemap_slugs(client, sitemap_url, max_sub_sitemaps=max_subs)
     if not slugs:
         return 0
 
@@ -403,6 +422,15 @@ async def send_notification(summary: dict, error: Optional[str] = None):
 async def run_scraper(stores: Optional[List[str]] = None, max_items_per_store: Optional[int] = None):
     if not turso.IS_TURSO_CONFIGURED:
         logger.error("TURSO_DATABASE_URL o TURSO_AUTH_TOKEN faltantes. Abortando.")
+        return
+
+    logger.info("Turso Endpoint configurado: %s", turso.TURSO_HTTP_URL)
+    try:
+        ping_res = await turso.query("SELECT 1 as ping")
+        logger.info("Conexión con Turso Cloud DB verificada exitosamente: %s", ping_res)
+    except Exception as e:
+        logger.error("Error conectando con Turso Cloud DB: %s", e)
+        await send_notification({}, error=f"Fallo de conexión inicial a Turso Cloud DB: {e}")
         return
 
     target_store_keys = stores or list(SITEMAP_STORE_CONFIG.keys()) + ["Coto", "MercadoLibre"]

@@ -14,16 +14,30 @@ from typing import Any, List, Optional
 _DEFAULT_URL = "https://supervmarket-walarg.aws-sa-east-1.turso.io"
 _DEFAULT_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3OTQ3OTcxMzMsImlkIjoiMDFhMWUyM2UtNzkwMS03ZGE2LWJmOGMtMjhlNzY5OGY4ZDkyIiwia2lkIjoiRkNKbFZJM05fdzBFZG51RU1zWmp1eWxZdW5nMVdHT25lWDMzcmNISV9JcyIsInJpZCI6IjIyMzYxMDM5LWJiMDMtNDliNi1hMzFkLTJiYzIyNGU5NzZiZCJ9.qrswQjXyAlAugwuSfbJ4HHeMEyVUnXaew2bpil8S7OzWQ7gmYPnhT_x-ZJKPChLsAaXsLlJVZfS-vnyCjISuDA"
 
-_TURSO_RAW_URL = os.environ.get("TURSO_DATABASE_URL") or os.environ.get("DATABASE_URL") or _DEFAULT_URL
-_TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN") or _DEFAULT_TOKEN
+def _sanitize_url(val: Optional[str]) -> str:
+    if not val:
+        return _DEFAULT_URL
+    u = str(val).strip().strip("'\"").strip()
+    if "=" in u and ("TURSO" in u or "DATABASE_URL" in u):
+        u = u.split("=", 1)[1].strip().strip("'\"").strip()
+    if u.startswith("libsql://"):
+        u = "https://" + u[len("libsql://"):]
+    elif not u.startswith("http://") and not u.startswith("https://"):
+        u = "https://" + u
+    return u.rstrip("/").strip()
 
-# Normalizar URL: libsql:// -> https://
-if _TURSO_RAW_URL.startswith("libsql://"):
-    TURSO_HTTP_URL = _TURSO_RAW_URL.replace("libsql://", "https://")
-elif _TURSO_RAW_URL.startswith("http://") or _TURSO_RAW_URL.startswith("https://"):
-    TURSO_HTTP_URL = _TURSO_RAW_URL
-else:
-    TURSO_HTTP_URL = _DEFAULT_URL
+def _sanitize_token(val: Optional[str]) -> str:
+    if not val:
+        return _DEFAULT_TOKEN
+    t = str(val).strip().strip("'\"").strip()
+    if "=" in t and ("TOKEN" in t or "AUTH" in t):
+        t = t.split("=", 1)[1].strip().strip("'\"").strip()
+    return t.strip()
+
+_TURSO_RAW_URL = os.environ.get("TURSO_DATABASE_URL") or os.environ.get("DATABASE_URL")
+TURSO_HTTP_URL = _sanitize_url(_TURSO_RAW_URL)
+
+_TURSO_TOKEN = _sanitize_token(os.environ.get("TURSO_AUTH_TOKEN"))
 
 IS_TURSO_CONFIGURED = bool(TURSO_HTTP_URL and _TURSO_TOKEN and "turso.io" in TURSO_HTTP_URL)
 
