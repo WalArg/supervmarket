@@ -2,16 +2,15 @@
 """scripts/daily_scraper.py
 
 Pipeline de Scraping Diario Definitivo de Alta Concurrencia para SuperVmarket.
-Arquitectura Sitemaps XML con Paralelismo Masivo y Escritor Desacoplado:
-1. Full Multi-Store Parallelism (asyncio.gather):
-   Carrefour (40), Jumbo (25), Disco (25), Vea (25), Dia (15), Más Online (25) se ejecutan
-   simultáneamente con más de 130 workers asíncronos en paralelo.
-2. Descubrimiento de Sitemaps en segundos:
-   Descarga concurrente de sub-sitemaps XML para obtener 100% de slugs únicos.
+Cubre TODO el ecosistema minorista: Supermercados, Marketplaces, Electro, Farmacias y Marcas Oficiales.
+
+Arquitectura:
+1. Matrix Parallelism (GitHub Actions): Dividido en 5 grupos en paralelo para completar
+   todo el país en ~35 minutos sobre runners independientes.
+2. Sitemaps XML de Alta Concurrencia: Workers asíncronos continuos (30-40 workers por tienda).
 3. Escritor en Segundo Plano Desacoplado (TursoBackgroundWriter):
-   Los workers de red jamás se frenan por la base de datos (enqueue en 0ms).
-   Un pipeline en background consume la cola y envía lotes de 80 sentencias a Turso Cloud DB.
-4. Notificaciones push automáticas a ntfy.sh, Discord o Telegram al finalizar.
+   Encolamiento en 0ms y guardado por lotes masivos directamente en Turso Cloud DB.
+4. Notificaciones Push consolidadas a ntfy.sh, Discord o Telegram al finalizar.
 """
 
 import os
@@ -20,6 +19,7 @@ import time
 import asyncio
 import logging
 import argparse
+import json
 import re
 from collections import defaultdict
 from typing import Dict, List, Any, Optional, Set
@@ -32,10 +32,12 @@ if ROOT_DIR not in sys.path:
 from api._lib import turso
 from api._lib.harvester import (
     HarvesterItem,
+    DEPARTMENTAL_SEEDS,
     _parse_vtex_product,
     resolve_product_ean,
     harvest_coto_store,
 )
+from api._lib.mercadolibre import fetch_mercadolibre_live, is_electro_query
 from api._lib.normalization import classify_product_type
 from api._lib.catalog_normalizer import classify_canonical_category
 from api._lib.parsers import _safe_float, _safe_int, _strip_accents
@@ -49,9 +51,30 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 logger = logging.getLogger("daily_scraper")
 
-# Configuración de Sitemaps y Concurrencia por Tienda (Alta Concurrencia para Barrido en < 1 Hora)
+# Grupos de Ingesta Paralela (Matrix Execution)
+STORE_GROUPS = {
+    # 1. Hipermercados Cencosud (Sitemaps profundos)
+    "cencosud": ["Jumbo", "Disco", "Vea"],
+
+    # 2. Hiper & Supermercados Nacionales
+    "supermercados-hiper": ["Carrefour", "Dia", "Más Online", "Toledo Digital", "Cordiez"],
+
+    # 3. Marketplaces, Retail, Hogar & Cadenas de Electro
+    "marketplaces-electro": ["On City", "Cetrogar", "Naldo", "Pardo", "Easy", "StyleStore"],
+
+    # 4. Farmacias, Perfumerías, Mascotas & Tiendas Oficiales de Marca
+    "especialidades-marcas": [
+        "Farmacity", "Simplicity", "Perfumerías Pigmento", "Puppis",
+        "Samsung", "Philips", "Whirlpool", "Oster", "Moulinex / Tefal"
+    ],
+
+    # 5. Coto Digital (API Endeca) + Mercado Libre (Catálogo Oficial y FULL)
+    "coto-mercadolibre": ["Coto", "MercadoLibre"],
+}
+
+# Configuración de Sitemaps y Concurrencia por Tienda
 SITEMAP_STORE_CONFIG = {
-    # --- Supermercados Principales (85 sub-sitemaps = hasta 85.000 productos por tienda = 100% de la góndola) ---
+    # --- Supermercados Principales (85 sub-sitemaps = hasta 85.000 productos = 100% de la góndola) ---
     "Carrefour": {
         "domain": "https://www.carrefour.com.ar",
         "sitemap_url": "https://www.carrefour.com.ar/sitemap.xml",
@@ -94,7 +117,22 @@ SITEMAP_STORE_CONFIG = {
         "type": "supermarket",
         "max_sub_sitemaps": 50,
     },
-    # --- Retail / Electro ---
+    "Toledo Digital": {
+        "domain": "https://www.toledodigital.com.ar",
+        "sitemap_url": "https://www.toledodigital.com.ar/sitemap.xml",
+        "workers": 20,
+        "type": "supermarket",
+        "max_sub_sitemaps": 25,
+    },
+    "Cordiez": {
+        "domain": "https://www.cordiez.com.ar",
+        "sitemap_url": "https://www.cordiez.com.ar/sitemap.xml",
+        "workers": 20,
+        "type": "supermarket",
+        "max_sub_sitemaps": 25,
+    },
+
+    # --- Marketplaces, Hogar, Construcción & Electro ---
     "On City": {
         "domain": "https://www.oncity.com",
         "sitemap_url": "https://www.oncity.com/sitemap.xml",
@@ -108,6 +146,103 @@ SITEMAP_STORE_CONFIG = {
         "workers": 20,
         "type": "electro",
         "max_sub_sitemaps": 25,
+    },
+    "Easy": {
+        "domain": "https://www.easy.com.ar",
+        "sitemap_url": "https://www.easy.com.ar/sitemap.xml",
+        "workers": 25,
+        "type": "specialty",
+        "max_sub_sitemaps": 40,
+    },
+    "Naldo": {
+        "domain": "https://www.naldo.com.ar",
+        "sitemap_url": "https://www.naldo.com.ar/sitemap.xml",
+        "workers": 20,
+        "type": "electro",
+        "max_sub_sitemaps": 25,
+    },
+    "Pardo": {
+        "domain": "https://www.pardo.com.ar",
+        "sitemap_url": "https://www.pardo.com.ar/sitemap.xml",
+        "workers": 20,
+        "type": "electro",
+        "max_sub_sitemaps": 25,
+    },
+    "StyleStore": {
+        "domain": "https://www.stylestore.com.ar",
+        "sitemap_url": "https://www.stylestore.com.ar/sitemap.xml",
+        "workers": 20,
+        "type": "electro",
+        "max_sub_sitemaps": 25,
+    },
+
+    # --- Farmacias & Perfumerías ---
+    "Farmacity": {
+        "domain": "https://www.farmacity.com",
+        "sitemap_url": "https://www.farmacity.com/sitemap.xml",
+        "workers": 25,
+        "type": "pharmacy",
+        "max_sub_sitemaps": 35,
+    },
+    "Simplicity": {
+        "domain": "https://www.simplicity.com.ar",
+        "sitemap_url": "https://www.simplicity.com.ar/sitemap.xml",
+        "workers": 20,
+        "type": "pharmacy",
+        "max_sub_sitemaps": 25,
+    },
+    "Perfumerías Pigmento": {
+        "domain": "https://www.perfumeriaspigmento.com.ar",
+        "sitemap_url": "https://www.perfumeriaspigmento.com.ar/sitemap.xml",
+        "workers": 20,
+        "type": "pharmacy",
+        "max_sub_sitemaps": 25,
+    },
+
+    # --- Mascotas ---
+    "Puppis": {
+        "domain": "https://www.puppis.com.ar",
+        "sitemap_url": "https://www.puppis.com.ar/sitemap.xml",
+        "workers": 20,
+        "type": "specialty",
+        "max_sub_sitemaps": 20,
+    },
+
+    # --- Tiendas Oficiales de Marca ---
+    "Samsung": {
+        "domain": "https://shop.samsung.com.ar",
+        "sitemap_url": "https://shop.samsung.com.ar/sitemap.xml",
+        "workers": 15,
+        "type": "electro",
+        "max_sub_sitemaps": 15,
+    },
+    "Philips": {
+        "domain": "https://www.tienda.philips.com.ar",
+        "sitemap_url": "https://www.tienda.philips.com.ar/sitemap.xml",
+        "workers": 15,
+        "type": "electro",
+        "max_sub_sitemaps": 15,
+    },
+    "Whirlpool": {
+        "domain": "https://www.whirlpool.com.ar",
+        "sitemap_url": "https://www.whirlpool.com.ar/sitemap.xml",
+        "workers": 15,
+        "type": "electro",
+        "max_sub_sitemaps": 15,
+    },
+    "Oster": {
+        "domain": "https://www.osterargentina.com",
+        "sitemap_url": "https://www.osterargentina.com/sitemap.xml",
+        "workers": 15,
+        "type": "electro",
+        "max_sub_sitemaps": 15,
+    },
+    "Moulinex / Tefal": {
+        "domain": "https://tienda.moulinex.com.ar",
+        "sitemap_url": "https://tienda.moulinex.com.ar/sitemap.xml",
+        "workers": 15,
+        "type": "electro",
+        "max_sub_sitemaps": 15,
     },
 }
 
@@ -365,6 +500,62 @@ async def harvest_vtex_sitemap_store_concurrent(
                 store_name, count, elapsed, count / max(0.1, elapsed))
     return count
 
+async def harvest_mercadolibre_catalog(
+    writer: TursoBackgroundWriter,
+    max_items: Optional[int] = None,
+) -> int:
+    """Ingesta masiva de catálogo oficial, envíos FULL y ofertas de Mercado Libre."""
+    logger.info("[MercadoLibre] Iniciando barrido masivo de catálogo...")
+    count = 0
+    seen_ids = set()
+
+    limits = turso.httpx.Limits(max_connections=50, max_keepalive_connections=20, keepalive_expiry=30.0)
+    async with turso.httpx.AsyncClient(limits=limits, timeout=15.0) as client:
+        sem = asyncio.Semaphore(6)
+
+        async def fetch_seed(seed: str):
+            nonlocal count
+            if max_items and count >= max_items:
+                return
+            is_electro = is_electro_query(seed)
+            vert = "electro" if is_electro else "supermarket"
+            async with sem:
+                try:
+                    results = await fetch_mercadolibre_live(client, seed, limit=50, vertical=vert)
+                    for r in results:
+                        sku = str(r.get("sku") or r.get("ean") or "")
+                        if not sku or sku in seen_ids:
+                            continue
+                        seen_ids.add(sku)
+
+                        item: HarvesterItem = {
+                            "store_name": "MercadoLibre",
+                            "external_id": sku,
+                            "ean_raw": r.get("ean") if not str(r.get("ean", "")).startswith("MELI_") else "",
+                            "title_raw": r.get("nombre", ""),
+                            "brand_raw": r.get("marca", ""),
+                            "categories_raw": vert,
+                            "link_raw": r.get("link", ""),
+                            "image_raw": r.get("imagen", ""),
+                            "price_raw": float(r.get("precio_venta") or 0.0),
+                            "list_price_raw": float(r.get("precio_lista") or 0.0),
+                            "stock_raw": int(r.get("stock") or 100),
+                            "seller_id_raw": str(r.get("seller_id") or "1"),
+                            "raw_json": json.dumps(r),
+                        }
+                        writer.enqueue(item)
+                        count += 1
+                        if max_items and count >= max_items:
+                            break
+                except Exception as e:
+                    logger.debug("[MercadoLibre] Error seed %s: %s", seed, e)
+
+        tasks = [fetch_seed(seed) for seed in DEPARTMENTAL_SEEDS]
+        await asyncio.gather(*tasks)
+
+    logger.info("[MercadoLibre] Ingesta finalizada: %d productos oficiales procesados", count)
+    return count
+
 async def send_notification(summary: dict, error: Optional[str] = None):
     telegram_token = os.environ.get("TELEGRAM_BOT_TOKEN")
     telegram_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -379,11 +570,12 @@ async def send_notification(summary: dict, error: Optional[str] = None):
         text = f"🚨 SuperVmarket Scraper ERROR\n\nFecha: {now_ar} (ARG)\nDetalle: {error}"
     else:
         stores_txt = "\n".join([f"  • {st}: {cnt:,} prods" for st, cnt in summary.get("stores", {}).items() if cnt > 0])
+        group_lbl = summary.get("group_name", "Total")
         text = (
-            f"🛒 SuperVmarket — Scraping Diario Exitoso\n\n"
+            f"🛒 SuperVmarket — {group_lbl} Exitoso\n\n"
             f"📅 Fecha: {now_ar} (ARG)\n"
             f"⏱️ Duración: {summary.get('duration_str', 'N/A')}\n\n"
-            f"📦 Productos por Tienda:\n{stores_txt}\n\n"
+            f"📦 Productos Procesados:\n{stores_txt}\n\n"
             f"✅ Total en Turso Cloud: {summary.get('total_prods', 0):,} productos actualizados."
         )
 
@@ -395,7 +587,7 @@ async def send_notification(summary: dict, error: Optional[str] = None):
                     f"https://ntfy.sh/{ntfy_topic}",
                     content=text.encode("utf-8"),
                     headers={
-                        "Title": "SuperVmarket Scraper Diario" if not error else "SuperVmarket Error",
+                        "Title": "SuperVmarket Scraper" if not error else "SuperVmarket Error",
                         "Priority": "default" if not error else "high",
                         "Tags": "shopping_cart,supermarket" if not error else "warning,rotating_light",
                     },
@@ -419,7 +611,52 @@ async def send_notification(summary: dict, error: Optional[str] = None):
             except Exception:
                 pass
 
-async def run_scraper(stores: Optional[List[str]] = None, max_items_per_store: Optional[int] = None):
+async def send_summary_notification():
+    """Calcula el consolidado global en Turso Cloud DB tras la finalización de los runners paralelos."""
+    if not turso.IS_TURSO_CONFIGURED:
+        logger.error("Turso no configurado para resumen.")
+        return
+
+    try:
+        prods_res = await turso.query("SELECT COUNT(*) as cnt FROM productos;")
+        total_prods = prods_res[0]["cnt"] if prods_res else 0
+
+        precios_res = await turso.query("SELECT COUNT(*) as cnt FROM precios;")
+        total_precios = precios_res[0]["cnt"] if precios_res else 0
+
+        stores_res = await turso.query(
+            "SELECT supermercado, COUNT(*) as cnt FROM precios GROUP BY supermercado ORDER BY cnt DESC LIMIT 20;"
+        )
+        stores_txt = "\n".join([f"  • {r['supermercado']}: {r['cnt']:,} ofertas" for r in (stores_res or [])])
+
+        now_ar = time.strftime("%d/%m/%Y %H:%M")
+        text = (
+            f"🎉 SuperVmarket — Barrido Nacional Consolidado Completo\n\n"
+            f"📅 Fecha: {now_ar} (ARG)\n"
+            f"🚀 Cobertura: Supermercados + Marketplaces + Electro + Farmacias\n\n"
+            f"📊 Estado Total en Turso Cloud DB:\n"
+            f"  • {total_prods:,} productos únicos catalogados\n"
+            f"  • {total_precios:,} ofertas y precios comparados\n\n"
+            f"🏪 Tiendas con Cobertura Activa:\n{stores_txt}\n\n"
+            f"🌐 App en vivo: https://vsupermarket.vercel.app"
+        )
+        logger.info(text)
+
+        summary = {
+            "group_name": "Barrido Nacional Consolidado",
+            "total_prods": total_prods,
+            "duration_str": "Multi-Runner Paralelo",
+            "stores": {r["supermercado"]: r["cnt"] for r in (stores_res or [])}
+        }
+        await send_notification(summary)
+    except Exception as e:
+        logger.error("Error al generar resumen consolidado: %s", e)
+
+async def run_scraper(
+    group: Optional[str] = None,
+    stores: Optional[List[str]] = None,
+    max_items_per_store: Optional[int] = None,
+):
     if not turso.IS_TURSO_CONFIGURED:
         logger.error("TURSO_DATABASE_URL o TURSO_AUTH_TOKEN faltantes. Abortando.")
         return
@@ -433,9 +670,31 @@ async def run_scraper(stores: Optional[List[str]] = None, max_items_per_store: O
         await send_notification({}, error=f"Fallo de conexión inicial a Turso Cloud DB: {e}")
         return
 
-    target_store_keys = stores or list(SITEMAP_STORE_CONFIG.keys()) + ["Coto", "MercadoLibre"]
+    # Determinación de tiendas según grupo o lista explícita
+    if group and group in STORE_GROUPS:
+        target_store_keys = STORE_GROUPS[group]
+        group_label = f"Grupo '{group}'"
+    elif group == "all":
+        target_store_keys = []
+        for g_stores in STORE_GROUPS.values():
+            for s in g_stores:
+                if s not in target_store_keys:
+                    target_store_keys.append(s)
+        group_label = "Todos los Grupos (Nacional)"
+    elif stores:
+        target_store_keys = stores
+        group_label = f"Tiendas manuales ({len(stores)})"
+    else:
+        # Default fallback: ejecutar todos los grupos
+        target_store_keys = []
+        for g_stores in STORE_GROUPS.values():
+            for s in g_stores:
+                if s not in target_store_keys:
+                    target_store_keys.append(s)
+        group_label = "Barrido Total Definitivo"
+
     logger.info("=================================================================")
-    logger.info("SCRAPER DEFINITIVO DE ALTA CONCURRENCIA (SITEMAPS XML)")
+    logger.info("SCRAPER DEFINITIVO DE ALTA CONCURRENCIA — %s", group_label.upper())
     logger.info("Tiendas en paralelo (%d): %s", len(target_store_keys), ", ".join(target_store_keys))
     logger.info("=================================================================")
 
@@ -473,9 +732,16 @@ async def run_scraper(stores: Optional[List[str]] = None, max_items_per_store: O
                     logger.info("[Coto] Ingesta finalizada: %d productos", c_count)
                     return c_count
                 tasks.append(run_coto())
+            elif store == "MercadoLibre":
+                tasks.append(
+                    harvest_mercadolibre_catalog(
+                        writer=writer,
+                        max_items=max_items_per_store,
+                    )
+                )
 
-        # Ejecución simultánea de todas las tiendas (full paralelismo)
-        logger.info("Lanzando todas las cadenas en simultáneo...")
+        # Ejecución simultánea de todas las tiendas asignadas a este runner
+        logger.info("Lanzando %d cadenas en simultáneo...", len(tasks))
         await asyncio.gather(*tasks)
 
         # Esperar a que el escritor en background drene la cola y haga el commit final
@@ -484,11 +750,12 @@ async def run_scraper(stores: Optional[List[str]] = None, max_items_per_store: O
 
     duration = time.time() - start_time
     logger.info("=================================================================")
-    logger.info("Scraper Definitivo finalizado con éxito en %.1f segundos.", duration)
+    logger.info("%s finalizado con éxito en %.1f segundos.", group_label, duration)
     logger.info("Total ítems procesados: %d productos / precios.", writer.total_written)
     logger.info("=================================================================")
 
     summary_data = {
+        "group_name": group_label,
         "duration_seconds": duration,
         "duration_str": f"{int(duration // 60)}m {int(duration % 60)}s" if duration >= 60 else f"{duration:.1f}s",
         "total_prods": writer.total_written,
@@ -498,13 +765,23 @@ async def run_scraper(stores: Optional[List[str]] = None, max_items_per_store: O
 
 def main():
     parser = argparse.ArgumentParser(description="SuperVmarket High-Concurrency Sitemap Scraper")
-    parser.add_argument("--mode", default="total", help="Modo de ejecución (ej: total)")
+    parser.add_argument("--group", choices=list(STORE_GROUPS.keys()) + ["all"], default=None,
+                        help="Grupo de tiendas a ejecutar en paralelo")
     parser.add_argument("--stores", nargs="+", help="Tiendas específicas a scrapear")
     parser.add_argument("--max-items-per-store", type=int, default=None, help="Límite máximo por tienda")
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE, help="Tamaño de lote")
+    parser.add_argument("--notify-summary", action="store_true", help="Calcular y enviar resumen global consolidado")
+    parser.add_argument("--mode", default="total", help="Compatibilidad backward")
     args, _ = parser.parse_known_args()
 
-    asyncio.run(run_scraper(stores=args.stores, max_items_per_store=args.max_items_per_store))
+    if args.notify_summary:
+        asyncio.run(send_summary_notification())
+    else:
+        asyncio.run(run_scraper(
+            group=args.group,
+            stores=args.stores,
+            max_items_per_store=args.max_items_per_store,
+        ))
 
 if __name__ == "__main__":
     main()
