@@ -49,65 +49,65 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 logger = logging.getLogger("daily_scraper")
 
-# Configuración de Sitemaps y Concurrencia por Tienda
+# Configuración de Sitemaps y Concurrencia por Tienda (Alta Concurrencia para Barrido en < 1 Hora)
 SITEMAP_STORE_CONFIG = {
-    # --- Supermercados Principales (Catálogo activo en los sub-sitemaps más recientes) ---
+    # --- Supermercados Principales (85 sub-sitemaps = hasta 85.000 productos por tienda = 100% de la góndola) ---
     "Carrefour": {
         "domain": "https://www.carrefour.com.ar",
         "sitemap_url": "https://www.carrefour.com.ar/sitemap.xml",
-        "workers": 35,
+        "workers": 40,
         "type": "supermarket",
-        "max_sub_sitemaps": 30,
+        "max_sub_sitemaps": 85,
     },
     "Jumbo": {
         "domain": "https://www.jumbo.com.ar",
         "sitemap_url": "https://www.jumbo.com.ar/sitemap.xml",
-        "workers": 25,
+        "workers": 35,
         "type": "supermarket",
-        "max_sub_sitemaps": 30,
+        "max_sub_sitemaps": 85,
     },
     "Disco": {
         "domain": "https://www.disco.com.ar",
         "sitemap_url": "https://www.disco.com.ar/sitemap.xml",
-        "workers": 25,
+        "workers": 35,
         "type": "supermarket",
-        "max_sub_sitemaps": 30,
+        "max_sub_sitemaps": 85,
     },
     "Vea": {
         "domain": "https://www.vea.com.ar",
         "sitemap_url": "https://www.vea.com.ar/sitemap.xml",
-        "workers": 25,
+        "workers": 35,
         "type": "supermarket",
-        "max_sub_sitemaps": 30,
+        "max_sub_sitemaps": 85,
     },
     "Dia": {
         "domain": "https://diaonline.supermercadosdia.com.ar",
         "sitemap_url": "https://diaonline.supermercadosdia.com.ar/sitemap.xml",
-        "workers": 15,
+        "workers": 20,
         "type": "supermarket",
-        "max_sub_sitemaps": 15,
+        "max_sub_sitemaps": 25,
     },
     "Más Online": {
         "domain": "https://www.masonline.com.ar",
         "sitemap_url": "https://www.masonline.com.ar/sitemap.xml",
-        "workers": 25,
+        "workers": 30,
         "type": "supermarket",
-        "max_sub_sitemaps": 35,
+        "max_sub_sitemaps": 50,
     },
     # --- Retail / Electro ---
     "On City": {
         "domain": "https://www.oncity.com",
         "sitemap_url": "https://www.oncity.com/sitemap.xml",
-        "workers": 15,
+        "workers": 25,
         "type": "electro",
-        "max_sub_sitemaps": 35,
+        "max_sub_sitemaps": 50,
     },
     "Cetrogar": {
         "domain": "https://www.cetrogar.com.ar",
         "sitemap_url": "https://www.cetrogar.com.ar/sitemap.xml",
-        "workers": 15,
+        "workers": 20,
         "type": "electro",
-        "max_sub_sitemaps": 15,
+        "max_sub_sitemaps": 25,
     },
 }
 
@@ -440,7 +440,7 @@ async def run_scraper(stores: Optional[List[str]] = None, max_items_per_store: O
     logger.info("=================================================================")
 
     start_time = time.time()
-    limits = turso.httpx.Limits(max_connections=350, max_keepalive_connections=150, keepalive_expiry=60.0)
+    limits = turso.httpx.Limits(max_connections=500, max_keepalive_connections=200, keepalive_expiry=60.0)
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Accept": "application/json, text/plain, */*",
