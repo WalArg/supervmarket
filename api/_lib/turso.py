@@ -17,22 +17,30 @@ _DEFAULT_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3O
 def _sanitize_url(val: Optional[str]) -> str:
     if not val:
         return _DEFAULT_URL
-    u = str(val).strip().strip("'\"").strip()
-    if "=" in u and ("TURSO" in u or "DATABASE_URL" in u):
-        u = u.split("=", 1)[1].strip().strip("'\"").strip()
-    if u.startswith("libsql://"):
-        u = "https://" + u[len("libsql://"):]
-    elif not u.startswith("http://") and not u.startswith("https://"):
-        u = "https://" + u
-    return u.rstrip("/").strip()
+    s = str(val).strip()
+    # 1. Si contiene 'supervmarket' y 'turso.io', usar el endpoint canónico de AWS São Paulo
+    if "supervmarket" in s.lower() and "turso.io" in s.lower():
+        return _DEFAULT_URL
+    # 2. Si es otra URL de Turso, extraer el subdominio limpio con regex
+    m = re.search(r"([a-zA-Z0-9\-\.]+\.turso\.io)", s)
+    if m:
+        return f"https://{m.group(1)}"
+    # 3. Fallback canónico probado
+    return _DEFAULT_URL
 
 def _sanitize_token(val: Optional[str]) -> str:
     if not val:
         return _DEFAULT_TOKEN
-    t = str(val).strip().strip("'\"").strip()
-    if "=" in t and ("TOKEN" in t or "AUTH" in t):
-        t = t.split("=", 1)[1].strip().strip("'\"").strip()
-    return t.strip()
+    s = str(val).strip()
+    # 1. Extraer JWT limpio (todo JWT de LibSQL / Turso empieza con 'eyJ')
+    m = re.search(r"(eyJ[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+)", s)
+    if m:
+        return m.group(1)
+    if "=" in s and ("TOKEN" in s or "AUTH" in s):
+        s = s.split("=", 1)[1].strip().strip("'\"").strip()
+    if ":" in s and ("TOKEN" in s or "AUTH" in s):
+        s = s.split(":", 1)[1].strip().strip("'\"").strip()
+    return s.strip() or _DEFAULT_TOKEN
 
 _TURSO_RAW_URL = os.environ.get("TURSO_DATABASE_URL") or os.environ.get("DATABASE_URL")
 TURSO_HTTP_URL = _sanitize_url(_TURSO_RAW_URL)

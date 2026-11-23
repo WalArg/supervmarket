@@ -273,7 +273,7 @@ async def send_turso_batch(client: turso.httpx.AsyncClient, statements: list, re
     }
     for attempt in range(retries):
         try:
-            resp = await client.post(pipeline_url, json=payload, headers=headers, timeout=25.0)
+            resp = await client.post(pipeline_url, json=payload, headers=headers, timeout=15.0)
             if resp.status_code == 200:
                 data = resp.json()
                 results = data.get("results", [])
@@ -619,6 +619,18 @@ async def send_summary_notification():
 
     try:
         prods_res = await turso.query("SELECT COUNT(*) as cnt FROM productos;")
+    except Exception as e:
+        logger.warning("Fallo al consultar resumen con endpoint actual (%s): %s. Intentando fallback canónico...", turso.TURSO_HTTP_URL, e)
+        turso.TURSO_HTTP_URL = turso._DEFAULT_URL
+        turso._TURSO_TOKEN = turso._DEFAULT_TOKEN
+        turso.IS_TURSO_CONFIGURED = True
+        try:
+            prods_res = await turso.query("SELECT COUNT(*) as cnt FROM productos;")
+        except Exception as e2:
+            logger.error("Error fatal al generar resumen consolidado: %s", e2)
+            return
+
+    try:
         total_prods = prods_res[0]["cnt"] if prods_res else 0
 
         precios_res = await turso.query("SELECT COUNT(*) as cnt FROM precios;")
@@ -664,11 +676,23 @@ async def run_scraper(
     logger.info("Turso Endpoint configurado: %s", turso.TURSO_HTTP_URL)
     try:
         ping_res = await turso.query("SELECT 1 as ping")
+        if not ping_res:
+            raise ValueError("Turso ping devolvió respuesta vacía")
         logger.info("Conexión con Turso Cloud DB verificada exitosamente: %s", ping_res)
     except Exception as e:
-        logger.error("Error conectando con Turso Cloud DB: %s", e)
-        await send_notification({}, error=f"Fallo de conexión inicial a Turso Cloud DB: {e}")
-        return
+        logger.warning("Fallo al conectar con endpoint configurado (%s): %s. Intentando fallback canónico...", turso.TURSO_HTTP_URL, e)
+        turso.TURSO_HTTP_URL = turso._DEFAULT_URL
+        turso._TURSO_TOKEN = turso._DEFAULT_TOKEN
+        turso.IS_TURSO_CONFIGURED = True
+        try:
+            ping_res = await turso.query("SELECT 1 as ping")
+            if not ping_res:
+                raise ValueError("Turso fallback devolvió respuesta vacía")
+            logger.info("Conexión con Turso Cloud DB (Fallback Canónico) verificada exitosamente: %s", ping_res)
+        except Exception as e2:
+            logger.error("Error fatal conectando con Turso Cloud DB tras fallback: %s", e2)
+            await send_notification({}, error=f"Fallo de conexión fatal a Turso Cloud DB: {e2}")
+            return
 
     # Determinación de tiendas según grupo o lista explícita
     if group and group in STORE_GROUPS:
