@@ -51,202 +51,208 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 logger = logging.getLogger("daily_scraper")
 
-# Grupos de Ingesta Paralela (Matrix Execution)
+# Grupos de Ingesta Paralela (Matrix Execution: 16 Runners Concurrentes)
 STORE_GROUPS = {
-    # 1. Hipermercados Cencosud (Sitemaps profundos)
-    "cencosud": ["Jumbo", "Disco", "Vea"],
+    # Supermercados e Hipermercados (1 runner dedicado por cadena mayor)
+    "jumbo": ["Jumbo"],
+    "disco": ["Disco"],
+    "vea": ["Vea"],
+    "carrefour": ["Carrefour"],
+    "coto": ["Coto"],
+    "dia": ["Dia"],
+    "masonline": ["Más Online"],
+    "toledo-cordiez": ["Toledo Digital", "Cordiez"],
 
-    # 2. Hiper & Supermercados Nacionales
-    "supermercados-hiper": ["Carrefour", "Dia", "Más Online", "Toledo Digital", "Cordiez"],
+    # Marketplaces, Retail, Hogar & Cadenas de Electro
+    "oncity": ["On City"],
+    "cetrogar": ["Cetrogar"],
+    "easy": ["Easy"],
+    "naldo-pardo": ["Naldo", "Pardo"],
+    "mercadolibre": ["MercadoLibre"],
 
-    # 3. Marketplaces, Retail, Hogar & Cadenas de Electro
-    "marketplaces-electro": ["On City", "Cetrogar", "Naldo", "Pardo", "Easy", "StyleStore"],
-
-    # 4. Farmacias, Perfumerías, Mascotas & Tiendas Oficiales de Marca
-    "especialidades-marcas": [
-        "Farmacity", "Simplicity", "Perfumerías Pigmento", "Puppis",
-        "Samsung", "Philips", "Whirlpool", "Oster", "Moulinex / Tefal"
+    # Farmacias, Mascotas & Tiendas Oficiales
+    "farmacity-simplicity": ["Farmacity", "Simplicity"],
+    "pigmento-puppis": ["Perfumerías Pigmento", "Puppis"],
+    "marcas-oficiales": [
+        "Samsung", "Philips", "Whirlpool", "Oster", "Moulinex / Tefal", "StyleStore"
     ],
-
-    # 5. Coto Digital (API Endeca) + Mercado Libre (Catálogo Oficial y FULL)
-    "coto-mercadolibre": ["Coto", "MercadoLibre"],
 }
 
 # Configuración de Sitemaps y Concurrencia por Tienda
 SITEMAP_STORE_CONFIG = {
-    # --- Supermercados Principales (85 sub-sitemaps = hasta 85.000 productos = 100% de la góndola) ---
+    # --- Supermercados Principales (100 sub-sitemaps = hasta 100.000 productos = 100% catálogo) ---
     "Carrefour": {
         "domain": "https://www.carrefour.com.ar",
         "sitemap_url": "https://www.carrefour.com.ar/sitemap.xml",
-        "workers": 40,
+        "workers": 50,
         "type": "supermarket",
-        "max_sub_sitemaps": 85,
+        "max_sub_sitemaps": 110,
     },
     "Jumbo": {
         "domain": "https://www.jumbo.com.ar",
         "sitemap_url": "https://www.jumbo.com.ar/sitemap.xml",
-        "workers": 35,
+        "workers": 50,
         "type": "supermarket",
-        "max_sub_sitemaps": 85,
+        "max_sub_sitemaps": 100,
     },
     "Disco": {
         "domain": "https://www.disco.com.ar",
         "sitemap_url": "https://www.disco.com.ar/sitemap.xml",
-        "workers": 35,
+        "workers": 50,
         "type": "supermarket",
-        "max_sub_sitemaps": 85,
+        "max_sub_sitemaps": 100,
     },
     "Vea": {
         "domain": "https://www.vea.com.ar",
         "sitemap_url": "https://www.vea.com.ar/sitemap.xml",
-        "workers": 35,
+        "workers": 50,
         "type": "supermarket",
-        "max_sub_sitemaps": 85,
+        "max_sub_sitemaps": 100,
     },
     "Dia": {
         "domain": "https://diaonline.supermercadosdia.com.ar",
         "sitemap_url": "https://diaonline.supermercadosdia.com.ar/sitemap.xml",
-        "workers": 20,
+        "workers": 25,
         "type": "supermarket",
-        "max_sub_sitemaps": 25,
+        "max_sub_sitemaps": 30,
     },
     "Más Online": {
         "domain": "https://www.masonline.com.ar",
         "sitemap_url": "https://www.masonline.com.ar/sitemap.xml",
-        "workers": 30,
+        "workers": 40,
         "type": "supermarket",
-        "max_sub_sitemaps": 50,
+        "max_sub_sitemaps": 60,
     },
     "Toledo Digital": {
         "domain": "https://www.toledodigital.com.ar",
         "sitemap_url": "https://www.toledodigital.com.ar/sitemap.xml",
-        "workers": 20,
+        "workers": 25,
         "type": "supermarket",
-        "max_sub_sitemaps": 25,
+        "max_sub_sitemaps": 30,
     },
     "Cordiez": {
         "domain": "https://www.cordiez.com.ar",
         "sitemap_url": "https://www.cordiez.com.ar/sitemap.xml",
-        "workers": 20,
+        "workers": 25,
         "type": "supermarket",
-        "max_sub_sitemaps": 25,
+        "max_sub_sitemaps": 30,
     },
 
     # --- Marketplaces, Hogar, Construcción & Electro ---
     "On City": {
         "domain": "https://www.oncity.com",
         "sitemap_url": "https://www.oncity.com/sitemap.xml",
-        "workers": 25,
+        "workers": 40,
         "type": "electro",
-        "max_sub_sitemaps": 50,
+        "max_sub_sitemaps": 60,
     },
     "Cetrogar": {
         "domain": "https://www.cetrogar.com.ar",
         "sitemap_url": "https://www.cetrogar.com.ar/sitemap.xml",
-        "workers": 20,
+        "workers": 25,
         "type": "electro",
-        "max_sub_sitemaps": 25,
+        "max_sub_sitemaps": 30,
     },
     "Easy": {
         "domain": "https://www.easy.com.ar",
         "sitemap_url": "https://www.easy.com.ar/sitemap.xml",
-        "workers": 25,
+        "workers": 35,
         "type": "specialty",
-        "max_sub_sitemaps": 40,
+        "max_sub_sitemaps": 50,
     },
     "Naldo": {
         "domain": "https://www.naldo.com.ar",
         "sitemap_url": "https://www.naldo.com.ar/sitemap.xml",
-        "workers": 20,
+        "workers": 25,
         "type": "electro",
-        "max_sub_sitemaps": 25,
+        "max_sub_sitemaps": 30,
     },
     "Pardo": {
         "domain": "https://www.pardo.com.ar",
         "sitemap_url": "https://www.pardo.com.ar/sitemap.xml",
-        "workers": 20,
+        "workers": 25,
         "type": "electro",
-        "max_sub_sitemaps": 25,
+        "max_sub_sitemaps": 30,
     },
     "StyleStore": {
         "domain": "https://www.stylestore.com.ar",
         "sitemap_url": "https://www.stylestore.com.ar/sitemap.xml",
-        "workers": 20,
+        "workers": 25,
         "type": "electro",
-        "max_sub_sitemaps": 25,
+        "max_sub_sitemaps": 30,
     },
 
     # --- Farmacias & Perfumerías ---
     "Farmacity": {
         "domain": "https://www.farmacity.com",
         "sitemap_url": "https://www.farmacity.com/sitemap.xml",
-        "workers": 25,
+        "workers": 30,
         "type": "pharmacy",
-        "max_sub_sitemaps": 35,
+        "max_sub_sitemaps": 40,
     },
     "Simplicity": {
         "domain": "https://www.simplicity.com.ar",
         "sitemap_url": "https://www.simplicity.com.ar/sitemap.xml",
-        "workers": 20,
+        "workers": 25,
         "type": "pharmacy",
-        "max_sub_sitemaps": 25,
+        "max_sub_sitemaps": 30,
     },
     "Perfumerías Pigmento": {
         "domain": "https://www.perfumeriaspigmento.com.ar",
         "sitemap_url": "https://www.perfumeriaspigmento.com.ar/sitemap.xml",
-        "workers": 20,
+        "workers": 25,
         "type": "pharmacy",
-        "max_sub_sitemaps": 25,
+        "max_sub_sitemaps": 30,
     },
 
     # --- Mascotas ---
     "Puppis": {
         "domain": "https://www.puppis.com.ar",
         "sitemap_url": "https://www.puppis.com.ar/sitemap.xml",
-        "workers": 20,
+        "workers": 25,
         "type": "specialty",
-        "max_sub_sitemaps": 20,
+        "max_sub_sitemaps": 25,
     },
 
     # --- Tiendas Oficiales de Marca ---
     "Samsung": {
         "domain": "https://shop.samsung.com.ar",
         "sitemap_url": "https://shop.samsung.com.ar/sitemap.xml",
-        "workers": 15,
+        "workers": 20,
         "type": "electro",
-        "max_sub_sitemaps": 15,
+        "max_sub_sitemaps": 20,
     },
     "Philips": {
         "domain": "https://www.tienda.philips.com.ar",
         "sitemap_url": "https://www.tienda.philips.com.ar/sitemap.xml",
-        "workers": 15,
+        "workers": 20,
         "type": "electro",
-        "max_sub_sitemaps": 15,
+        "max_sub_sitemaps": 20,
     },
     "Whirlpool": {
         "domain": "https://www.whirlpool.com.ar",
         "sitemap_url": "https://www.whirlpool.com.ar/sitemap.xml",
-        "workers": 15,
+        "workers": 20,
         "type": "electro",
-        "max_sub_sitemaps": 15,
+        "max_sub_sitemaps": 20,
     },
     "Oster": {
         "domain": "https://www.osterargentina.com",
         "sitemap_url": "https://www.osterargentina.com/sitemap.xml",
-        "workers": 15,
+        "workers": 20,
         "type": "electro",
-        "max_sub_sitemaps": 15,
+        "max_sub_sitemaps": 20,
     },
     "Moulinex / Tefal": {
         "domain": "https://tienda.moulinex.com.ar",
         "sitemap_url": "https://tienda.moulinex.com.ar/sitemap.xml",
-        "workers": 15,
+        "workers": 20,
         "type": "electro",
-        "max_sub_sitemaps": 15,
+        "max_sub_sitemaps": 20,
     },
 }
 
-BATCH_SIZE = 80
+BATCH_SIZE = 150
 
 def _to_turso_arg(val: Any) -> dict:
     if val is None:
@@ -261,7 +267,7 @@ def _to_turso_arg(val: Any) -> dict:
         return {"type": "text", "value": str(val)}
 
 async def send_turso_batch(client: turso.httpx.AsyncClient, statements: list, retries: int = 3) -> bool:
-    if not turso.IS_TURSO_CONFIGURED:
+    if not turso.IS_TURSO_CONFIGURED or not statements:
         return False
     pipeline_url = f"{turso.TURSO_HTTP_URL.rstrip('/')}/v2/pipeline"
     payload = {
@@ -273,49 +279,53 @@ async def send_turso_batch(client: turso.httpx.AsyncClient, statements: list, re
     }
     for attempt in range(retries):
         try:
-            resp = await client.post(pipeline_url, json=payload, headers=headers, timeout=15.0)
+            resp = await client.post(pipeline_url, json=payload, headers=headers, timeout=20.0)
             if resp.status_code == 200:
                 data = resp.json()
                 results = data.get("results", [])
                 if results and results[0].get("type") == "ok":
                     return True
+                elif results and results[0].get("type") == "error":
+                    err_msg = results[0].get("error", {}).get("message", "Error desconocido")
+                    logger.warning("Turso error en lote: %s", err_msg)
+            elif resp.status_code in (429, 500, 502, 503, 504):
+                await asyncio.sleep(1.0 * (attempt + 1))
         except Exception as e:
             if attempt == retries - 1:
-                logger.error("Fallo al enviar lote a Turso: %s", e)
+                logger.error("Fallo de red al enviar lote a Turso: %s", e)
             await asyncio.sleep(1.0 * (attempt + 1))
     return False
 
 class TursoBackgroundWriter:
-    """Escritor asíncrono desacoplado: consume la cola en background sin frenar los workers de red."""
-    def __init__(self, client: turso.httpx.AsyncClient, batch_size: int = BATCH_SIZE):
+    """Escritor asíncrono desacoplado de alta velocidad para Turso Cloud DB.
+    
+    Características:
+    - Cola sin límite artificial (unbounded): cero descarte de productos.
+    - Flushes concurrentes con semáforo: hasta 4 lotes en vuelo simultáneos sin bloquear la ingesta.
+    - SQL optimizado: INSERT OR IGNORE en 'productos' (evita regeneración lenta de índices FTS)
+      y INSERT OR REPLACE en 'precios' para refresco diario instantáneo.
+    - Registro de progreso periódico en logs para visibilidad total en GitHub Actions.
+    """
+    def __init__(self, client: turso.httpx.AsyncClient, batch_size: int = BATCH_SIZE, max_in_flight: int = 4):
         self.client = client
         self.batch_size = batch_size
-        self.queue: asyncio.Queue = asyncio.Queue(maxsize=50000)
+        self.queue: asyncio.Queue = asyncio.Queue()
         self.total_written = 0
         self.store_counts: Dict[str, int] = defaultdict(int)
         self._stopped = False
-        self._worker_task: Optional[asyncio.Task] = None
+        self._consumer_task: Optional[asyncio.Task] = None
+        self._in_flight_tasks: Set[asyncio.Task] = set()
+        self._sem = asyncio.Semaphore(max_in_flight)
 
     def start(self):
-        self._worker_task = asyncio.create_task(self._consumer_loop())
-
-    async def stop(self):
-        self._stopped = True
-        if self._worker_task:
-            await self._worker_task
+        self._consumer_task = asyncio.create_task(self._consumer_loop())
 
     def enqueue(self, item: HarvesterItem):
-        try:
-            self.queue.put_nowait(item)
-        except asyncio.QueueFull:
-            pass
+        self.queue.put_nowait(item)
 
-    async def _consumer_loop(self):
-        prod_buf = []
-        precio_buf = []
-        last_flush = time.time()
+    async def _flush_batch(self, prod_buf: list, precio_buf: list):
         sql_prod = (
-            "INSERT OR REPLACE INTO productos (ean, nombre, marca, modelo, tipo, imagen, "
+            "INSERT OR IGNORE INTO productos (ean, nombre, marca, modelo, tipo, imagen, "
             "supermercado_origen, categorias, categoria_normalizada, actualizado, search_text) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         )
@@ -325,10 +335,23 @@ class TursoBackgroundWriter:
             "promo_etiqueta, promo_tipo, promo_min_qty, precio_promo_unit, requiere_club, "
             "seller_id, store_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         )
+        async with self._sem:
+            stmts_p = [{"sql": sql_prod, "args": [_to_turso_arg(v) for v in r]} for r in prod_buf]
+            stmts_pr = [{"sql": sql_pr, "args": [_to_turso_arg(v) for v in r]} for r in precio_buf]
+            await asyncio.gather(
+                send_turso_batch(self.client, stmts_p),
+                send_turso_batch(self.client, stmts_pr),
+            )
+
+    async def _consumer_loop(self):
+        prod_buf = []
+        precio_buf = []
+        last_flush = time.time()
+        last_log = time.time()
 
         while not self._stopped or not self.queue.empty():
             try:
-                item = await asyncio.wait_for(self.queue.get(), timeout=0.25)
+                item = await asyncio.wait_for(self.queue.get(), timeout=0.2)
                 p_val = _safe_float(item.get("price_raw"), 0.0)
                 if p_val > 0:
                     store_name = item["store_name"]
@@ -368,33 +391,42 @@ class TursoBackgroundWriter:
 
             now = time.time()
             if len(prod_buf) >= self.batch_size or ((now - last_flush) >= 2.0 and prod_buf):
-                stmts_p = [{"sql": sql_prod, "args": [_to_turso_arg(v) for v in r]} for r in prod_buf]
-                stmts_pr = [{"sql": sql_pr, "args": [_to_turso_arg(v) for v in r]} for r in precio_buf]
-                await asyncio.gather(
-                    send_turso_batch(self.client, stmts_p),
-                    send_turso_batch(self.client, stmts_pr),
-                )
+                t = asyncio.create_task(self._flush_batch(list(prod_buf), list(precio_buf)))
+                self._in_flight_tasks.add(t)
+                t.add_done_callback(self._in_flight_tasks.discard)
                 prod_buf.clear()
                 precio_buf.clear()
                 last_flush = now
 
+            if now - last_log >= 30.0:
+                logger.info("[TursoWriter] En cola: %d | Total procesado: %d | Flushes en vuelo: %d",
+                            self.queue.qsize(), self.total_written, len(self._in_flight_tasks))
+                last_log = now
+
         # Flush final remanente
         if prod_buf or precio_buf:
-            stmts_p = [{"sql": sql_prod, "args": [_to_turso_arg(v) for v in r]} for r in prod_buf]
-            stmts_pr = [{"sql": sql_pr, "args": [_to_turso_arg(v) for v in r]} for r in precio_buf]
-            await asyncio.gather(
-                send_turso_batch(self.client, stmts_p),
-                send_turso_batch(self.client, stmts_pr),
-            )
+            t = asyncio.create_task(self._flush_batch(list(prod_buf), list(precio_buf)))
+            self._in_flight_tasks.add(t)
+            t.add_done_callback(self._in_flight_tasks.discard)
             prod_buf.clear()
             precio_buf.clear()
+
+        if self._in_flight_tasks:
+            await asyncio.gather(*self._in_flight_tasks)
+
+    async def stop(self):
+        self._stopped = True
+        if self._consumer_task:
+            await self._consumer_task
+        if self._in_flight_tasks:
+            await asyncio.gather(*self._in_flight_tasks)
 
 async def fetch_all_sitemap_slugs(
     client: turso.httpx.AsyncClient,
     root_sitemap_url: str,
     max_sub_sitemaps: Optional[int] = None,
 ) -> List[str]:
-    """Descarga de forma concurrente los sub-sitemaps de producto y extrae sus slugs."""
+    """Descarga de forma concurrente los sub-sitemaps de producto y extrae sus slugs en orden numérico."""
     try:
         resp = await client.get(root_sitemap_url, timeout=15.0)
     except Exception as e:
@@ -406,17 +438,24 @@ async def fetch_all_sitemap_slugs(
         return []
 
     sub_urls = [u for u in re.findall(r"<loc>(.*?)</loc>", resp.text) if "product" in u.lower()]
+
+    # Ordenar numéricamente para priorizar product-0.xml, product-1.xml, etc.
+    def sitemap_num(u: str) -> int:
+        m = re.search(r'product-(\d+)\.xml', u.lower())
+        return int(m.group(1)) if m else 999999
+    sub_urls.sort(key=sitemap_num)
+
     total_found = len(sub_urls)
     if max_sub_sitemaps and total_found > max_sub_sitemaps:
-        logger.info("[%s] Acotando sitemap a los %d sub-sitemaps más recientes (de %d totales)",
+        logger.info("[%s] Tomando los %d sub-sitemaps principales en orden numérico (de %d totales)",
                     root_sitemap_url, max_sub_sitemaps, total_found)
         sub_urls = sub_urls[:max_sub_sitemaps]
 
-    sem = asyncio.Semaphore(35)
+    sem = asyncio.Semaphore(40)
     async def fetch_sub(url: str) -> List[str]:
         async with sem:
             try:
-                r = await client.get(url, timeout=12.0)
+                r = await client.get(url, timeout=15.0)
                 if r.status_code == 200:
                     locs = re.findall(r"<loc>(.*?)</loc>", r.text)
                     extracted = []
@@ -637,7 +676,7 @@ async def send_summary_notification():
         total_precios = precios_res[0]["cnt"] if precios_res else 0
 
         stores_res = await turso.query(
-            "SELECT supermercado, COUNT(*) as cnt FROM precios GROUP BY supermercado ORDER BY cnt DESC LIMIT 20;"
+            "SELECT supermercado, COUNT(*) as cnt FROM precios GROUP BY supermercado ORDER BY cnt DESC LIMIT 30;"
         )
         stores_txt = "\n".join([f"  • {r['supermercado']}: {r['cnt']:,} ofertas" for r in (stores_res or [])])
 
