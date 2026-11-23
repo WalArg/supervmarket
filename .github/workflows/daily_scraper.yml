@@ -1,4 +1,4 @@
-name: SuperVmarket Daily Scraper
+name: SuperVmarket Daily Scraper — Barrido Nacional (Supermercados + Marketplaces + Electro)
 
 on:
   schedule:
@@ -7,9 +7,20 @@ on:
   workflow_dispatch: # Habilita el botón manual "Run workflow"
 
 jobs:
-  scrape-and-sync:
+  scrape-parallel:
+    name: Scrape Grupo ${{ matrix.group }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        group:
+          - cencosud
+          - supermercados-hiper
+          - marketplaces-electro
+          - especialidades-marcas
+          - coto-mercadolibre
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,10 +36,41 @@ jobs:
           python -m pip install --upgrade pip
           pip install httpx
 
-      - name: Run Ultra-Fast Sitemap Scraper to Turso
+      - name: Run Group Scraper to Turso
         env:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          python scripts/daily_scraper.py --mode total
+          python scripts/daily_scraper.py --group ${{ matrix.group }}
+
+  notify-summary:
+    name: Notificación Resumen Consolidado
+    needs: scrape-parallel
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install httpx
+
+      - name: Send Final Status Notification
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python scripts/daily_scraper.py --notify-summary
