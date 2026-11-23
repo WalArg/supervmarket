@@ -8,18 +8,30 @@ on:
 
 jobs:
   scrape-parallel:
-    name: Scrape Grupo ${{ matrix.group }}
+    name: Scrape ${{ matrix.group }}
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
     strategy:
       fail-fast: false
+      max-parallel: 20
       matrix:
         group:
-          - cencosud
-          - supermercados-hiper
-          - marketplaces-electro
-          - especialidades-marcas
-          - coto-mercadolibre
+          - jumbo
+          - disco
+          - vea
+          - carrefour
+          - coto
+          - dia
+          - masonline
+          - toledo-cordiez
+          - oncity
+          - cetrogar
+          - easy
+          - naldo-pardo
+          - mercadolibre
+          - farmacity-simplicity
+          - pigmento-puppis
+          - marcas-oficiales
 
     steps:
       - name: Checkout repository
