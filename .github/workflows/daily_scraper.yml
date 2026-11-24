@@ -10,28 +10,28 @@ jobs:
   scrape-parallel:
     name: Scrape ${{ matrix.group }}
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       max-parallel: 20
       matrix:
         group:
-          - jumbo
-          - disco
-          - vea
+          - provinciacompras
+          - coppel
           - carrefour
+          - jumbo
+          - vea
+          - disco
           - coto
-          - dia
           - masonline
-          - toledo-cordiez
           - oncity
-          - cetrogar
+          - fravega
           - easy
-          - naldo-pardo
-          - mercadolibre
-          - farmacity-simplicity
-          - pigmento-puppis
-          - marcas-oficiales
+          - farmacia
+          - electro-cadenas
+          - supermercados-regionales
+          - especialidades
+          - mercadolibre-marcas
 
     steps:
       - name: Checkout repository
