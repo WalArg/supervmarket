@@ -89,6 +89,16 @@ STORE_GROUPS = {
     "mercadolibre-marcas": [
         "MercadoLibre", "Samsung", "Philips", "Whirlpool", "Oster", "Moulinex / Tefal", "Sony Store"
     ],
+
+    # Aliases de retrocompatibilidad con runners previos
+    "dia": ["Dia"],
+    "toledo-cordiez": ["Toledo Digital", "Cordiez", "Josimar"],
+    "cetrogar": ["Cetrogar"],
+    "naldo-pardo": ["Naldo", "Pardo"],
+    "farmacity-simplicity": ["Farmacity", "Simplicity", "Farmaonline", "Farmaplus"],
+    "pigmento-puppis": ["Perfumerías Pigmento", "Puppis", "StyleStore", "Natural Life", "Catycan"],
+    "marcas-oficiales": ["Samsung", "Philips", "Whirlpool", "Oster", "Moulinex / Tefal", "Sony Store"],
+    "mercadolibre": ["MercadoLibre"],
 }
 
 # Configuración de Conexión, Endpoints y Concurrencia por Tienda
