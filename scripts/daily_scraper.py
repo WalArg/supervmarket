@@ -191,6 +191,7 @@ STORE_CONFIG = {
     },
     "Frávega": {
         "domain": "https://www.fravega.com",
+        "api_domain": "https://fravega.vtexcommercestable.com.br",
         "sc": "1",
         "workers": 30,
         "type": "electro",
@@ -587,16 +588,23 @@ async def harvest_vtex_store_concurrent(
 ) -> int:
     """Ingesta masiva de catálogo VTEX combinando barrido por árbol de categorías y sitemaps."""
     domain = config["domain"].rstrip("/")
+    api_domain = (config.get("api_domain") or domain).rstrip("/")
     sc = config.get("sc", "1")
     worker_count = config.get("workers", 25)
 
     # 1. Intentar barrido ultra-rápido por árbol de categorías VTEX
-    tree_url = f"{domain}/api/catalog_system/pub/category/tree/3"
+    tree_url = f"{api_domain}/api/catalog_system/pub/category/tree/3"
     leaf_categories = []
     try:
         r = await client.get(tree_url, timeout=15.0)
         if r.status_code == 200:
             leaf_categories = _extract_vtex_leaf_ids(r.json())
+        elif r.status_code == 403 and "fravega" in domain.lower() and "vtexcommercestable" not in api_domain:
+            # Fallback inmediato a CDN directo VTEX si Cloudflare bloquea la IP del runner
+            api_domain = "https://fravega.vtexcommercestable.com.br"
+            r_fb = await client.get(f"{api_domain}/api/catalog_system/pub/category/tree/3", timeout=15.0)
+            if r_fb.status_code == 200:
+                leaf_categories = _extract_vtex_leaf_ids(r_fb.json())
     except Exception as e:
         logger.warning("[%s] No se pudo obtener el árbol de categorías: %s", store_name, e)
 
@@ -625,7 +633,7 @@ async def harvest_vtex_store_concurrent(
                     if limit and count >= limit:
                         break
                     to_idx = offset + 49
-                    url = f"{domain}/api/catalog_system/pub/products/search?fq=C:{cat_path}&_from={offset}&_to={to_idx}"
+                    url = f"{api_domain}/api/catalog_system/pub/products/search?fq=C:{cat_path}&_from={offset}&_to={to_idx}"
                     if sc and sc != "none":
                         url += f"&sc={sc}"
 
@@ -641,6 +649,8 @@ async def harvest_vtex_store_concurrent(
                                     seen_ids.add(pid)
                                     items = _parse_vtex_product(p, store_name, domain)
                                     for it in items:
+                                        if "vtexcommercestable.com.br" in str(it.get("link_raw") or ""):
+                                            it["link_raw"] = str(it.get("link_raw") or "").replace("fravega.vtexcommercestable.com.br", "www.fravega.com")
                                         writer.enqueue(it)
                                         count += 1
                                         if limit and count >= limit:
